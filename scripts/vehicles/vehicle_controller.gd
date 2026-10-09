@@ -364,8 +364,17 @@ func _apply_body_aero(_delta: float, speed: float, _fwd: Vector3, up: Vector3) -
 	var drag := data.drag_coefficient * speed * speed
 	apply_central_force(-dir * drag)
 	dbg_drag_force = drag
-	if data.downforce_coefficient > 0.0:
-		apply_central_force(-up * data.downforce_coefficient * speed * speed)
+	# Baseline downforce so bumps/seams at top speed don't launch the car.
+	var df := maxf(data.downforce_coefficient, 0.9)
+	apply_central_force(-up * df * speed * speed)
+	# Anti-launch: when wheels leave the deck at speed, kill upward velocity
+	# and pull the car back down quickly.
+	if wheels_on_ground < wheels.size() and speed > 15.0:
+		var vy := linear_velocity.y
+		if vy > 0.0:
+			linear_velocity.y = vy * 0.85
+		if wheels_on_ground == 0:
+			apply_central_force(Vector3.DOWN * mass * 9.8)
 
 
 func _apply_stability_assist(_delta: float, up: Vector3) -> void:

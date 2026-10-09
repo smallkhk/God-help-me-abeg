@@ -70,11 +70,11 @@ enum Drivetrain { FWD, RWD, AWD }
 @export var max_steer_angle: float = 0.60
 ## Steering angle floor at high speed as a fraction of max (spec §5.2:
 ## speed-sensitive steering).
-@export var high_speed_steer_fraction: float = 0.28
+@export var high_speed_steer_fraction: float = 0.2
 ## Speed (m/s) at which steering reaches its high-speed minimum.
-@export var steer_speed_falloff: float = 45.0
+@export var steer_speed_falloff: float = 40.0
 ## How fast the steering angle moves toward its target (rad/s). Lower = heavier.
-@export var steer_rate: float = 3.2
+@export var steer_rate: float = 2.3
 ## How fast steering returns to centre when no input (rad/s).
 @export var steer_return_rate: float = 5.0
 

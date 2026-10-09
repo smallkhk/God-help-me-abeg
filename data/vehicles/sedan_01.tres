@@ -25,7 +25,6 @@ brake_force = 11000.0
 handbrake_force = 6000.0
 handbrake_grip_fraction = 0.35
 max_steer_angle = 0.6
-high_speed_steer_fraction = 0.28
 suspension_rest_length = 0.45
 suspension_stiffness = 32000.0
 suspension_damping = 3800.0

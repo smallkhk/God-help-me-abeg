@@ -18,6 +18,10 @@ func _ready() -> void:
 	if _vehicle == null:
 		push_error("player_driver: no VehicleController found.")
 		set_physics_process(false)
+		return
+	var audio := CarAudio.new()
+	audio.vehicle = _vehicle
+	_vehicle.add_child.call_deferred(audio)
 
 
 func _physics_process(_delta: float) -> void:

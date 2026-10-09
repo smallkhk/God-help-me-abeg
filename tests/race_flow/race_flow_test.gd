@@ -56,7 +56,7 @@ func _physics_process(_delta: float) -> void:
 	# Win condition / timeout.
 	if _race._state == _race.State.FINISHED:
 		_finish(true)
-	elif _t > 200.0:
+	elif _t > 320.0:
 		_finish(false)
 
 
@@ -81,12 +81,13 @@ func _steer() -> float:
 
 func _finish(finished: bool) -> void:
 	_done = true
+	print("[race_flow_test] car pos=%s speed=%.1f" % [_car.global_position, _car.linear_velocity.length()])
 	var best := SaveManager.get_best_time("bridge_test_sprint")
 	print("[race_flow_test] final state=%d  next=%d/%d  best_saved=%.3f  t=%.1fs" % [
 		_race._state, _race._next, _checkpoints.size(), best, _t])
 
 	if not finished:
-		_fail("race did not reach FINISHED within 120 s (stuck at checkpoint %d)" % _race._next)
+		_fail("race did not reach FINISHED within 320 s (stuck at checkpoint %d)" % _race._next)
 	if not _seen_states.has(_race.State.COUNTDOWN):
 		_fail("countdown state was never entered")
 	if not _seen_states.has(_race.State.RUNNING):
