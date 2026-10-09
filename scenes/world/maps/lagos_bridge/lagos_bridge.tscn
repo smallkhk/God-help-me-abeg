@@ -49,7 +49,7 @@ shadow_enabled = true
 
 [node name="MapBuilder" type="Node3D" parent="."]
 script = ExtResource("2")
-chunk_path = "res://data/map/lagos_bridge/tmb_south_prototype.json"
+chunk_path = "res://data/map/lagos_bridge/third_mainland_bridge.json"
 
 [node name="PlayerCar" parent="." instance=ExtResource("3")]
 transform = Transform3D(0.9701, 0, -0.2426, 0, 1, 0, 0.2426, 0, 0.9701, -387.117, 2.8, -2819.637)

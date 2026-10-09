@@ -1,14 +1,14 @@
 {
-  "chunk_id": "tmb_south_prototype",
-  "description": "Prototype slice of Third Mainland Bridge, Lagos. SYNTHETIC APPROXIMATION of the alignment used until a real OpenStreetMap extract is substituted (see docs/map_pipeline.md). The polyline below is NOT surveyed data and must not be presented as exact.",
+  "chunk_id": "third_mainland_bridge",
+  "description": "Third Mainland Bridge, Lagos — REAL road alignment derived from OpenStreetMap (ODbL). Horizontal geometry is the actual bridge carriageway; deck elevation is modelled (OSM has no reliable bridge height). Attribution: © OpenStreetMap contributors. See docs/source_licenses.md.",
 
   "geo_origin": { "lat": 6.498, "lon": 3.394, "note": "Local-metre origin. East->+X, North->+Z, Up->+Y." },
 
   "source": {
-    "type": "synthetic",
-    "osm_file": "",
+    "type": "osm_real",
+    "osm_file": "(stitched from api.openstreetmap.org tiles via stitch_osm_tiles.py)",
     "osm_way_ids": [],
-    "license": "Synthetic placeholder authored for this project. Replace with OpenStreetMap data (ODbL) via extract_osm.py; see docs/source_licenses.md before distribution."
+    "license": "OpenStreetMap data, ODbL. Attribution required: © OpenStreetMap contributors. Review docs/source_licenses.md before distribution."
   },
 
   "road": {

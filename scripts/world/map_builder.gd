@@ -10,7 +10,7 @@ extends Node3D
 ## as separate concerns but built from one source of truth (spec §4.3).
 ## Runs in the editor (@tool) via the `build` checkbox, and at runtime in _ready.
 
-@export_file("*.json") var chunk_path: String = "res://data/map/lagos_bridge/tmb_south_prototype.json"
+@export_file("*.json") var chunk_path: String = "res://data/map/lagos_bridge/third_mainland_bridge.json"
 ## Tick in the editor to (re)generate. Also rebuilds automatically at runtime.
 @export var build: bool = false:
 	set(v):
