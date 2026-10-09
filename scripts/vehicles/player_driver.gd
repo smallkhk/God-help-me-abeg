@@ -22,6 +22,9 @@ func _ready() -> void:
 	var audio := CarAudio.new()
 	audio.vehicle = _vehicle
 	_vehicle.add_child.call_deferred(audio)
+	var fx := CarFX.new()
+	fx.vehicle = _vehicle
+	_vehicle.add_child.call_deferred(fx)
 
 
 func _physics_process(_delta: float) -> void:

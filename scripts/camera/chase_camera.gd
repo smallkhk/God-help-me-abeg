@@ -57,6 +57,11 @@ func _physics_process(delta: float) -> void:
 			global_transform = Transform3D(Basis(), desired).looking_at(xf.origin + fwd * look_ahead, up)
 		_cam_pos = _cam_pos.lerp(desired, 1.0 - exp(-position_smooth * delta))
 		global_position = _cam_pos
+		# speed shake (subtle above ~120 km/h)
+		var spd := _target.linear_velocity.length()
+		if spd > 33.0:
+			var amt := minf((spd - 33.0) * 0.0015, 0.04)
+			global_position += Vector3(randf_range(-amt, amt), randf_range(-amt, amt), 0.0)
 
 		var vel := _target.linear_velocity
 		var ahead := xf.origin + fwd * look_ahead
