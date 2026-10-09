@@ -71,7 +71,9 @@ func _steer() -> float:
 			best_d = d
 			best_i = i
 	var ahead = _samples[mini(best_i + 4, _samples.size() - 1)]
-	var to_t := Vector3(ahead["x"] - pos.x, 0, ahead["z"] - pos.z)
+	var ah: float = ahead["heading_rad"]
+	var lane := Vector3(cos(ah), 0, -sin(ah)) * MapLoader.LANE_OFFSET
+	var to_t := Vector3(ahead["x"] + lane.x - pos.x, 0, ahead["z"] + lane.z - pos.z)
 	var fwd := _car.global_transform.basis.z
 	var right := _car.global_transform.basis.x
 	return clampf(atan2(to_t.dot(right), maxf(to_t.dot(fwd), 0.1)) * 1.4, -1.0, 1.0)

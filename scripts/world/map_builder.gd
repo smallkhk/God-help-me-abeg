@@ -62,6 +62,7 @@ func _build() -> void:
 	_build_skyline(root)
 	_build_land(root)
 	_build_osm_buildings(root)
+	_build_street_props(root)
 
 
 func _frames() -> Array:
@@ -576,6 +577,259 @@ func _btri(st: SurfaceTool, a: Vector3, b: Vector3, c: Vector3, col: Color) -> v
 	st.set_color(col)
 	for p in [a, b, c]:
 		st.set_uv(Vector2.ZERO); st.add_vertex(p)
+
+
+## Street life along the route: utility poles + wires, palm trees, telecom masts,
+## bus shelters, billboards (fictional brands), traffic cones, and a solid centre
+## median barrier (with collision). Scenery is merged into one vertex-coloured mesh.
+const _BRANDS := ["ZOBO COLA", "EKO BANK", "GIDI TELECOM", "SUYA KING", "LAGOS FM 97.3",
+	"OGA DATA 5G", "MAMA PUT FOODS", "JOLLOF EXPRESS", "NAIJA PAINTS", "KEKE INSURANCE"]
+
+
+func _build_street_props(root: Node3D) -> void:
+	var frames := _frames()
+	if frames.size() < 2:
+		return
+	var hw: float = chunk["road"]["half_width_m"]
+	var land := {}
+	var lc: Dictionary = chunk.get("land_cells", {})
+	var cs: float = lc.get("cell_m", 50.0)
+	for c in lc.get("cells", []):
+		land[Vector2i(int(c[0]), int(c[1]))] = true
+	var is_land := func(p: Vector3) -> bool:
+		return land.has(Vector2i(int(floor(p.x / cs)), int(floor(p.z / cs))))
+
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PrimitiveType.PRIMITIVE_TRIANGLES)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 4242
+	var dist := 0.0
+	var next_pole := 0.0; var next_palm := 0.0; var next_mast := 400.0
+	var next_board := 150.0; var next_stop := 120.0; var next_cones := 300.0
+	var last_pole := {-1.0: null, 1.0: null}
+	var boards: Array = []
+
+	for i in frames.size():
+		if i > 0:
+			dist += frames[i]["c"].distance_to(frames[i - 1]["c"])
+		var c: Vector3 = frames[i]["c"]
+		var p: Vector3 = frames[i]["p"]
+		var fwd := Vector3(-p.z, 0, p.x)
+		var on_bridge: bool = frames[i]["bridge"]
+
+		# utility poles + wires (land approaches)
+		if not on_bridge and dist >= next_pole:
+			next_pole = dist + 32.0
+			for side in [-1.0, 1.0]:
+				var base: Vector3 = c + p * side * (hw + 2.5)
+				base.y = 0.25 if is_land.call(base) else c.y
+				var top: Vector3 = base + Vector3(0, 9.0, 0)
+				_obox(st, base + Vector3(0, 4.5, 0), Vector3(0.28, 9.0, 0.28), Basis(), Color(0.36, 0.26, 0.18))
+				_obox(st, top + Vector3(0, -0.6, 0), Vector3(1.8, 0.12, 0.12), Basis(Vector3.UP, atan2(p.x, p.z)), Color(0.3, 0.22, 0.15))
+				var prev = last_pole[side]
+				if prev != null:
+					for off in [-0.7, 0.0, 0.7]:
+						var a: Vector3 = prev + p * off + Vector3(0, -0.6, 0)
+						var b2: Vector3 = top + p * off + Vector3(0, -0.6, 0)
+						_wire(st, a, b2)
+				last_pole[side] = top
+		elif on_bridge:
+			last_pole = {-1.0: null, 1.0: null}
+
+		# palm trees on land near the road
+		if dist >= next_palm:
+			next_palm = dist + 14.0
+			for side in [-1.0, 1.0]:
+				if rng.randf() < 0.45:
+					var pos: Vector3 = c + p * side * (hw + rng.randf_range(10.0, 220.0)) + fwd * rng.randf_range(-6.0, 6.0)
+					if is_land.call(pos):
+						pos.y = 0.25
+						_palm(st, pos, rng)
+
+		# telecom masts (red/white), visible from far
+		if dist >= next_mast:
+			next_mast = dist + rng.randf_range(700.0, 1100.0)
+			var side: float = -1.0 if rng.randf() < 0.5 else 1.0
+			var pos: Vector3 = c + p * side * rng.randf_range(120.0, 450.0)
+			if is_land.call(pos):
+				pos.y = 0.25
+				_mast(st, pos)
+
+		# billboards
+		if dist >= next_board:
+			next_board = dist + rng.randf_range(350.0, 650.0)
+			var side: float = -1.0 if rng.randf() < 0.5 else 1.0
+			var pos: Vector3 = c + p * side * (hw + rng.randf_range(14.0, 30.0))
+			if is_land.call(pos):
+				pos.y = 0.25
+				boards.append([pos, atan2(p.x, p.z) + (PI * 0.5 if side < 0 else -PI * 0.5)])
+
+		# bus shelters on the approaches
+		if not on_bridge and dist >= next_stop:
+			next_stop = dist + 280.0
+			var side: float = -1.0 if rng.randf() < 0.5 else 1.0
+			var pos: Vector3 = c + p * side * (hw + 4.0)
+			pos.y = 0.25 if is_land.call(pos) else c.y
+			_bus_stop(st, pos, Basis(Vector3.UP, atan2(p.x, p.z)))
+
+		# traffic cones on the shoulder
+		if dist >= next_cones:
+			next_cones = dist + rng.randf_range(350.0, 700.0)
+			var side: float = -1.0 if rng.randf() < 0.5 else 1.0
+			for k in 4:
+				var pos: Vector3 = c + p * side * (hw - 0.6) + fwd * (k * 2.5)
+				_cone(st, pos)
+
+	var mi := MeshInstance3D.new()
+	mi.name = "StreetProps"
+	mi.mesh = st.commit()
+	var mat := StandardMaterial3D.new()
+	mat.vertex_color_use_as_albedo = true
+	mat.roughness = 0.85
+	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+	mi.material_override = mat
+	root.add_child(mi)
+	_own(mi)
+
+	for bd in boards:
+		_billboard(root, bd[0], bd[1], _BRANDS[rng.randi() % _BRANDS.size()], rng)
+
+	_build_median(root, frames)
+
+
+func _build_median(root: Node3D, frames: Array) -> void:
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PrimitiveType.PRIMITIVE_TRIANGLES)
+	var soup := PackedVector3Array()
+	var hwm := 0.35
+	var mh := 0.85
+	for i in range(frames.size() - 1):
+		var a = frames[i]; var b = frames[i + 1]
+		var al: Vector3 = a["c"] - a["p"] * hwm; var ar: Vector3 = a["c"] + a["p"] * hwm
+		var bl: Vector3 = b["c"] - b["p"] * hwm; var br: Vector3 = b["c"] + b["p"] * hwm
+		var up := Vector3.UP * mh
+		for q in [[al, bl, bl + up, al + up], [ar, ar + up, br + up, br], [al + up, bl + up, br + up, ar + up]]:
+			_quad(st, q[0], q[1], q[2], q[3])
+			soup.append_array(PackedVector3Array([q[0], q[1], q[2], q[0], q[2], q[3]]))
+	st.generate_normals()
+	var mi := MeshInstance3D.new()
+	mi.name = "Median"
+	mi.mesh = st.commit()
+	mi.material_override = _road_material()
+	root.add_child(mi)
+	_own(mi)
+	var shape := ConcavePolygonShape3D.new()
+	shape.set_faces(soup)
+	shape.backface_collision = true
+	var body := StaticBody3D.new()
+	body.name = "MedianCollision"
+	var csh := CollisionShape3D.new()
+	csh.shape = shape
+	body.add_child(csh)
+	root.add_child(body)
+	_own(body); _own(csh)
+
+
+func _palm(st: SurfaceTool, pos: Vector3, rng: RandomNumberGenerator) -> void:
+	var h := rng.randf_range(6.0, 11.0)
+	var lean := Basis(Vector3(1, 0, 0), rng.randf_range(-0.12, 0.12))
+	var trunk_c := Color(0.48, 0.38, 0.26)
+	_obox(st, pos + lean * Vector3(0, h * 0.5, 0), Vector3(0.35, h, 0.35), lean, trunk_c)
+	var top := pos + lean * Vector3(0, h, 0)
+	var green := Color(0.22, 0.55, 0.22).lerp(Color(0.40, 0.62, 0.20), rng.randf())
+	for k in 7:
+		var yaw := TAU * k / 7.0 + rng.randf() * 0.3
+		var bas := Basis(Vector3.UP, yaw) * Basis(Vector3(1, 0, 0), 0.55)
+		_obox(st, top + bas * Vector3(0, 0, 1.6), Vector3(0.9, 0.08, 3.4), bas, green)
+
+
+func _mast(st: SurfaceTool, pos: Vector3) -> void:
+	var segs := 10
+	var seg_h := 4.5
+	for k in segs:
+		var w := lerpf(2.4, 0.8, float(k) / segs)
+		var col := Color(0.85, 0.15, 0.12) if k % 2 == 0 else Color(0.95, 0.95, 0.95)
+		_obox(st, pos + Vector3(0, seg_h * (k + 0.5), 0), Vector3(w, seg_h, w), Basis(), col)
+	for k in 3:
+		_obox(st, pos + Vector3(0, seg_h * segs - 3.0 - k * 4.0, 0.7), Vector3(0.5, 1.6, 0.3), Basis(), Color(0.9, 0.9, 0.9))
+
+
+func _bus_stop(st: SurfaceTool, pos: Vector3, bas: Basis) -> void:
+	var post := Color(0.2, 0.2, 0.22)
+	for dx in [-2.0, 2.0]:
+		_obox(st, pos + bas * Vector3(dx, 1.3, 0), Vector3(0.12, 2.6, 0.12), bas, post)
+	_obox(st, pos + bas * Vector3(0, 2.65, 0), Vector3(4.8, 0.12, 1.8), bas, Color(0.15, 0.35, 0.75))
+	_obox(st, pos + bas * Vector3(0, 0.5, 0.5), Vector3(3.6, 0.1, 0.5), bas, Color(0.75, 0.75, 0.75))
+	_obox(st, pos + bas * Vector3(2.6, 2.0, 0), Vector3(0.1, 1.2, 0.8), bas, Color(0.95, 0.75, 0.10))
+
+
+func _cone(st: SurfaceTool, pos: Vector3) -> void:
+	_obox(st, pos + Vector3(0, 0.05, 0), Vector3(0.5, 0.1, 0.5), Basis(), Color(0.15, 0.15, 0.15))
+	_obox(st, pos + Vector3(0, 0.35, 0), Vector3(0.32, 0.5, 0.32), Basis(), Color(1.0, 0.45, 0.05))
+	_obox(st, pos + Vector3(0, 0.38, 0), Vector3(0.34, 0.1, 0.34), Basis(), Color(0.95, 0.95, 0.95))
+
+
+func _wire(st: SurfaceTool, a: Vector3, b: Vector3) -> void:
+	var mid := (a + b) * 0.5 + Vector3(0, -0.5, 0)  # sag
+	for pair in [[a, mid], [mid, b]]:
+		var d: Vector3 = pair[1] - pair[0]
+		var l := d.length()
+		if l < 0.01:
+			continue
+		var z := d / l
+		var x := Vector3.UP.cross(z).normalized()
+		if x.length() < 0.5:
+			x = Vector3.RIGHT
+		var y := z.cross(x)
+		_obox(st, (pair[0] + pair[1]) * 0.5, Vector3(0.04, 0.04, l), Basis(x, y, z), Color(0.08, 0.08, 0.08))
+
+
+func _billboard(root: Node3D, pos: Vector3, yaw: float, brand: String, rng: RandomNumberGenerator) -> void:
+	var n := Node3D.new()
+	n.position = pos
+	n.rotation.y = yaw
+	root.add_child(n)
+	_own(n)
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PrimitiveType.PRIMITIVE_TRIANGLES)
+	var cols := [Color(0.85, 0.12, 0.12), Color(0.10, 0.45, 0.20), Color(0.95, 0.70, 0.05),
+		Color(0.10, 0.25, 0.65), Color(0.55, 0.15, 0.55)]
+	var bg: Color = cols[rng.randi() % cols.size()]
+	for dx in [-3.0, 3.0]:
+		_obox(st, Vector3(dx, 4.0, 0), Vector3(0.3, 8.0, 0.3), Basis(), Color(0.3, 0.3, 0.32))
+	_obox(st, Vector3(0, 9.5, 0), Vector3(10.0, 4.0, 0.3), Basis(), bg)
+	var mi := MeshInstance3D.new()
+	mi.mesh = st.commit()
+	var mat := StandardMaterial3D.new()
+	mat.vertex_color_use_as_albedo = true
+	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+	mi.material_override = mat
+	n.add_child(mi)
+	_own(mi)
+	for face in [1.0, -1.0]:
+		var lbl := Label3D.new()
+		lbl.text = brand
+		lbl.font_size = 96
+		lbl.pixel_size = 0.012
+		lbl.modulate = Color(1, 1, 1)
+		lbl.outline_size = 0
+		lbl.position = Vector3(0, 9.5, 0.17 * face)
+		if face < 0:
+			lbl.rotation.y = PI
+		n.add_child(lbl)
+		_own(lbl)
+
+
+## Oriented box (vertex colours, alpha 1) for props.
+func _obox(st: SurfaceTool, c: Vector3, s: Vector3, bas: Basis, col: Color) -> void:
+	var h := s * 0.5
+	var corners := []
+	for v in [Vector3(-1, -1, -1), Vector3(1, -1, -1), Vector3(1, -1, 1), Vector3(-1, -1, 1),
+			Vector3(-1, 1, -1), Vector3(1, 1, -1), Vector3(1, 1, 1), Vector3(-1, 1, 1)]:
+		corners.append(c + bas * (v * h))
+	var z := Vector2.ZERO
+	for f in [[0, 1, 5, 4], [1, 2, 6, 5], [2, 3, 7, 6], [3, 0, 4, 7], [4, 5, 6, 7], [3, 2, 1, 0]]:
+		_bq(st, corners[f[0]], corners[f[1]], corners[f[2]], corners[f[3]], Color(col.r, col.g, col.b, 1.0), z, z, z, z)
 
 
 func _road_material() -> Material:

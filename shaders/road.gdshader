@@ -21,8 +21,11 @@ void fragment() {
 		ALBEDO = vec3(v, v, v * 1.03);
 		ROUGHNESS = 0.92 - patches;
 	} else {
-		float n = noise(wpos.xz * 0.5 + wpos.y) * 0.15;
-		ALBEDO = vec3(0.72, 0.70, 0.66) * (0.9 + n);
+		// Lagos-style kerb paint: black / white blocks along the barrier
+		float n = noise(wpos.xz * 0.5 + wpos.y) * 0.1;
+		float stripe = step(0.5, fract((wpos.x + wpos.z) * 0.25));
+		vec3 paint = mix(vec3(0.92, 0.92, 0.90), vec3(0.10, 0.10, 0.11), stripe);
+		ALBEDO = paint * (0.92 + n);
 		ROUGHNESS = 0.95;
 	}
 }
