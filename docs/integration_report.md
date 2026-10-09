@@ -22,6 +22,11 @@ run headless. Results:
   0–100 in 8.17 s, top 188.8 km/h, dry/wet braking 8.0/9.1 m, deterministic.
 - **Bridge drive test** (`tests/map_validation/bridge_drive_test.tscn`): PASS —
   car drives on the generated deck, stays grounded, does not fall through.
+- **Race-flow test** (`tests/race_flow/race_flow_test.tscn`): PASS — Bridge Test
+  Sprint runs countdown → 5 checkpoints in order → finish; best time 109.25 s
+  recorded and round-tripped through the save file.
+- **Traffic test** (`tests/map_validation/traffic_test.tscn`): PASS — 6 AI
+  traffic cars spawn, stay on the deck and drive their lanes (Milestone 6 start).
 - **Map pipeline**: runs and regenerates a valid 5.1 km chunk.
 
 Three real bugs were found by these tests and fixed (see
