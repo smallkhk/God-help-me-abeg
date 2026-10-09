@@ -1,0 +1,9 @@
+[gd_scene load_steps=3 format=3 uid="uid://b0lagosraceflowtst"]
+
+[ext_resource type="Script" path="res://tests/race_flow/race_flow_test.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/world/maps/lagos_bridge/lagos_bridge.tscn" id="2"]
+
+[node name="RaceFlowTest" type="Node3D"]
+script = ExtResource("1")
+
+[node name="LagosBridge" parent="." instance=ExtResource("2")]

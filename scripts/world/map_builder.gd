@@ -49,6 +49,8 @@ func _build() -> void:
 		root.owner = get_tree().edited_scene_root
 
 	_build_road(root)
+	_build_markings(root)
+	_build_streetlights(root)
 	_build_piers(root)
 	_build_water(root)
 	_build_skyline(root)
@@ -126,6 +128,120 @@ func _build_road(root: Node3D) -> void:
 	root.add_child(body)
 	_own(body)
 	_own(cs)
+
+
+func _build_markings(root: Node3D) -> void:
+	# Lane lines derived from the chunk's lane layout (spec §5/§4.1 road furniture):
+	# solid yellow either side of the median, dashed white lane dividers, solid
+	# white outer edges. Flat quads laid just above the road, unshaded.
+	var r: Dictionary = chunk["road"]
+	var lanes: int = r["lanes_per_direction"]
+	var lane_w: float = r["lane_width_m"]
+	var median_half: float = r["median_width_m"] * 0.5
+	var frames := _frames()
+	var yellow := Color(0.92, 0.80, 0.12)
+	var white := Color(0.90, 0.90, 0.90)
+
+	# Build the list of marking lines as {offset, dashed, color}.
+	var lines: Array = []
+	lines.append({"o": -median_half, "dash": false, "col": yellow})
+	lines.append({"o": median_half, "dash": false, "col": yellow})
+	for side in [-1.0, 1.0]:
+		for k in range(1, lanes):
+			lines.append({"o": side * (median_half + k * lane_w), "dash": true, "col": white})
+		lines.append({"o": side * (median_half + lanes * lane_w), "dash": false, "col": white})
+
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PrimitiveType.PRIMITIVE_TRIANGLES)
+	var lift := Vector3.UP * 0.03
+	var hw_line := 0.09
+	for i in range(frames.size() - 1):
+		var a = frames[i]
+		var b = frames[i + 1]
+		for ln in lines:
+			if ln["dash"] and (i % 6) >= 3:
+				continue  # gap in the dash
+			var o: float = ln["o"]
+			var col: Color = ln["col"]
+			var ai: Vector3 = a["c"] + a["p"] * (o - hw_line) + lift
+			var ao: Vector3 = a["c"] + a["p"] * (o + hw_line) + lift
+			var bi: Vector3 = b["c"] + b["p"] * (o - hw_line) + lift
+			var bo: Vector3 = b["c"] + b["p"] * (o + hw_line) + lift
+			st.set_color(col); st.add_vertex(ai)
+			st.set_color(col); st.add_vertex(bi)
+			st.set_color(col); st.add_vertex(bo)
+			st.set_color(col); st.add_vertex(ai)
+			st.set_color(col); st.add_vertex(bo)
+			st.set_color(col); st.add_vertex(ao)
+
+	var mi := MeshInstance3D.new()
+	mi.name = "RoadMarkings"
+	mi.mesh = st.commit()
+	var mat := StandardMaterial3D.new()
+	mat.vertex_color_use_as_albedo = true
+	mat.roughness = 0.6
+	mi.material_override = mat
+	root.add_child(mi)
+	_own(mi)
+
+
+func _build_streetlights(root: Node3D) -> void:
+	# Light poles every ~45 m along both outer edges (spec §4.1). MultiMesh for
+	# cheap instancing; the lamp head is a small emissive box atop each pole.
+	var hw: float = chunk["road"]["half_width_m"]
+	var frames := _frames()
+	var pole_positions: Array = []
+	var acc := 999.0  # force one at the start
+	for i in range(frames.size()):
+		if i > 0:
+			acc += frames[i]["c"].distance_to(frames[i - 1]["c"])
+		if acc < 45.0:
+			continue
+		acc = 0.0
+		for side in [-1.0, 1.0]:
+			pole_positions.append(frames[i]["c"] + frames[i]["p"] * (hw - 0.4))
+	if pole_positions.is_empty():
+		return
+
+	var pole_h := 8.0
+	var poles := MultiMesh.new()
+	poles.transform_format = MultiMesh.TRANSFORM_3D
+	var pbox := BoxMesh.new()
+	pbox.size = Vector3(0.22, pole_h, 0.22)
+	poles.mesh = pbox
+	poles.instance_count = pole_positions.size()
+	var heads := MultiMesh.new()
+	heads.transform_format = MultiMesh.TRANSFORM_3D
+	var hbox := BoxMesh.new()
+	hbox.size = Vector3(0.9, 0.3, 0.5)
+	heads.mesh = hbox
+	heads.instance_count = pole_positions.size()
+	for i in pole_positions.size():
+		var p: Vector3 = pole_positions[i]
+		poles.set_instance_transform(i, Transform3D(Basis(), p + Vector3(0, pole_h * 0.5, 0)))
+		heads.set_instance_transform(i, Transform3D(Basis(), p + Vector3(0, pole_h + 0.15, 0)))
+
+	var pole_mi := MultiMeshInstance3D.new()
+	pole_mi.name = "StreetlightPoles"
+	pole_mi.multimesh = poles
+	var pmat := StandardMaterial3D.new()
+	pmat.albedo_color = Color(0.3, 0.3, 0.32)
+	pmat.roughness = 0.7
+	pole_mi.material_override = pmat
+	root.add_child(pole_mi)
+	_own(pole_mi)
+
+	var head_mi := MultiMeshInstance3D.new()
+	head_mi.name = "StreetlightHeads"
+	head_mi.multimesh = heads
+	var hmat := StandardMaterial3D.new()
+	hmat.albedo_color = Color(1.0, 0.85, 0.55)
+	hmat.emission_enabled = true
+	hmat.emission = Color(1.0, 0.8, 0.5)
+	hmat.emission_energy_multiplier = 2.0
+	head_mi.material_override = hmat
+	root.add_child(head_mi)
+	_own(head_mi)
 
 
 func _build_piers(root: Node3D) -> void:
