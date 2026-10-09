@@ -15,7 +15,7 @@ var _car: VehicleController
 var _camera: Node
 var _hud: CanvasLayer
 var _spawn: Transform3D
-var _paused := false
+@onready var _pause_menu: CanvasLayer = get_node_or_null("PauseMenu")
 
 
 func _ready() -> void:
@@ -53,8 +53,10 @@ func _reset_car() -> void:
 
 
 func _toggle_pause() -> void:
-	_paused = not _paused
-	get_tree().paused = _paused
+	if _pause_menu and _pause_menu.has_method("toggle"):
+		_pause_menu.toggle()
+	else:
+		get_tree().paused = not get_tree().paused
 
 
 func _toggle_wet() -> void:

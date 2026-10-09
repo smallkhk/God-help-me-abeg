@@ -8,7 +8,7 @@ extends Node3D
 
 var _car: VehicleController
 var _hud: CanvasLayer
-var _paused := false
+@onready var _pause_menu: CanvasLayer = get_node_or_null("PauseMenu")
 
 
 func _ready() -> void:
@@ -20,8 +20,10 @@ func _ready() -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("pause"):
-		_paused = not _paused
-		get_tree().paused = _paused
+		if _pause_menu and _pause_menu.has_method("toggle"):
+			_pause_menu.toggle()
+		else:
+			get_tree().paused = not get_tree().paused
 	elif event.is_action_pressed("interact"):
 		if _car:
 			_car.wetness = 0.0 if _car.wetness > 0.5 else 1.0

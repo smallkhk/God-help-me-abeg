@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://b0lagosbridgeworld"]
+[gd_scene load_steps=13 format=3 uid="uid://b0lagosbridgeworld"]
 
 [ext_resource type="Script" path="res://scripts/world/bridge_world.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/world/map_builder.gd" id="2"]
@@ -8,6 +8,7 @@
 [ext_resource type="Script" path="res://scripts/races/race_manager.gd" id="6"]
 [ext_resource type="PackedScene" path="res://scenes/races/checkpoints/checkpoint_gate.tscn" id="7"]
 [ext_resource type="Script" path="res://scripts/world/traffic_manager.gd" id="8"]
+[ext_resource type="PackedScene" path="res://scenes/ui/menus/pause_menu.tscn" id="9"]
 
 [sub_resource type="ProceduralSkyMaterial" id="S1"]
 sky_top_color = Color(0.2, 0.33, 0.52, 1)
@@ -75,3 +76,5 @@ script = ExtResource("8")
 map_builder_path = NodePath("../MapBuilder")
 car_scene = ExtResource("3")
 count = 6
+
+[node name="PauseMenu" parent="." instance=ExtResource("9")]

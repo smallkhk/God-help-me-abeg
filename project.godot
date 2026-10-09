@@ -8,9 +8,13 @@ config_version=5
 
 config/name="Lagos Street Racing"
 config/description="Street-driving and racing game set on Third Mainland Bridge, Lagos."
-run/main_scene="res://scenes/world/test_track.tscn"
+run/main_scene="res://scenes/ui/menus/main_menu.tscn"
 config/features=PackedStringArray("4.4", "GL Compatibility")
 config/icon="res://icon.svg"
+
+[autoload]
+
+Game="*res://scripts/game/game_state.gd"
 
 [debug]
 
