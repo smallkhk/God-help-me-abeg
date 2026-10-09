@@ -40,3 +40,11 @@ If you swap in OpenStreetMap data (see `docs/map_pipeline.md`):
 
 - Engine: **Godot 4.4** (MIT). Verify API against the pinned minor version before
   edits (spec §9.4, §22).
+
+## Google Open Buildings (building footprints)
+
+Building footprints around Third Mainland Bridge come from **Google Open Buildings
+v3** (https://sites.research.google/open-buildings/), licensed **CC BY 4.0** (also
+available under ODbL). Required attribution: *"Building footprints © Google Open
+Buildings, CC BY 4.0."* Heights are NOT in this dataset; they are estimated from
+footprint size. Road geometry remains © OpenStreetMap contributors (ODbL).

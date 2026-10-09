@@ -61,9 +61,11 @@ def dist_to_route(x, z, route, step=4):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--tiles", nargs="+", required=True)
+    ap.add_argument("--tiles", nargs="*", default=[])
+    ap.add_argument("--gob", default="", help="Google Open Buildings v3 CSV (CC BY 4.0)")
+    ap.add_argument("--min-conf", type=float, default=0.70)
     ap.add_argument("--chunk", required=True)
-    ap.add_argument("--max", type=int, default=6000)
+    ap.add_argument("--max", type=int, default=12000)
     a = ap.parse_args()
 
     chunk = json.load(open(a.chunk, encoding="utf-8"))
@@ -85,6 +87,33 @@ def main():
             ways.append((wid, tags, [nd.get("ref") for nd in w.findall("nd")]))
 
     out = []
+    if a.gob:
+        import csv
+        csv.field_size_limit(10**8)
+        for row in csv.reader(open(a.gob, encoding="utf-8")):
+            try:
+                conf = float(row[3])
+            except (ValueError, IndexError):
+                continue
+            if conf < a.min_conf or not row[4].startswith("POLYGON(("):
+                continue
+            ring = row[4][len("POLYGON(("):].split(")")[0]
+            ll = [tuple(map(float, c.strip().split())) for c in ring.split(",")]
+            pts = [to_local(lat, lon, lat0, lon0) for lon, lat in ll[:-1]]
+            if len(pts) < 3: continue
+            ar = area(pts)
+            if ar < 25.0: continue
+            cx = sum(p[0] for p in pts) / len(pts); cz = sum(p[1] for p in pts) / len(pts)
+            d = dist_to_route(cx, cz, route, 8)
+            if d < clear: continue
+            # no heights in v3: estimate from footprint (bigger plots -> taller)
+            seed = zlib.crc32(row[5].encode()) % 100
+            h = 3.5 + min(ar, 2500.0) / 2500.0 * 18.0 + (seed % 5)
+            if ar > 1500 and seed < 25: h += 15 + seed
+            # priority: what you can see from the bridge (near) + big buildings
+            pr = ar / (1.0 + (d / 300.0) ** 2)
+            out.append({"pts": [[round(p[0], 2), round(p[1], 2)] for p in pts],
+                        "h": round(h, 1), "a": pr})
     for wid, tags, refs in ways:
         if len(refs) < 4 or refs[0] != refs[-1]: continue
         if any(r not in nodes for r in refs): continue
