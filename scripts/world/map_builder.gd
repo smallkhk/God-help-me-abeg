@@ -60,6 +60,8 @@ func _build() -> void:
 	_build_piers(root)
 	_build_water(root)
 	_build_skyline(root)
+	_build_land(root)
+	_build_osm_buildings(root)
 
 
 func _frames() -> Array:
@@ -356,6 +358,95 @@ func _build_skyline(root: Node3D) -> void:
 	mmi.material_override = mat
 	root.add_child(mmi)
 	_own(mmi)
+
+
+## Ground under real-world built-up areas (from the chunk's land grid), so the
+## OSM buildings stand on land instead of in the lagoon.
+func _build_land(root: Node3D) -> void:
+	var lc: Dictionary = chunk.get("land_cells", {})
+	var cells: Array = lc.get("cells", [])
+	if cells.is_empty():
+		return
+	var s: float = lc.get("cell_m", 50.0)
+	var y := 0.25
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PrimitiveType.PRIMITIVE_TRIANGLES)
+	st.set_normal(Vector3.UP)
+	st.set_color(Color(0.42, 0.40, 0.33))
+	for c in cells:
+		var x0: float = c[0] * s
+		var z0: float = c[1] * s
+		var a := Vector3(x0, y, z0); var b := Vector3(x0 + s, y, z0)
+		var cc := Vector3(x0 + s, y, z0 + s); var d := Vector3(x0, y, z0 + s)
+		st.add_vertex(a); st.add_vertex(b); st.add_vertex(cc)
+		st.add_vertex(a); st.add_vertex(cc); st.add_vertex(d)
+	var mi := MeshInstance3D.new()
+	mi.name = "Land"
+	mi.mesh = st.commit()
+	var mat := StandardMaterial3D.new()
+	mat.vertex_color_use_as_albedo = true
+	mat.roughness = 1.0
+	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+	mi.material_override = mat
+	root.add_child(mi)
+	_own(mi)
+
+
+## Real Lagos buildings: OSM footprints extruded to their (or estimated) height,
+## merged into one mesh with varied wall/roof colours. Scenery only (no collision).
+func _build_osm_buildings(root: Node3D) -> void:
+	var blds: Array = chunk.get("osm_buildings", [])
+	if blds.is_empty():
+		return
+	var walls := [
+		Color(0.86, 0.82, 0.72), Color(0.78, 0.74, 0.66), Color(0.92, 0.89, 0.80),
+		Color(0.70, 0.66, 0.60), Color(0.84, 0.76, 0.62), Color(0.74, 0.78, 0.80),
+	]
+	var roofs := [
+		Color(0.55, 0.30, 0.22), Color(0.45, 0.45, 0.47), Color(0.62, 0.58, 0.52),
+		Color(0.35, 0.38, 0.42),
+	]
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PrimitiveType.PRIMITIVE_TRIANGLES)
+	var base := 0.25
+	for i in blds.size():
+		var b: Dictionary = blds[i]
+		var raw: Array = b["pts"]
+		var h: float = b["h"]
+		var poly := PackedVector2Array()
+		for p in raw:
+			poly.append(Vector2(p[0], p[1]))
+		var wc: Color = walls[i % walls.size()]
+		var rc: Color = roofs[(i * 7) % roofs.size()]
+		var top := base + h
+		# walls
+		for k in poly.size():
+			var p0 := poly[k]
+			var p1 := poly[(k + 1) % poly.size()]
+			var shade := 0.85 + 0.15 * absf(sin(p0.angle_to_point(p1)))
+			var col := Color(wc.r * shade, wc.g * shade, wc.b * shade)
+			var a := Vector3(p0.x, base, p0.y); var bb := Vector3(p1.x, base, p1.y)
+			var c := Vector3(p1.x, top, p1.y); var d := Vector3(p0.x, top, p0.y)
+			st.set_color(col); st.add_vertex(a); st.add_vertex(bb); st.add_vertex(c)
+			st.add_vertex(a); st.add_vertex(c); st.add_vertex(d)
+		# roof
+		var tri := Geometry2D.triangulate_polygon(poly)
+		st.set_color(rc)
+		for t in tri:
+			var q := poly[t]
+			st.add_vertex(Vector3(q.x, top, q.y))
+	st.generate_normals()
+	var mi := MeshInstance3D.new()
+	mi.name = "LagosBuildings"
+	mi.mesh = st.commit()
+	var mat := StandardMaterial3D.new()
+	mat.vertex_color_use_as_albedo = true
+	mat.roughness = 0.9
+	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+	mi.material_override = mat
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	root.add_child(mi)
+	_own(mi)
 
 
 func _road_material() -> StandardMaterial3D:
