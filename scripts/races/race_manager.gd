@@ -138,6 +138,15 @@ func _start_countdown() -> void:
 func _process(delta: float) -> void:
 	if not _initialized:
 		_initialize()
+
+	# Safety net: if the car ever ends up far below the deck (fell through a seam,
+	# or a track with no floor), pop it back to spawn instead of falling forever.
+	if _player and _player.global_position.y < -25.0:
+		_player.linear_velocity = Vector3.ZERO
+		_player.angular_velocity = Vector3.ZERO
+		_player.global_transform = _spawn
+		_player.reset_state()
+
 	match _state:
 		State.COUNTDOWN:
 			_countdown -= delta

@@ -23,7 +23,13 @@ const GEN_NAME := "Generated"
 
 
 func _ready() -> void:
-	if get_node_or_null(GEN_NAME) == null:
+	# At RUNTIME always rebuild fresh, so the game never depends on whatever the
+	# @tool may have baked into the scene in the editor (which can be stale, empty
+	# or version-specific — a cause of "the bridge has no floor"). In the editor,
+	# only build if nothing is there yet.
+	if not Engine.is_editor_hint():
+		_build()
+	elif get_node_or_null(GEN_NAME) == null:
 		_build()
 
 

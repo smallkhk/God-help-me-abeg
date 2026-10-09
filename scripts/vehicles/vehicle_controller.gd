@@ -383,6 +383,7 @@ func _cast_wheel(w: Wheel, up: Vector3) -> Dictionary:
 	var params := PhysicsRayQueryParameters3D.create(from, to)
 	params.exclude = [get_rid()]
 	params.collision_mask = collision_mask
+	params.hit_back_faces = true  # defensive: road trimesh may be hit from behind
 	var hit := get_world_3d().direct_space_state.intersect_ray(params)
 	if hit.is_empty():
 		return {"grounded": false, "compression": 0.0}
