@@ -78,7 +78,7 @@ checkpoint_scene = ExtResource("7")
 script = ExtResource("8")
 map_builder_path = NodePath("../MapBuilder")
 car_scene = ExtResource("3")
-count = 6
+count = 0
 
 [node name="PauseMenu" parent="." instance=ExtResource("9")]
 
