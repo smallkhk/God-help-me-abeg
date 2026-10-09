@@ -20,7 +20,9 @@ func _init() -> void:
 		var cam := Camera3D.new(); w.add_child(cam)
 		cam.position = Vector3(5.5, 2.2, 5.5); cam.look_at(Vector3(0, 0.6, 0))
 		cam.current = true
-		for i in 10: await process_frame
+		for i in 40:
+			car.set_driver_input(0.0, 0.0, 1.0, false)
+			await physics_frame
 		root.get_viewport().get_texture().get_image().save_png("user://car_%s.png" % id)
 		print("[carshot] ", id)
 		w.queue_free(); await process_frame

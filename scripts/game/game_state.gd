@@ -8,6 +8,8 @@ signal settings_changed
 
 ## High = photo skies, glow, long shadows, all props. F6 in-game toggles.
 var high_graphics: bool = true
+## 0 = day … 1 = night; set by TimeOfDay, read by car lights.
+var night: float = 0.0
 
 const SCENE_MAIN_MENU := "res://scenes/ui/menus/main_menu.tscn"
 const SCENE_TEST_TRACK := "res://scenes/world/test_track.tscn"

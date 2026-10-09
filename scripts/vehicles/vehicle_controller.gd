@@ -30,6 +30,8 @@ extends RigidBody3D
 class Wheel:
 	var marker: Marker3D
 	var mesh: Node3D
+	var model_pivot: Node3D = null     # wheel node inside the imported car model
+	var model_rest: Basis = Basis()     # its rest orientation in car space
 	var is_front: bool
 	var is_driven: bool
 	var is_rear: bool
@@ -324,13 +326,17 @@ func _apply_tyre_force(w: Wheel, offset: Vector3, up: Vector3, driven_count: int
 	var lat_grip := (data.lateral_grip_front if w.is_front else data.lateral_grip_rear) * grip_scale
 	if w.is_rear and handbrake_input:
 		lat_grip *= data.handbrake_grip_fraction
+	# Load sensitivity (real tyres): grip coefficient drops as load rises, so
+	# weight transfer in corners/braking actually changes the balance.
+	var nominal := mass * 9.81 / 4.0
+	var load_mu := clampf(1.0 - 0.12 * (load / maxf(nominal, 1.0) - 1.0), 0.75, 1.15)
+	lat_grip *= load_mu
 	var max_lat := lat_grip * load
-	var lat_norm := slip_angle / data.peak_slip_angle
-	var lat_curve := _grip_curve(lat_norm)
+	var lat_curve := _pacejka(slip_angle, data.peak_slip_angle)
 	var lat_force := -lat_curve * max_lat  # opposes lateral slip
 
 	# --- Longitudinal (drive / brake / engine-brake) force ---
-	var long_grip := data.longitudinal_grip * grip_scale
+	var long_grip := data.longitudinal_grip * grip_scale * clampf(1.0 - 0.12 * (load / maxf(mass * 9.81 / 4.0, 1.0) - 1.0), 0.75, 1.15)
 	var max_long := long_grip * load
 	var long_force := 0.0
 
@@ -382,6 +388,17 @@ func _apply_tyre_force(w: Wheel, offset: Vector3, up: Vector3, driven_count: int
 	var force := fwd * fx + right * fy
 	apply_force(force, offset)
 	dbg_long_force += fx
+
+
+## Pacejka "Magic Formula" (as used by real racing sims): normalised lateral
+## force for a slip angle. Peaks (=1) at `peak` rad, then falls to ~0.75 when
+## sliding — progressive, catchable breakaway instead of an on/off grip switch.
+const PAC_C := 1.45
+const PAC_E := -0.3
+func _pacejka(slip: float, peak: float) -> float:
+	var b := tan(PI / (2.0 * PAC_C)) / maxf(peak, 0.01)
+	var bx := b * slip
+	return sin(PAC_C * atan(bx - PAC_E * (bx - atan(bx))))
 
 
 ## Shapes the normalized slip into a grip coefficient that rises to 1.0 at the
@@ -471,9 +488,47 @@ func _cast_wheel(w: Wheel, up: Vector3) -> Dictionary:
 	}
 
 
+var _pivots_bound := false
+
+## Finds the wheel nodes inside an imported car model (e.g. wheel_fl,
+## WheelFrontL) and pairs each with the nearest physics wheel so they spin/steer.
+func _bind_model_wheels() -> void:
+	_pivots_bound = true
+	var m := get_node_or_null("CarModel")
+	if m == null:
+		return
+	var cands: Array[Node3D] = []
+	for n in m.find_children("*", "Node3D", true, false):
+		var nm := String(n.name).to_lower().replace("_", "")
+		var is_pivot := (nm.begins_with("wheel") and (nm.contains("fl") or nm.contains("fr") or nm.contains("rl") or nm.contains("rr") or nm.contains("front") or nm.contains("rear"))) \
+			and not nm.contains("brake") and not nm.contains("rim") and n.get_child_count() > 0
+		if is_pivot:
+			cands.append(n as Node3D)
+	if cands.size() < 4:
+		return
+	var inv := global_transform.affine_inverse()
+	for w in wheels:
+		var best: Node3D = null; var bd := INF
+		for c in cands:
+			var d := (inv * c.global_position).distance_to(w.marker.position)
+			if d < bd:
+				bd = d; best = c
+		if best and bd < 1.2:
+			w.model_pivot = best
+			w.model_rest = global_transform.basis.inverse() * best.global_transform.basis
+			cands.erase(best)
+
+
 func _update_wheel_visuals(delta: float, hit_info: Dictionary) -> void:
+	if not _pivots_bound:
+		_bind_model_wheels()
 	for i in wheels.size():
 		var w: Wheel = wheels[i]
+		if w.model_pivot:
+			var sa := w.spin_angle + (forward_speed / maxf(data.wheel_radius, 0.01)) * delta
+			var st := current_steer_angle if w.is_front else 0.0
+			var gb := global_transform.basis * Basis(Vector3.UP, st) * Basis(Vector3.RIGHT, sa) * w.model_rest
+			w.model_pivot.global_transform = Transform3D(gb, w.model_pivot.global_position)
 		if w.mesh == null:
 			continue
 		var up := global_transform.basis.y

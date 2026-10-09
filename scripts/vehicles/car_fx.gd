@@ -134,8 +134,7 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
 	if vehicle == null:
 		return
-	var nf = RenderingServer.global_shader_parameter_get("night_factor")
-	var night: float = float(nf) if nf != null else 0.0
+	var night: float = Game.night
 	for l in _heads:
 		l.light_energy = 4.0 * clampf(night * 1.4, 0.0, 1.0)
 	var braking := vehicle.brake_input > 0.1 and vehicle.forward_speed > 0.5

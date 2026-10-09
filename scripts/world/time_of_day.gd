@@ -113,3 +113,4 @@ func apply(preset: int) -> void:
 			_env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
 			_env.ambient_light_sky_contribution = 0.6
 	RenderingServer.global_shader_parameter_set("night_factor", c["night"])
+	Game.night = c["night"]
