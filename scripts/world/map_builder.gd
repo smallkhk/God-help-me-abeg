@@ -612,6 +612,13 @@ func _build_street_props(root: Node3D) -> void:
 	var next_board := 150.0; var next_stop := 120.0; var next_cones := 300.0
 	var last_pole := {-1.0: null, 1.0: null}
 	var boards: Array = []
+	# real CC0 3D models (Poly Haven), instanced: model name -> Array[Transform3D]
+	var inst := {}
+	var put := func(model: String, pos: Vector3, yaw: float, sc: float) -> void:
+		if not inst.has(model):
+			inst[model] = []
+		inst[model].append(Transform3D(Basis(Vector3.UP, yaw).scaled(Vector3.ONE * sc), pos))
+	var next_junk := 20.0
 
 	for i in frames.size():
 		if i > 0:
@@ -642,13 +649,16 @@ func _build_street_props(root: Node3D) -> void:
 
 		# palm trees on land near the road
 		if dist >= next_palm:
-			next_palm = dist + 14.0
+			next_palm = dist + 20.0
 			for side in [-1.0, 1.0]:
 				if rng.randf() < 0.45:
 					var pos: Vector3 = c + p * side * (hw + rng.randf_range(10.0, 220.0)) + fwd * rng.randf_range(-6.0, 6.0)
 					if is_land.call(pos):
 						pos.y = 0.25
-						_palm(st, pos, rng)
+						put.call("island_tree_01" if rng.randf() < 0.5 else "island_tree_02", pos, rng.randf() * TAU, rng.randf_range(0.8, 1.2))
+						if rng.randf() < 0.5:
+							var sp: Vector3 = pos + Vector3(rng.randf_range(-4, 4), 0, rng.randf_range(-4, 4))
+							put.call("shrub_01" if rng.randf() < 0.5 else "shrub_02", sp, rng.randf() * TAU, rng.randf_range(0.8, 1.5))
 
 		# telecom masts (red/white), visible from far
 		if dist >= next_mast:
@@ -676,6 +686,20 @@ func _build_street_props(root: Node3D) -> void:
 			pos.y = 0.25 if is_land.call(pos) else c.y
 			_bus_stop(st, pos, Basis(Vector3.UP, atan2(p.x, p.z)))
 
+		# roadside Lagos clutter: chairs, gens, crates, tyres, jerrycans, bins, AC units
+		if not on_bridge and dist >= next_junk:
+			next_junk = dist + rng.randf_range(12.0, 30.0)
+			var side: float = -1.0 if rng.randf() < 0.5 else 1.0
+			var base: Vector3 = c + p * side * (hw + rng.randf_range(3.0, 9.0)) + fwd * rng.randf_range(-4.0, 4.0)
+			if is_land.call(base):
+				base.y = 0.25
+				var junk := ["plastic_monobloc_chair_01", "portable_generator", "plastic_crate_01",
+					"old_tyre", "metal_jerrycan", "metal_trash_can", "propane_tank", "wooden_crate_01",
+					"utility_box_01", "exterior_aircon_unit"]
+				for k in rng.randi_range(1, 4):
+					var jp: Vector3 = base + Vector3(rng.randf_range(-2.0, 2.0), 0, rng.randf_range(-2.0, 2.0))
+					put.call(junk[rng.randi() % junk.size()], jp, rng.randf() * TAU, 1.0)
+
 		# traffic cones on the shoulder
 		if dist >= next_cones:
 			next_cones = dist + rng.randf_range(350.0, 700.0)
@@ -695,10 +719,61 @@ func _build_street_props(root: Node3D) -> void:
 	root.add_child(mi)
 	_own(mi)
 
+	_spawn_model_instances(root, inst)
+
 	for bd in boards:
 		_billboard(root, bd[0], bd[1], _BRANDS[rng.randi() % _BRANDS.size()], rng)
 
 	_build_median(root, frames)
+
+
+## One MultiMesh per mesh part of each glb model (cheap to draw thousands).
+func _spawn_model_instances(root: Node3D, inst: Dictionary) -> void:
+	for model in inst:
+		var path := "res://assets/models/%s.glb" % model
+		if not ResourceLoader.exists(path):
+			continue
+		var scene := (load(path) as PackedScene).instantiate()
+		var xforms: Array = inst[model]
+		var far := 600.0 if model.begins_with("island_tree") else 180.0
+		for m in scene.find_children("*", "MeshInstance3D", true, false):
+			var mesh_i := m as MeshInstance3D
+			var local := _local_to(scene, mesh_i)
+			# split into 300 m cells so off-screen / far groups are culled
+			var cells := {}
+			for xf in xforms:
+				var key := Vector2i(int(floor(xf.origin.x / 300.0)), int(floor(xf.origin.z / 300.0)))
+				if not cells.has(key):
+					cells[key] = []
+				cells[key].append(xf)
+			for key in cells:
+				var list: Array = cells[key]
+				var mm := MultiMesh.new()
+				mm.transform_format = MultiMesh.TRANSFORM_3D
+				mm.mesh = mesh_i.mesh
+				mm.instance_count = list.size()
+				for k in list.size():
+					mm.set_instance_transform(k, list[k] * local)
+				var mmi := MultiMeshInstance3D.new()
+				mmi.name = "%s_%s_%d_%d" % [model, mesh_i.name, key.x, key.y]
+				mmi.multimesh = mm
+				mmi.visibility_range_end = far + 300.0
+				mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if far > 200.0 else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+				root.add_child(mmi)
+				_own(mmi)
+		scene.free()
+
+
+func _local_to(top: Node, n: Node3D) -> Transform3D:
+	var t := n.transform
+	var p := n.get_parent()
+	while p != null and p != top:
+		if p is Node3D:
+			t = (p as Node3D).transform * t
+		p = p.get_parent()
+	if top is Node3D:
+		t = (top as Node3D).transform * t
+	return t
 
 
 func _build_median(root: Node3D, frames: Array) -> void:

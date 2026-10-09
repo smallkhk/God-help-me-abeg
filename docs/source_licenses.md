@@ -54,3 +54,11 @@ footprint size. Road geometry remains © OpenStreetMap contributors (ODbL).
 Photo textures from ambientCG (https://ambientcg.com), CC0 1.0 public domain —
 no attribution required: Plaster001, Asphalt026C, RoofingTiles006,
 CorrugatedSteel005, Concrete034 (colour maps, resized to 512px).
+
+## 3D models (assets/models/)
+
+From Poly Haven (https://polyhaven.com), CC0 1.0 public domain: island_tree_01,
+island_tree_02, shrub_01, shrub_02, plastic_monobloc_chair_01, portable_generator,
+plastic_crate_01, old_tyre, metal_jerrycan, metal_trash_can, propane_tank,
+wooden_crate_01, utility_box_01, exterior_aircon_unit, street_lamp_01,
+concrete_road_barrier. Decimated and converted to .glb with Blender.
