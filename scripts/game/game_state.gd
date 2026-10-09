@@ -6,6 +6,9 @@ extends Node
 
 signal settings_changed
 
+## High = photo skies, glow, long shadows, all props. F6 in-game toggles.
+var high_graphics: bool = true
+
 const SCENE_MAIN_MENU := "res://scenes/ui/menus/main_menu.tscn"
 const SCENE_TEST_TRACK := "res://scenes/world/test_track.tscn"
 const SCENE_BRIDGE := "res://scenes/world/maps/lagos_bridge/lagos_bridge.tscn"

@@ -80,3 +80,12 @@ godot --headless --path . res://tests/vehicle_physics/physics_smoke_test.tscn
 - `docs/physics_baselines.md` — vehicle tuning + acceptance tests.
 - `docs/map_pipeline.md` — map generation pipeline.
 - `docs/source_licenses.md` — data provenance & licensing obligations.
+
+## Graphics
+
+- **F6** in-game toggles High / Low graphics (photo sky, glow, shadow distance).
+- The project uses the **Compatibility** renderer (smooth on Intel HD 620).
+- For the best look on a strong PC, switch to **Forward+**: Project → Project
+  Settings → Rendering → Renderer → Rendering Method = `forward_plus`, restart
+  the editor. On High this adds ambient occlusion, screen-space reflections
+  (lagoon, road), indirect light and volumetric fog at sunset/night.
