@@ -1,0 +1,54 @@
+{
+  "chunk_id": "tmb_south_prototype",
+  "description": "Prototype slice of Third Mainland Bridge, Lagos. SYNTHETIC APPROXIMATION of the alignment used until a real OpenStreetMap extract is substituted (see docs/map_pipeline.md). The polyline below is NOT surveyed data and must not be presented as exact.",
+
+  "geo_origin": { "lat": 6.498, "lon": 3.394, "note": "Local-metre origin. East->+X, North->+Z, Up->+Y." },
+
+  "source": {
+    "type": "synthetic",
+    "osm_file": "",
+    "osm_way_ids": [],
+    "license": "Synthetic placeholder authored for this project. Replace with OpenStreetMap data (ODbL) via extract_osm.py; see docs/source_licenses.md before distribution."
+  },
+
+  "road": {
+    "lanes_per_direction": 3,
+    "lane_width_m": 3.5,
+    "median_width_m": 1.2,
+    "shoulder_width_m": 1.0,
+    "resample_spacing_m": 6.0,
+    "barrier_height_m": 0.9
+  },
+
+  "bridge": {
+    "deck_thickness_m": 1.2,
+    "support_spacing_m": 40.0,
+    "support_width_m": 2.0,
+    "water_level_y": 0.0,
+    "pier_foot_y": -6.0
+  },
+
+  "centerline_latlon": [
+    { "lat": 6.47250, "lon": 3.39050, "elev_m": 2.0,  "on_bridge": false },
+    { "lat": 6.47650, "lon": 3.39150, "elev_m": 6.0,  "on_bridge": true },
+    { "lat": 6.48150, "lon": 3.39280, "elev_m": 11.0, "on_bridge": true },
+    { "lat": 6.48700, "lon": 3.39380, "elev_m": 12.0, "on_bridge": true },
+    { "lat": 6.49250, "lon": 3.39450, "elev_m": 12.0, "on_bridge": true },
+    { "lat": 6.49800, "lon": 3.39520, "elev_m": 11.5, "on_bridge": true },
+    { "lat": 6.50350, "lon": 3.39620, "elev_m": 11.0, "on_bridge": true },
+    { "lat": 6.50900, "lon": 3.39760, "elev_m": 10.0, "on_bridge": true },
+    { "lat": 6.51350, "lon": 3.39950, "elev_m": 6.0,  "on_bridge": true },
+    { "lat": 6.51700, "lon": 3.40150, "elev_m": 2.5,  "on_bridge": false }
+  ],
+
+  "checkpoints_along_route": [0.05, 0.25, 0.5, 0.75, 0.95],
+
+  "skyline": {
+    "enabled": true,
+    "seed": 1472,
+    "band_offset_m": 220.0,
+    "count_each_side": 26,
+    "min_height_m": 8.0,
+    "max_height_m": 42.0
+  }
+}

@@ -1,0 +1,25 @@
+# Godot 4 project ignores
+.godot/
+*.tmp
+
+# Exported builds
+export/
+build/
+*.exe
+*.pck
+*.zip
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.swp
+
+# Map pipeline: keep config + the final chunk in data/map, not raw/intermediates
+tools/lagos_map_pipeline/raw/
+tools/lagos_map_pipeline/work/
+*.osm.pbf
+*.osm
+# Python
+__pycache__/
+*.pyc
+.venv/

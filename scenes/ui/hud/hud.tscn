@@ -1,0 +1,80 @@
+[gd_scene load_steps=2 format=3 uid="uid://b0lagoshud0001"]
+
+[ext_resource type="Script" path="res://scripts/ui/hud.gd" id="1"]
+
+[node name="HUD" type="CanvasLayer"]
+script = ExtResource("1")
+
+[node name="SpeedLabel" type="Label" parent="."]
+unique_name_in_owner = true
+offset_left = 24.0
+offset_top = 580.0
+offset_right = 320.0
+offset_bottom = 650.0
+theme_override_font_sizes/font_size = 48
+text = "0 km/h"
+
+[node name="GearLabel" type="Label" parent="."]
+unique_name_in_owner = true
+offset_left = 340.0
+offset_top = 580.0
+offset_right = 430.0
+offset_bottom = 650.0
+theme_override_font_sizes/font_size = 48
+text = "N"
+
+[node name="ModeLabel" type="Label" parent="."]
+unique_name_in_owner = true
+offset_left = 340.0
+offset_top = 640.0
+offset_right = 460.0
+offset_bottom = 680.0
+theme_override_font_sizes/font_size = 18
+text = "AUTO"
+
+[node name="RpmBar" type="ProgressBar" parent="."]
+unique_name_in_owner = true
+offset_left = 24.0
+offset_top = 660.0
+offset_right = 320.0
+offset_bottom = 684.0
+max_value = 7000.0
+show_percentage = false
+
+[node name="TimerLabel" type="Label" parent="."]
+unique_name_in_owner = true
+anchors_preset = 5
+offset_left = -120.0
+offset_top = 24.0
+offset_right = 120.0
+offset_bottom = 72.0
+grow_horizontal = 2
+theme_override_font_sizes/font_size = 40
+horizontal_alignment = 1
+text = "00:00.000"
+
+[node name="HelpLabel" type="Label" parent="."]
+offset_left = 24.0
+offset_top = 16.0
+offset_right = 600.0
+offset_bottom = 120.0
+theme_override_font_sizes/font_size = 16
+text = "W/S or Up/Down: throttle/brake   A/D: steer   Space: handbrake
+C: camera   R: restart   Esc: pause   F3: debug overlay"
+
+[node name="DebugPanel" type="Panel" parent="."]
+unique_name_in_owner = true
+offset_left = 900.0
+offset_top = 16.0
+offset_right = 1264.0
+offset_bottom = 320.0
+self_modulate = Color(0, 0, 0, 0.6)
+
+[node name="DebugLabel" type="Label" parent="DebugPanel"]
+unique_name_in_owner = true
+offset_left = 12.0
+offset_top = 8.0
+offset_right = 352.0
+offset_bottom = 296.0
+theme_override_font_sizes/font_size = 15
+text = "debug"

@@ -1,0 +1,209 @@
+[gd_scene load_steps=21 format=3 uid="uid://b0lagostesttrack1"]
+
+[ext_resource type="Script" path="res://scripts/world/test_track.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/vehicles/player/player_car.tscn" id="2"]
+[ext_resource type="Script" path="res://scripts/camera/chase_camera.gd" id="3"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hud/hud.tscn" id="4"]
+
+[sub_resource type="ProceduralSkyMaterial" id="S1"]
+sky_top_color = Color(0.25, 0.37, 0.55, 1)
+sky_horizon_color = Color(0.92, 0.66, 0.42, 1)
+ground_horizon_color = Color(0.85, 0.6, 0.4, 1)
+ground_bottom_color = Color(0.3, 0.26, 0.24, 1)
+sun_angle_max = 30.0
+
+[sub_resource type="Sky" id="S2"]
+sky_material = SubResource("S1")
+
+[sub_resource type="Environment" id="S3"]
+background_mode = 2
+sky = SubResource("S2")
+ambient_light_source = 3
+ambient_light_color = Color(0.7, 0.68, 0.72, 1)
+ambient_light_energy = 0.4
+tonemap_mode = 2
+fog_enabled = true
+fog_light_color = Color(0.86, 0.72, 0.6, 1)
+fog_density = 0.0015
+
+[sub_resource type="BoxShape3D" id="S4"]
+size = Vector3(400, 1, 400)
+
+[sub_resource type="BoxMesh" id="S5"]
+size = Vector3(400, 1, 400)
+
+[sub_resource type="StandardMaterial3D" id="S6"]
+albedo_color = Color(0.34, 0.35, 0.36, 1)
+roughness = 0.95
+
+[sub_resource type="CylinderShape3D" id="S7"]
+height = 16.0
+radius = 2.0
+
+[sub_resource type="CylinderMesh" id="S8"]
+top_radius = 2.0
+bottom_radius = 2.0
+height = 16.0
+radial_segments = 24
+
+[sub_resource type="StandardMaterial3D" id="S9"]
+albedo_color = Color(0.5, 0.45, 0.3, 1)
+roughness = 0.9
+
+[sub_resource type="BoxShape3D" id="S10"]
+size = Vector3(30, 2, 0.5)
+
+[sub_resource type="BoxMesh" id="S11"]
+size = Vector3(30, 2, 0.5)
+
+[sub_resource type="StandardMaterial3D" id="S12"]
+albedo_color = Color(0.9, 0.78, 0.15, 1)
+roughness = 0.7
+
+[sub_resource type="BoxMesh" id="S13"]
+size = Vector3(0.4, 0.8, 0.4)
+
+[sub_resource type="StandardMaterial3D" id="S14"]
+albedo_color = Color(0.9, 0.35, 0.1, 1)
+
+[sub_resource type="BoxMesh" id="S15"]
+size = Vector3(6, 0.02, 170)
+
+[sub_resource type="StandardMaterial3D" id="S16"]
+albedo_color = Color(0.22, 0.22, 0.23, 1)
+roughness = 1.0
+
+[node name="TestTrack" type="Node3D"]
+process_mode = 3
+script = ExtResource("1")
+car_path = NodePath("PlayerCar")
+camera_path = NodePath("ChaseCamera")
+hud_path = NodePath("HUD")
+spawn_path = NodePath("SpawnPoint")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("S3")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.86, -0.3, 0.41, 0, 0.81, 0.59, -0.5, -0.51, 0.7, 0, 40, 0)
+light_color = Color(1, 0.88, 0.72, 1)
+light_energy = 1.2
+shadow_enabled = true
+
+[node name="Ground" type="StaticBody3D" parent="."]
+
+[node name="GroundShape" type="CollisionShape3D" parent="Ground"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+shape = SubResource("S4")
+
+[node name="GroundMesh" type="MeshInstance3D" parent="Ground"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+mesh = SubResource("S5")
+surface_material_override/0 = SubResource("S6")
+
+[node name="BrakingLane" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0.011, 70)
+mesh = SubResource("S15")
+surface_material_override/0 = SubResource("S16")
+
+[node name="Crest" type="StaticBody3D" parent="."]
+transform = Transform3D(0, 1, 0, -1, 0, 0, 0, 0, 1, 10, -1.4, 40)
+
+[node name="CrestShape" type="CollisionShape3D" parent="Crest"]
+shape = SubResource("S7")
+
+[node name="CrestMesh" type="MeshInstance3D" parent="Crest"]
+mesh = SubResource("S8")
+surface_material_override/0 = SubResource("S9")
+
+[node name="Barrier" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 1, 150)
+
+[node name="BarrierShape" type="CollisionShape3D" parent="Barrier"]
+shape = SubResource("S10")
+
+[node name="BarrierMesh" type="MeshInstance3D" parent="Barrier"]
+mesh = SubResource("S11")
+surface_material_override/0 = SubResource("S12")
+
+[node name="Dist0" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14, 1, 0)
+billboard = 1
+text = "0 m"
+
+[node name="Dist25" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14, 1, 25)
+billboard = 1
+text = "25 m"
+
+[node name="Dist50" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14, 1, 50)
+billboard = 1
+text = "50 m"
+
+[node name="Dist75" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14, 1, 75)
+billboard = 1
+text = "75 m"
+
+[node name="Dist100" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14, 1, 100)
+billboard = 1
+text = "100 m"
+
+[node name="Skidpad" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 0, 20)
+
+[node name="P0" type="MeshInstance3D" parent="Skidpad"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 0.4, 0)
+mesh = SubResource("S13")
+surface_material_override/0 = SubResource("S14")
+
+[node name="P1" type="MeshInstance3D" parent="Skidpad"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.1, 0.4, 14.1)
+mesh = SubResource("S13")
+surface_material_override/0 = SubResource("S14")
+
+[node name="P2" type="MeshInstance3D" parent="Skidpad"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4, 20)
+mesh = SubResource("S13")
+surface_material_override/0 = SubResource("S14")
+
+[node name="P3" type="MeshInstance3D" parent="Skidpad"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14.1, 0.4, 14.1)
+mesh = SubResource("S13")
+surface_material_override/0 = SubResource("S14")
+
+[node name="P4" type="MeshInstance3D" parent="Skidpad"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 0.4, 0)
+mesh = SubResource("S13")
+surface_material_override/0 = SubResource("S14")
+
+[node name="P5" type="MeshInstance3D" parent="Skidpad"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14.1, 0.4, -14.1)
+mesh = SubResource("S13")
+surface_material_override/0 = SubResource("S14")
+
+[node name="P6" type="MeshInstance3D" parent="Skidpad"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4, -20)
+mesh = SubResource("S13")
+surface_material_override/0 = SubResource("S14")
+
+[node name="P7" type="MeshInstance3D" parent="Skidpad"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.1, 0.4, -14.1)
+mesh = SubResource("S13")
+surface_material_override/0 = SubResource("S14")
+
+[node name="SpawnPoint" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0.7, -5)
+
+[node name="PlayerCar" parent="." instance=ExtResource("2")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0.7, -5)
+
+[node name="ChaseCamera" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 3, -12)
+script = ExtResource("3")
+target_path = NodePath("../PlayerCar")
+
+[node name="HUD" parent="." instance=ExtResource("4")]
+vehicle_path = NodePath("../PlayerCar")
