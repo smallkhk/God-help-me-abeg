@@ -7,9 +7,12 @@ simcade vehicle controller and a regenerable, geographically-grounded bridge map
 
 > Status: **Milestones 0–4 foundation.** The driving physics and a driveable
 > Third Mainland Bridge prototype with a timed checkpoint sprint are in place.
-> This was authored against Godot 4.4 conventions; **open it in the Godot editor
-> to run and validate** (see "Testing" — it has not been run inside the editor
-> in this environment, which has no Godot binary).
+> **Validated headless on Godot 4.4.1**: clean import (0 errors), physics smoke
+> test, an automated acceptance harness (0–100 in 8.2 s, 189 km/h top, dry/wet
+> braking, deterministic) and a bridge drive test (car stays on the deck) all
+> pass. Three bugs were caught and fixed in the process (see
+> `docs/physics_baselines.md`). Still needs a human **visual** pass in the editor
+> (shaders, lighting, camera feel) since headless has no GPU.
 
 ## Open & run
 

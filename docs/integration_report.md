@@ -11,13 +11,25 @@ project existed, so this is a **fresh foundation**, not an integration into an
 existing game. The spec's "do not rebuild the existing game" rule (§9.1) has
 nothing to preserve here; it will apply to all future changes.
 
-## Environment caveat (important)
+## Testing status (updated — it HAS been run)
 
-This was authored in a cloud container that has **no Godot binary**, so the
-project could **not be opened, run, or parse-checked in the editor here**. The
-Python map pipeline **was** run and verified (it produced a valid 5.1 km chunk).
-All GDScript/scenes are written to Godot 4.4 conventions but need an editor pass
-on your Windows machine. Nothing below is claimed as "tested in-engine".
+Godot **4.4.1** was downloaded into the build environment and the project was
+run headless. Results:
+
+- **Clean import**: all 15 scripts parse, all global classes register, 0 errors.
+- **Physics smoke test** (`tests/vehicle_physics/physics_smoke_test.tscn`): PASS.
+- **Acceptance harness** (`tests/vehicle_physics/acceptance_harness.tscn`): PASS —
+  0–100 in 8.17 s, top 188.8 km/h, dry/wet braking 8.0/9.1 m, deterministic.
+- **Bridge drive test** (`tests/map_validation/bridge_drive_test.tscn`): PASS —
+  car drives on the generated deck, stays grounded, does not fall through.
+- **Map pipeline**: runs and regenerates a valid 5.1 km chunk.
+
+Three real bugs were found by these tests and fixed (see
+`docs/physics_baselines.md`): default-damping combine capping top speed, missing
+`backface_collision` dropping the car through the road, and `continuous_cd`
+making the bridge run slowly. Headless has no GPU, so **visual** polish (shaders,
+lighting readability, camera feel, HUD layout) still needs a human pass in the
+editor on Windows.
 
 ## Files added
 

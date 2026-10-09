@@ -73,6 +73,12 @@ func _build_road(root: Node3D) -> void:
 
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PrimitiveType.PRIMITIVE_TRIANGLES)
+	# Collision triangle soup, built from the exact same triangles as the visual
+	# mesh. We set it on a ConcavePolygonShape3D directly rather than via
+	# mesh.create_trimesh_shape(), which proved unreliable for a runtime
+	# SurfaceTool mesh (the baked shape failed to register with the physics
+	# server). This keeps collision identical to the visible surface (spec §8.3).
+	var soup := PackedVector3Array()
 
 	for i in range(frames.size() - 1):
 		var a = frames[i]
@@ -82,15 +88,19 @@ func _build_road(root: Node3D) -> void:
 		var bl: Vector3 = b["c"] - b["p"] * hw
 		var br: Vector3 = b["c"] + b["p"] * hw
 
-		# Road surface quad (two tris), wound CCW so the normal faces up.
-		_quad(st, al, bl, br, ar)
-
-		# Raised barriers on each edge (inner faces drivers can hit).
 		var up := Vector3.UP * barrier_h
-		# left barrier
-		_quad(st, al, al + up, bl + up, bl)
-		# right barrier
-		_quad(st, ar, br, br + up, ar + up)
+		# Road surface quad (two tris, CCW so the normal faces up), then raised
+		# barriers on each edge. Visual tris go to SurfaceTool; the same tris go
+		# to the collision soup (soup must be appended here, not inside a helper —
+		# PackedVector3Array passes by value in GDScript).
+		for q in [
+			[al, bl, br, ar],            # road surface
+			[al, al + up, bl + up, bl],  # left barrier
+			[ar, br, br + up, ar + up],  # right barrier
+		]:
+			_quad(st, q[0], q[1], q[2], q[3])
+			soup.push_back(q[0]); soup.push_back(q[1]); soup.push_back(q[2])
+			soup.push_back(q[0]); soup.push_back(q[2]); soup.push_back(q[3])
 
 	st.generate_normals()
 	var mesh := st.commit()
@@ -102,10 +112,16 @@ func _build_road(root: Node3D) -> void:
 	root.add_child(mi)
 	_own(mi)
 
+	var shape := ConcavePolygonShape3D.new()
+	shape.set_faces(soup)
+	# Hit the road from either side: without this, a downward wheel ray that
+	# strikes the back of a face (winding-dependent) passes straight through and
+	# the car falls through the deck.
+	shape.backface_collision = true
 	var body := StaticBody3D.new()
 	body.name = "RoadCollision"
 	var cs := CollisionShape3D.new()
-	cs.shape = mesh.create_trimesh_shape()
+	cs.shape = shape
 	body.add_child(cs)
 	root.add_child(body)
 	_own(body)

@@ -54,6 +54,10 @@ var wheels_on_ground: int = 0
 
 var _com_global: Vector3 = Vector3.ZERO
 
+# Debug force accounting (summed per physics step, read by test harnesses).
+var dbg_long_force: float = 0.0
+var dbg_drag_force: float = 0.0
+
 const INPUT_SMOOTH := 10.0
 
 
@@ -65,12 +69,20 @@ func _ready() -> void:
 	mass = data.mass
 	center_of_mass_mode = RigidBody3D.CENTER_OF_MASS_MODE_CUSTOM
 	center_of_mass = Vector3(0.0, data.center_of_mass_y, data.center_of_mass_z)
-	# Driving-game feel: stop the body from going to sleep and keep damping low;
-	# our tyre model supplies the resistance, not the engine's generic damping.
+	# Driving-game feel: stop the body from going to sleep, and REPLACE (not
+	# combine with) the project's default damping so the tyre + aero model is the
+	# only source of resistance. Leaving the default combine mode silently adds
+	# ~0.1 linear damp, which saps drive force and caps top speed far too low.
 	can_sleep = false
+	linear_damp_mode = RigidBody3D.DAMP_MODE_REPLACE
 	linear_damp = 0.0
-	angular_damp = 0.05
-	continuous_cd = true
+	angular_damp_mode = RigidBody3D.DAMP_MODE_REPLACE
+	angular_damp = 0.2
+	# Continuous CD is intentionally OFF: the wheels are raycasts (which never
+	# tunnel), and sweeping the chassis against a large concave road trimesh
+	# every step is extremely expensive. Fixed-tick discrete collision is fine at
+	# the speeds involved.
+	continuous_cd = false
 
 	transmission = Transmission.new(data)
 	_collect_wheels()
@@ -100,6 +112,26 @@ func _collect_wheels() -> void:
 			VehicleData.Drivetrain.RWD: w.is_driven = w.is_rear
 			_: w.is_driven = true
 		wheels.append(w)
+
+
+## Fully reset the controller's internal state to a clean standstill. Callers
+## that teleport the body (spawn, restart, deterministic tests) should also zero
+## linear/angular velocity and set the transform themselves.
+func reset_state() -> void:
+	current_steer_angle = 0.0
+	forward_speed = 0.0
+	lateral_speed = 0.0
+	throttle_input = 0.0
+	brake_input = 0.0
+	steer_input = 0.0
+	handbrake_input = false
+	if transmission:
+		transmission.reset()
+	for w in wheels:
+		w.spin_angle = 0.0
+		w.slip_angle = 0.0
+		w.normal_load = 0.0
+		w.grounded = false
 
 
 func set_driver_input(throttle: float, brake: float, steer: float, handbrake: bool) -> void:
@@ -137,6 +169,7 @@ func _physics_process(delta: float) -> void:
 
 	var grip_scale := lerpf(1.0, data.wet_grip_multiplier, wetness)
 	wheels_on_ground = 0
+	dbg_long_force = 0.0
 
 	# Per-wheel suspension first pass to know compressions (for anti-roll).
 	var hit_info := {}
@@ -275,6 +308,7 @@ func _apply_tyre_force(w: Wheel, offset: Vector3, up: Vector3, driven_count: int
 
 	var force := fwd * fx + right * fy
 	apply_force(force, offset)
+	dbg_long_force += fx
 
 
 ## Shapes the normalized slip into a grip coefficient that rises to 1.0 at the
@@ -294,6 +328,7 @@ func _apply_body_aero(_delta: float, speed: float, _fwd: Vector3, up: Vector3) -
 	var dir := linear_velocity.normalized()
 	var drag := data.drag_coefficient * speed * speed
 	apply_central_force(-dir * drag)
+	dbg_drag_force = drag
 	if data.downforce_coefficient > 0.0:
 		apply_central_force(-up * data.downforce_coefficient * speed * speed)
 

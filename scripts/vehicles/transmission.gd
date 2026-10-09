@@ -22,6 +22,13 @@ func _init(vehicle_data: VehicleData) -> void:
 	engine_rpm = data.idle_rpm
 
 
+## Restore to a clean launch state (used by resets / deterministic tests).
+func reset() -> void:
+	gear = 0
+	engine_rpm = data.idle_rpm
+	_shift_timer = 0.0
+
+
 ## Converts forward ground speed (m/s) into engine RPM for the current gear.
 func rpm_for_speed(forward_speed: float) -> float:
 	var ratio := data.get_gear_ratio(gear)

@@ -38,9 +38,13 @@ def main() -> None:
     zs = [s["z"] for s in road["samples"]]
     bounds = {"min_x": min(xs), "max_x": max(xs), "min_z": min(zs), "max_z": max(zs)}
 
-    first = road["samples"][0]
-    spawn = {"x": first["x"], "y": first["elev_m"] + 0.8, "z": first["z"],
-             "heading_rad": first["heading_rad"]}
+    # Spawn a little way INTO the route (not on sample 0, which is the road
+    # mesh's leading edge — a car placed exactly on that boundary vertex can
+    # fall past it). ~20 m in puts all four wheels firmly on the deck. Height is
+    # set so the wheels start within suspension contact range of the surface.
+    spawn_s = min(road["samples"], key=lambda q: abs(q["dist_m"] - 20.0))
+    spawn = {"x": spawn_s["x"], "y": spawn_s["elev_m"] + 0.5, "z": spawn_s["z"],
+             "heading_rad": spawn_s["heading_rad"]}
 
     chunk = {
         "chunk_id": cfg["chunk_id"],

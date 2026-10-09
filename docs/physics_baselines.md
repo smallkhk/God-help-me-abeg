@@ -50,6 +50,34 @@ These are **engineering starting values, not real-world specifications**
 | Wet grip multiplier | 0.72 |
 | Gears | 5 fwd (3.4/2.1/1.45/1.0/0.78), final 3.9 |
 
+## Measured baseline (Godot 4.4.1 headless, automated harness)
+
+Produced by `tests/vehicle_physics/acceptance_harness.tscn`. These are real
+measured figures for `sedan_01`, not estimates:
+
+| Metric | Result |
+|---|---|
+| 0–100 km/h | **8.17 s** |
+| Top speed | **188.8 km/h** |
+| Braking 50→0 km/h (dry) | **8.0 m** |
+| Braking 50→0 km/h (wet) | **9.1 m** (correctly longer) |
+| Handbrake peak yaw | **2.20 rad/s** (slides, no auto-spin) |
+| Deterministic across identical runs | **yes** |
+
+Bugs found and fixed via this harness (all verified in-engine):
+
+1. **Top speed capped at 96 km/h** — the project's default linear damping (0.1)
+   was *combining* with the body instead of being replaced, silently sapping
+   drive force. Fixed by setting `linear_damp_mode = REPLACE` so the tyre/aero
+   model is the only resistance. After the fix, measured accel matches the
+   force model (`a ≈ (F_drive − F_drag) / m`).
+2. **Car fell through the bridge deck** — the runtime road `ConcavePolygonShape3D`
+   defaults to `backface_collision = false`, so downward wheel rays struck the
+   back of road faces and passed through. Fixed with `backface_collision = true`.
+3. **Severe slowdown on the bridge** — chassis `continuous_cd` sweeping against
+   the 5k-face road trimesh every step. Disabled CCD (wheels are raycasts, which
+   never tunnel).
+
 ## Acceptance tests (spec §5.7)
 
 Run on `scenes/world/test_track.tscn`. Toggle the debug overlay with **F3** and
