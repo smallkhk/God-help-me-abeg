@@ -113,7 +113,7 @@ def main():
             # priority: what you can see from the bridge (near) + big buildings
             pr = ar / (1.0 + (d / 300.0) ** 2)
             out.append({"pts": [[round(p[0], 2), round(p[1], 2)] for p in pts],
-                        "h": round(h, 1), "a": pr})
+                        "h": round(h, 1), "a": pr, "d": round(d)})
     for wid, tags, refs in ways:
         if len(refs) < 4 or refs[0] != refs[-1]: continue
         if any(r not in nodes for r in refs): continue

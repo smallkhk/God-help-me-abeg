@@ -17,7 +17,7 @@ void fragment() {
 	if (abs(wnorm.y) > 0.6) {
 		float speck = hash(floor(wpos.xz * 25.0)) * 0.08;
 		float patches = noise(wpos.xz * 0.08) * 0.12;
-		float v = 0.20 + speck + patches;
+		float v = 0.10 + speck * 0.7 + patches * 0.6;
 		ALBEDO = vec3(v, v, v * 1.03);
 		ROUGHNESS = 0.92 - patches;
 	} else {

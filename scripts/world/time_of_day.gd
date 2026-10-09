@@ -5,7 +5,7 @@ extends Node
 ## WorldEnvironment and DirectionalLight3D named "Sun".
 
 enum Preset { DAY, SUNSET, NIGHT }
-@export var start_preset: Preset = Preset.SUNSET
+@export var start_preset: Preset = Preset.DAY
 
 var _preset: int
 var _env: Environment
@@ -14,19 +14,22 @@ var _sun: DirectionalLight3D
 
 const PRESETS := {
 	Preset.DAY: {
-		"sun_rot": Vector3(-55, 30, 0), "sun_col": Color(1.0, 0.97, 0.9), "sun_e": 1.3,
-		"top": Color(0.28, 0.50, 0.80), "hor": Color(0.70, 0.80, 0.90),
-		"amb": Color(0.75, 0.78, 0.85), "amb_e": 0.6, "fog": Color(0.75, 0.82, 0.9), "night": 0.0,
+		"sun_rot": Vector3(-50, 35, 0), "sun_col": Color(1.0, 0.95, 0.86), "sun_e": 1.35,
+		"top": Color(0.20, 0.46, 0.90), "hor": Color(0.66, 0.82, 0.96),
+		"amb": Color(0.86, 0.84, 0.80), "amb_e": 0.42, "fog": Color(0.78, 0.86, 0.95), "night": 0.0,
+		"fog_d": 0.0004,
 	},
 	Preset.SUNSET: {
 		"sun_rot": Vector3(-12, -60, 0), "sun_col": Color(1.0, 0.70, 0.45), "sun_e": 1.2,
 		"top": Color(0.20, 0.30, 0.52), "hor": Color(0.98, 0.58, 0.32),
 		"amb": Color(0.75, 0.62, 0.60), "amb_e": 0.45, "fog": Color(0.92, 0.66, 0.48), "night": 0.25,
+		"fog_d": 0.0009,
 	},
 	Preset.NIGHT: {
 		"sun_rot": Vector3(-40, 120, 0), "sun_col": Color(0.55, 0.62, 0.85), "sun_e": 0.12,
 		"top": Color(0.01, 0.02, 0.06), "hor": Color(0.07, 0.07, 0.14),
 		"amb": Color(0.25, 0.28, 0.40), "amb_e": 0.35, "fog": Color(0.05, 0.06, 0.10), "night": 1.0,
+		"fog_d": 0.0012,
 	},
 }
 
@@ -64,4 +67,12 @@ func apply(preset: int) -> void:
 		_env.ambient_light_color = c["amb"]
 		_env.ambient_light_energy = c["amb_e"]
 		_env.fog_light_color = c["fog"]
+		_env.fog_density = c["fog_d"]
+		_env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+		_env.reflected_light_source = Environment.REFLECTION_SOURCE_DISABLED
+		_env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
+		_env.tonemap_exposure = 0.95
+		_env.adjustment_enabled = true
+		_env.adjustment_saturation = 1.15 if preset == Preset.DAY else 1.05
+		_env.adjustment_contrast = 1.05
 	RenderingServer.global_shader_parameter_set("night_factor", c["night"])

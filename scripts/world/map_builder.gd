@@ -369,7 +369,7 @@ func _build_land(root: Node3D) -> void:
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PrimitiveType.PRIMITIVE_TRIANGLES)
 	st.set_normal(Vector3.UP)
-	st.set_color(Color(0.42, 0.40, 0.33))
+	st.set_color(Color(0.80, 0.70, 0.52))
 	for c in cells:
 		var x0: float = c[0] * s
 		var z0: float = c[1] * s
@@ -389,53 +389,78 @@ func _build_land(root: Node3D) -> void:
 	_own(mi)
 
 
-## Real Lagos buildings: OSM footprints extruded to their (or estimated) height,
-## merged into one mesh with varied wall/roof colours. Scenery only (no collision).
+## Real Lagos buildings (Google Open Buildings footprints) dressed in a bright
+## stylised Lagos look: painted walls with windows, clay-tile / zinc gable roofs or
+## flat roofs with parapets + water tanks, and shop awnings near the road.
+## Vertex alpha tells the shader the surface type:
+##   0.0 wall with windows · 0.25 concrete roof · 0.5 zinc · 0.75 clay tile · 1.0 plain colour
+const _WALLS := [
+	Color(0.95, 0.89, 0.74), Color(0.97, 0.84, 0.52), Color(0.96, 0.74, 0.60),
+	Color(0.66, 0.80, 0.90), Color(0.74, 0.88, 0.74), Color(0.96, 0.96, 0.93),
+	Color(0.93, 0.76, 0.78), Color(0.88, 0.62, 0.46), Color(0.90, 0.90, 0.80),
+]
+const _AWNINGS := [
+	Color(0.15, 0.55, 0.35), Color(0.20, 0.40, 0.75), Color(0.80, 0.22, 0.20),
+	Color(0.95, 0.70, 0.15), Color(0.55, 0.25, 0.55),
+]
+const _TANKS := [Color(0.10, 0.11, 0.13), Color(0.18, 0.35, 0.70), Color(0.92, 0.92, 0.90)]
+
+
 func _build_osm_buildings(root: Node3D) -> void:
 	var blds: Array = chunk.get("osm_buildings", [])
 	if blds.is_empty():
 		return
-	var walls := [
-		Color(0.86, 0.82, 0.72), Color(0.78, 0.74, 0.66), Color(0.92, 0.89, 0.80),
-		Color(0.70, 0.66, 0.60), Color(0.84, 0.76, 0.62), Color(0.74, 0.78, 0.80),
-	]
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PrimitiveType.PRIMITIVE_TRIANGLES)
+	var rng := RandomNumberGenerator.new()
 	var base := 0.25
 	for i in blds.size():
 		var b: Dictionary = blds[i]
-		var raw: Array = b["pts"]
-		var h: float = b["h"]
+		rng.seed = i * 7919 + 13
 		var poly := PackedVector2Array()
-		for p in raw:
+		for p in b["pts"]:
 			poly.append(Vector2(p[0], p[1]))
-		var wc: Color = walls[i % walls.size()]
+		if poly.size() < 3:
+			continue
+		var h: float = b["h"]
+		var near: bool = float(b.get("d", 9999.0)) < 160.0
+		var wc: Color = _WALLS[rng.randi() % _WALLS.size()]
 		var top := base + h
-		# small/low buildings get zinc roofs (alpha flag read by the shader)
-		var zinc := 1.0 if h < 14.0 else 0.0
-		# walls: UV.x = metres along perimeter, UV.y = metres up (window grid)
+		var ob := _obb(poly)
+		var w := float(ob["v1"]) - float(ob["v0"])
+		var l := float(ob["u1"]) - float(ob["u0"])
+		var roof_roll := rng.randf()
+
+		# walls (with windows)
 		var run := 0.0
 		for k in poly.size():
-			var p0 := poly[k]
-			var p1 := poly[(k + 1) % poly.size()]
+			var p0 := poly[k]; var p1 := poly[(k + 1) % poly.size()]
 			var seg := p0.distance_to(p1)
-			var shade := 0.85 + 0.15 * absf(sin(p0.angle_to_point(p1)))
-			var col := Color(wc.r * shade, wc.g * shade, wc.b * shade, zinc)
-			var a := Vector3(p0.x, base, p0.y); var bb := Vector3(p1.x, base, p1.y)
-			var c := Vector3(p1.x, top, p1.y); var d := Vector3(p0.x, top, p0.y)
-			var ua := Vector2(run, 0); var ub := Vector2(run + seg, 0)
-			var uc := Vector2(run + seg, h); var ud := Vector2(run, h)
-			st.set_color(col)
-			st.set_uv(ua); st.add_vertex(a); st.set_uv(ub); st.add_vertex(bb); st.set_uv(uc); st.add_vertex(c)
-			st.set_uv(ua); st.add_vertex(a); st.set_uv(uc); st.add_vertex(c); st.set_uv(ud); st.add_vertex(d)
+			var sh := 0.86 + 0.14 * absf(sin(p0.angle_to_point(p1)))
+			var col := Color(wc.r * sh, wc.g * sh, wc.b * sh, 0.0)
+			_bq(st, Vector3(p0.x, base, p0.y), Vector3(p1.x, base, p1.y),
+				Vector3(p1.x, top, p1.y), Vector3(p0.x, top, p0.y), col,
+				Vector2(run, 0), Vector2(run + seg, 0), Vector2(run + seg, h), Vector2(run, h))
 			run += seg
-		# roof
-		var tri := Geometry2D.triangulate_polygon(poly)
-		st.set_color(Color(wc.r, wc.g, wc.b, zinc))
-		for t in tri:
-			var q := poly[t]
-			st.set_uv(q)
-			st.add_vertex(Vector3(q.x, top, q.y))
+
+		var pitched := h < 11.0 and w < 22.0 and roof_roll < 0.72
+		if pitched:
+			var clay := roof_roll < 0.45
+			_gable(st, ob, top, clay, wc)
+		else:
+			_flat_roof(st, poly, top, wc, rng)
+			if l > 5.0 and w > 5.0:
+				var tanks := 1 + rng.randi() % 2
+				for t in tanks:
+					var u := lerpf(float(ob["u0"]) + 1.5, float(ob["u1"]) - 1.5, rng.randf())
+					var v := lerpf(float(ob["v0"]) + 1.5, float(ob["v1"]) - 1.5, rng.randf())
+					var c2d: Vector2 = ob["c"] * u + ob["n"] * v
+					_box(st, Vector3(c2d.x, top + 0.9, c2d.y), Vector3(1.3, 1.6, 1.3),
+						_TANKS[rng.randi() % _TANKS.size()])
+
+		if near and h < 16.0:
+			_awning(st, poly, _AWNINGS[rng.randi() % _AWNINGS.size()], base)
+
 	st.generate_normals()
 	var mi := MeshInstance3D.new()
 	mi.name = "LagosBuildings"
@@ -446,6 +471,111 @@ func _build_osm_buildings(root: Node3D) -> void:
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	root.add_child(mi)
 	_own(mi)
+
+
+func _obb(poly: PackedVector2Array) -> Dictionary:
+	var best := 0.0
+	var ang := 0.0
+	for k in poly.size():
+		var e := poly[(k + 1) % poly.size()] - poly[k]
+		if e.length() > best:
+			best = e.length(); ang = e.angle()
+	var c := Vector2(cos(ang), sin(ang))
+	var n := Vector2(-c.y, c.x)
+	var u0 := INF; var u1 := -INF; var v0 := INF; var v1 := -INF
+	for p in poly:
+		u0 = minf(u0, p.dot(c)); u1 = maxf(u1, p.dot(c))
+		v0 = minf(v0, p.dot(n)); v1 = maxf(v1, p.dot(n))
+	return {"c": c, "n": n, "u0": u0, "u1": u1, "v0": v0, "v1": v1}
+
+
+func _gable(st: SurfaceTool, ob: Dictionary, top: float, clay: bool, wc: Color) -> void:
+	var c: Vector2 = ob["c"]; var n: Vector2 = ob["n"]
+	var pad := 0.45
+	var u0 := float(ob["u0"]) - pad; var u1 := float(ob["u1"]) + pad
+	var v0 := float(ob["v0"]) - pad; var v1 := float(ob["v1"]) + pad
+	var vm := (v0 + v1) * 0.5
+	var rh := minf((v1 - v0) * (0.38 if clay else 0.2), 3.5)
+	var P := func(u: float, v: float, y: float) -> Vector3:
+		var q: Vector2 = c * u + n * v
+		return Vector3(q.x, y, q.y)
+	var a: Vector3 = P.call(u0, v0, top); var b: Vector3 = P.call(u1, v0, top)
+	var cc: Vector3 = P.call(u1, v1, top); var d: Vector3 = P.call(u0, v1, top)
+	var r0: Vector3 = P.call(u0, vm, top + rh); var r1: Vector3 = P.call(u1, vm, top + rh)
+	var kind := 0.75 if clay else 0.5
+	var rc := Color(0.78, 0.38, 0.24, kind) if clay else Color(0.62, 0.64, 0.66, kind)
+	var sl := sqrt(pow((v1 - v0) * 0.5, 2) + rh * rh)
+	_bq(st, a, b, r1, r0, rc, Vector2(u0, 0), Vector2(u1, 0), Vector2(u1, sl), Vector2(u0, sl))
+	_bq(st, cc, d, r0, r1, rc, Vector2(u1, 0), Vector2(u0, 0), Vector2(u0, sl), Vector2(u1, sl))
+	var gc := Color(wc.r * 0.92, wc.g * 0.92, wc.b * 0.92, 1.0)
+	_btri(st, a, r0, d, gc)
+	_btri(st, b, cc, r1, gc)
+
+
+func _flat_roof(st: SurfaceTool, poly: PackedVector2Array, top: float, wc: Color, rng: RandomNumberGenerator) -> void:
+	var zinc := rng.randf() < 0.25
+	var rc := Color(0.62, 0.64, 0.66, 0.5) if zinc else Color(0.6, 0.58, 0.55, 0.25)
+	for t in Geometry2D.triangulate_polygon(poly):
+		var q := poly[t]
+		st.set_color(rc); st.set_uv(q)
+		st.add_vertex(Vector3(q.x, top, q.y))
+	# parapet
+	var pc := Color(wc.r * 0.9, wc.g * 0.9, wc.b * 0.9, 1.0)
+	for k in poly.size():
+		var p0 := poly[k]; var p1 := poly[(k + 1) % poly.size()]
+		_bq(st, Vector3(p0.x, top, p0.y), Vector3(p1.x, top, p1.y),
+			Vector3(p1.x, top + 0.9, p1.y), Vector3(p0.x, top + 0.9, p0.y), pc,
+			Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO)
+
+
+func _awning(st: SurfaceTool, poly: PackedVector2Array, col: Color, base: float) -> void:
+	var best := 0.0; var k0 := 0
+	for k in poly.size():
+		var e := poly[k].distance_to(poly[(k + 1) % poly.size()])
+		if e > best:
+			best = e; k0 = k
+	if best < 4.0:
+		return
+	var p0 := poly[k0]; var p1 := poly[(k0 + 1) % poly.size()]
+	var cen := Vector2.ZERO
+	for p in poly: cen += p
+	cen /= poly.size()
+	var dir := (p1 - p0).normalized()
+	var out := Vector2(-dir.y, dir.x)
+	if out.dot((p0 + p1) * 0.5 - cen) < 0.0:
+		out = -out
+	var i0 := p0 + dir * 0.4; var i1 := p1 - dir * 0.4
+	var o0 := i0 + out * 1.8; var o1 := i1 + out * 1.8
+	var y0 := base + 3.3; var y1 := base + 2.8
+	var c := Color(col.r, col.g, col.b, 1.0)
+	_bq(st, Vector3(i0.x, y0, i0.y), Vector3(i1.x, y0, i1.y),
+		Vector3(o1.x, y1, o1.y), Vector3(o0.x, y1, o0.y), c,
+		Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO)
+
+
+func _box(st: SurfaceTool, c: Vector3, s: Vector3, col: Color) -> void:
+	var col1 := Color(col.r, col.g, col.b, 1.0)
+	var h := s * 0.5
+	var v := [
+		c + Vector3(-h.x, -h.y, -h.z), c + Vector3(h.x, -h.y, -h.z), c + Vector3(h.x, -h.y, h.z), c + Vector3(-h.x, -h.y, h.z),
+		c + Vector3(-h.x, h.y, -h.z), c + Vector3(h.x, h.y, -h.z), c + Vector3(h.x, h.y, h.z), c + Vector3(-h.x, h.y, h.z),
+	]
+	var z := Vector2.ZERO
+	for f in [[0, 1, 5, 4], [1, 2, 6, 5], [2, 3, 7, 6], [3, 0, 4, 7], [4, 5, 6, 7]]:
+		_bq(st, v[f[0]], v[f[1]], v[f[2]], v[f[3]], col1, z, z, z, z)
+
+
+func _bq(st: SurfaceTool, a: Vector3, b: Vector3, c: Vector3, d: Vector3, col: Color,
+		ua: Vector2, ub: Vector2, uc: Vector2, ud: Vector2) -> void:
+	st.set_color(col)
+	st.set_uv(ua); st.add_vertex(a); st.set_uv(ub); st.add_vertex(b); st.set_uv(uc); st.add_vertex(c)
+	st.set_uv(ua); st.add_vertex(a); st.set_uv(uc); st.add_vertex(c); st.set_uv(ud); st.add_vertex(d)
+
+
+func _btri(st: SurfaceTool, a: Vector3, b: Vector3, c: Vector3, col: Color) -> void:
+	st.set_color(col)
+	for p in [a, b, c]:
+		st.set_uv(Vector2.ZERO); st.add_vertex(p)
 
 
 func _road_material() -> Material:
