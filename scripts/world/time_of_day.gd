@@ -51,6 +51,7 @@ func _unhandled_input(ev: InputEvent) -> void:
 	# F6: toggle High / Low graphics (photo sky, glow, shadows)
 	if ev is InputEventKey and ev.pressed and not ev.echo and ev.physical_keycode == KEY_F6:
 		Game.high_graphics = not Game.high_graphics
+		Game.set_setting("high_graphics", Game.high_graphics)
 		apply(_preset)
 
 

@@ -22,6 +22,8 @@ var settings: Dictionary = {}
 func _ready() -> void:
 	var data := SaveManager.load_data()
 	settings = data.get("settings", {})
+	high_graphics = bool(settings.get("high_graphics", true))
+	AudioServer.set_bus_volume_db(0, linear_to_db(float(settings.get("volume", 0.8))))
 	if data.has("selected_car") and typeof(data["selected_car"]) == TYPE_STRING:
 		selected_car_id = StringName(data["selected_car"])
 

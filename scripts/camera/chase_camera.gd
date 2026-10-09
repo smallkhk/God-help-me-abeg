@@ -4,8 +4,8 @@ extends Camera3D
 ## transform only — it never drives vehicle movement (spec §9.3).
 
 @export var target_path: NodePath
-@export var follow_distance: float = 5.2
-@export var follow_height: float = 2.1
+@export var follow_distance: float = 3.9
+@export var follow_height: float = 1.75
 @export var look_ahead: float = 3.0
 @export var position_smooth: float = 6.0
 @export var rotation_smooth: float = 8.0

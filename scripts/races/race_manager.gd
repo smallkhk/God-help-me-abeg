@@ -30,6 +30,16 @@ var _center_label: Label
 var _results: Label
 
 
+# --- rivals ---
+const CAR_SCENE := "res://scenes/vehicles/player/player_car.tscn"
+const RIVAL_NAMES := ["Tunde", "Chioma", "Emeka", "Bisi", "Femi"]
+var _rivals: Array[VehicleController] = []
+var _route: Array = []
+var _start_idx := 0
+var _player_prog := 0
+var _finish_order: Array[String] = []
+var _pos_label: Label
+
 var _initialized := false
 var _ext := false
 var _ext_checkpoints: Array = []
@@ -62,6 +72,9 @@ func _initialize() -> void:
 		if not chunk.is_empty():
 			_spawn = MapLoader.spawn_transform(chunk)
 			_spawn_gates(chunk.get("checkpoints", []))
+			_route = chunk["road"]["samples"]
+			_start_idx = _nearest_sample(_spawn.origin, 0, _route.size())
+			_spawn_rivals()
 	elif _ext:
 		_spawn_gates(_ext_checkpoints)
 	_reset_to_idle()
@@ -88,6 +101,15 @@ func _build_ui() -> void:
 	_results.size = Vector2(400, 220)
 	_results.visible = false
 	_layer.add_child(_results)
+
+	_pos_label = Label.new()
+	_pos_label.add_theme_font_size_override("font_size", 40)
+	_pos_label.add_theme_color_override("font_outline_color", Color.BLACK)
+	_pos_label.add_theme_constant_override("outline_size", 8)
+	_pos_label.anchor_left = 1.0; _pos_label.anchor_right = 1.0
+	_pos_label.offset_left = -260; _pos_label.offset_right = -24; _pos_label.offset_top = 20
+	_pos_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_layer.add_child(_pos_label)
 
 
 func _spawn_gates(checkpoints: Array) -> void:
@@ -118,6 +140,9 @@ func _reset_to_idle() -> void:
 		_player.global_transform = _spawn
 		_player.transmission.gear = 0
 		_player.set_driver_input(0, 0, 0, false)
+	_finish_order.clear()
+	_player_prog = _start_idx
+	_place_rivals()
 
 
 func _unhandled_input(ev: InputEvent) -> void:
@@ -157,6 +182,7 @@ func _process(delta: float) -> void:
 		State.RUNNING:
 			_elapsed += delta
 			_center_label.text = ""
+			_update_positions()
 
 
 func _begin_run() -> void:
@@ -166,6 +192,9 @@ func _begin_run() -> void:
 	_center_label.text = "GO!"
 	for g in _gates:
 		g.set_target(g.index == 0)
+	for r in _rivals:
+		var d := r.get_node("RivalDriver") as RivalDriver
+		d.active = true
 	if _hud and _hud.has_method("start_timer"):
 		_hud.start_timer()
 
@@ -190,8 +219,13 @@ func _finish() -> void:
 	var best := SaveManager.get_best_time(event_id)
 	_center_label.text = ""
 	_results.visible = true
-	_results.text = "FINISH\n\nTime: %s\nBest: %s%s\n\nPress R to retry" % [
-		_fmt(final_time), _fmt(best),
+	_finish_order.append("YOU")
+	var place := _finish_order.size()
+	var place_txt := ""
+	if not _rivals.is_empty():
+		place_txt = "%s place of %d\n" % [_ordinal(place), _rivals.size() + 1]
+	_results.text = "FINISH\n\n%sTime: %s\nBest: %s%s\n\nR = retry    Esc = menu" % [
+		place_txt, _fmt(final_time), _fmt(best),
 		"   (NEW BEST!)" if is_best else "",
 	]
 
@@ -201,3 +235,110 @@ static func _fmt(t: float) -> String:
 	var s := int(t) % 60
 	var ms := int((t - int(t)) * 1000.0)
 	return "%02d:%02d.%03d" % [m, s, ms]
+
+
+# ---------------- rivals ----------------
+
+func _spawn_rivals() -> void:
+	var n := int(Game.get_setting("rivals", 4))
+	if n <= 0 or _route.size() < 50:
+		return
+	var ids := CarDatabase.ORDER
+	var scene := load(CAR_SCENE) as PackedScene
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 777
+	var colors := [Color(0.1, 0.3, 0.8), Color(0.95, 0.75, 0.1), Color(0.1, 0.6, 0.3),
+		Color(0.9, 0.9, 0.92), Color(0.5, 0.15, 0.6)]
+	for i in mini(n, RIVAL_NAMES.size()):
+		var car := scene.instantiate() as VehicleController
+		car.is_player = false
+		for c in ["PlayerDriver", "VehicleDebug"]:
+			var node := car.get_node_or_null(c)
+			if node:
+				node.free()
+		var d := CarDatabase.get_data(ids[rng.randi() % ids.size()])
+		if d:
+			car.data = d
+		car.name = "Rival_" + RIVAL_NAMES[i]
+		var drv := RivalDriver.new()
+		drv.name = "RivalDriver"
+		drv.route = _route
+		drv.player = _player
+		drv.skill = rng.randf_range(0.75, 1.0)
+		car.add_child(drv)
+		var mat := StandardMaterial3D.new()
+		mat.albedo_color = colors[i % colors.size()]
+		mat.metallic = 0.3; mat.roughness = 0.35
+		for mn in ["Body", "Cabin"]:
+			var m := car.get_node_or_null(mn) as MeshInstance3D
+			if m:
+				m.material_override = mat
+		var tag := Label3D.new()
+		tag.text = RIVAL_NAMES[i]
+		tag.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		tag.position = Vector3(0, 2.2, 0)
+		tag.font_size = 48
+		tag.outline_size = 10
+		tag.no_depth_test = true
+		car.add_child(tag)
+		get_parent().add_child.call_deferred(car)
+		_rivals.append(car)
+	_place_rivals.call_deferred()
+
+
+## Starting grid: player front-left; rivals fill the other lanes and rows behind.
+func _place_rivals() -> void:
+	var slots := [[0, 5.9], [0, 9.4], [-1, 2.4], [-1, 5.9], [-1, 9.4]]
+	for i in _rivals.size():
+		var car := _rivals[i]
+		if not car.is_inside_tree():
+			continue
+		var row: int = slots[i][0]; var lane: float = slots[i][1]
+		var si := clampi(_start_idx + row * 2, 0, _route.size() - 1)
+		var smp = _route[si]
+		var h: float = smp["heading_rad"]
+		var pos := Vector3(smp["x"], float(smp["elev_m"]) + 0.6, smp["z"]) + Vector3(cos(h), 0, -sin(h)) * lane
+		car.linear_velocity = Vector3.ZERO
+		car.angular_velocity = Vector3.ZERO
+		car.global_transform = Transform3D(Basis(Vector3.UP, h), pos)
+		car.reset_state()
+		var d := car.get_node("RivalDriver") as RivalDriver
+		d.active = false
+		d.finished = false
+		d.progress = si
+		d.lane_offset = lane
+
+
+func _update_positions() -> void:
+	if _rivals.is_empty() or _player == null:
+		_pos_label.text = ""
+		return
+	_player_prog = _nearest_sample(_player.global_position, maxi(_player_prog - 20, 0), mini(_player_prog + 60, _route.size()))
+	var ahead := 0
+	for r in _rivals:
+		var d := r.get_node("RivalDriver") as RivalDriver
+		if d.finished:
+			if not _finish_order.has(String(r.name)):
+				_finish_order.append(String(r.name))
+			ahead += 1
+		elif d.progress > _player_prog:
+			ahead += 1
+	_pos_label.text = "POS %d/%d" % [ahead + 1, _rivals.size() + 1]
+
+
+func _nearest_sample(p: Vector3, a: int, b: int) -> int:
+	var best := a; var bd := INF
+	for i in range(a, b):
+		var s = _route[i]
+		var d := Vector2(s["x"] - p.x, s["z"] - p.z).length_squared()
+		if d < bd:
+			bd = d; best = i
+	return best
+
+
+static func _ordinal(n: int) -> String:
+	match n:
+		1: return "1st"
+		2: return "2nd"
+		3: return "3rd"
+	return "%dth" % n
