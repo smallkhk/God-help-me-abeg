@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="RaceEvent" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/races/race_event.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+event_id = &"bridge_test_sprint"
+display_name = "Third Mainland Bridge Sprint"
+kind = 0
+laps = 1
+countdown = 3.0
+reward_naira = 50000
+allowed_classes = "any"
+time_of_day = "sunset"
+weather = "clear"

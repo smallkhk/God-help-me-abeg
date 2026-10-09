@@ -4,6 +4,9 @@ extends Node
 ## from reusable chunk route data (spec §11 "data-driven with stable IDs").
 
 @export var event_id: String = "bridge_test_sprint"
+## Optional data-driven event definition (spec §11). When set, its name, countdown
+## and best-time key are used; otherwise the fields above/defaults apply.
+@export var event: RaceEvent
 @export var map_builder_path: NodePath
 @export var player_path: NodePath
 @export var hud_path: NodePath
@@ -27,17 +30,40 @@ var _center_label: Label
 var _results: Label
 
 
+var _initialized := false
+var _ext := false
+var _ext_checkpoints: Array = []
+
+
 func _ready() -> void:
 	_player = get_node_or_null(player_path) as VehicleController
 	_hud = get_node_or_null(hud_path) as CanvasLayer
 	_builder = get_node_or_null(map_builder_path) as MapBuilder
+	if event:
+		event_id = event.best_time_key()
 	_build_ui()
+	# Setup is deferred to the first frame (see _initialize) so an external track
+	# loader can call configure_external() after this _ready but before the race
+	# actually starts.
 
+
+## Used by the drop-in external track loader: supply spawn + ordered checkpoints
+## directly instead of reading them from a MapBuilder chunk.
+func configure_external(spawn: Transform3D, checkpoints: Array) -> void:
+	_spawn = spawn
+	_ext_checkpoints = checkpoints
+	_ext = true
+
+
+func _initialize() -> void:
+	_initialized = true
 	if _builder:
 		var chunk := _builder.get_chunk()
 		if not chunk.is_empty():
 			_spawn = MapLoader.spawn_transform(chunk)
 			_spawn_gates(chunk.get("checkpoints", []))
+	elif _ext:
+		_spawn_gates(_ext_checkpoints)
 	_reset_to_idle()
 
 
@@ -94,20 +120,24 @@ func _reset_to_idle() -> void:
 		_player.set_driver_input(0, 0, 0, false)
 
 
-func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("restart"):
+func _unhandled_input(ev: InputEvent) -> void:
+	if not _initialized:
+		return
+	if ev.is_action_pressed("restart"):
 		_reset_to_idle()
 		return
-	if _state == State.IDLE and event.is_action_pressed("accelerate"):
+	if _state == State.IDLE and ev.is_action_pressed("accelerate"):
 		_start_countdown()
 
 
 func _start_countdown() -> void:
 	_state = State.COUNTDOWN
-	_countdown = 3.0
+	_countdown = event.countdown if event else 3.0
 
 
 func _process(delta: float) -> void:
+	if not _initialized:
+		_initialize()
 	match _state:
 		State.COUNTDOWN:
 			_countdown -= delta

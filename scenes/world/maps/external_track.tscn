@@ -1,0 +1,18 @@
+[gd_scene load_steps=7 format=3 uid="uid://b0lagosexttrack01"]
+
+[ext_resource type="Script" path="res://scripts/world/external_track.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/vehicles/player/player_car.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hud/hud.tscn" id="3"]
+[ext_resource type="PackedScene" path="res://scenes/ui/menus/pause_menu.tscn" id="4"]
+[ext_resource type="PackedScene" path="res://scenes/races/checkpoints/checkpoint_gate.tscn" id="5"]
+[ext_resource type="Resource" path="res://data/events/bridge_sprint.tres" id="6"]
+
+[node name="ExternalTrack" type="Node3D"]
+process_mode = 3
+script = ExtResource("1")
+track_config_path = ""
+player_scene = ExtResource("2")
+hud_scene = ExtResource("3")
+pause_scene = ExtResource("4")
+checkpoint_scene = ExtResource("5")
+race_event = ExtResource("6")

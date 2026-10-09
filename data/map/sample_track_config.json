@@ -1,0 +1,8 @@
+{
+  "_comment": "Template for an external (Blender/OSM) track. Copy next to your track, fill in spawn + checkpoints (in Godot world metres, +Y up), and point external_track.tscn's track_config_path at it. heading_rad is the facing angle about +Y (0 faces +Z).",
+  "spawn": { "x": 0.0, "y": 1.0, "z": 0.0, "heading_rad": 0.0 },
+  "checkpoints": [
+    { "x": 0.0, "y": 0.0, "z": 50.0, "heading_rad": 0.0 },
+    { "x": 0.0, "y": 0.0, "z": 150.0, "heading_rad": 0.0 }
+  ]
+}
