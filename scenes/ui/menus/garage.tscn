@@ -43,6 +43,7 @@ grow_vertical = 2
 color = Color(0.16, 0.18, 0.21, 1)
 
 [node name="PreviewNote" type="Label" parent="Preview"]
+unique_name_in_owner = true
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
