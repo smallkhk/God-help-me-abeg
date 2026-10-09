@@ -655,7 +655,7 @@ func _build_street_props(root: Node3D) -> void:
 					var pos: Vector3 = c + p * side * (hw + rng.randf_range(10.0, 220.0)) + fwd * rng.randf_range(-6.0, 6.0)
 					if is_land.call(pos):
 						pos.y = 0.25
-						put.call("island_tree_01" if rng.randf() < 0.5 else "island_tree_02", pos, rng.randf() * TAU, rng.randf_range(0.8, 1.2))
+						put.call(["island_tree_01", "island_tree_02", "island_tree_03"][rng.randi() % 3], pos, rng.randf() * TAU, rng.randf_range(0.8, 1.2))
 						if rng.randf() < 0.5:
 							var sp: Vector3 = pos + Vector3(rng.randf_range(-4, 4), 0, rng.randf_range(-4, 4))
 							put.call("shrub_01" if rng.randf() < 0.5 else "shrub_02", sp, rng.randf() * TAU, rng.randf_range(0.8, 1.5))
@@ -695,10 +695,30 @@ func _build_street_props(root: Node3D) -> void:
 				base.y = 0.25
 				var junk := ["plastic_monobloc_chair_01", "portable_generator", "plastic_crate_01",
 					"old_tyre", "metal_jerrycan", "metal_trash_can", "propane_tank", "wooden_crate_01",
-					"utility_box_01", "exterior_aircon_unit"]
+					"utility_box_01", "exterior_aircon_unit", "utility_box_02", "fire_hydrant",
+					"security_light", "covered_car"]
 				for k in rng.randi_range(1, 4):
 					var jp: Vector3 = base + Vector3(rng.randf_range(-2.0, 2.0), 0, rng.randf_range(-2.0, 2.0))
 					put.call(junk[rng.randi() % junk.size()], jp, rng.randf() * TAU, 1.0)
+
+		# boats on the lagoon beside the bridge
+		if on_bridge and rng.randf() < 0.012:
+			var side: float = -1.0 if rng.randf() < 0.5 else 1.0
+			var bp: Vector3 = c + p * side * rng.randf_range(60.0, 400.0)
+			if not is_land.call(bp):
+				bp.y = 0.0
+				put.call("dutch_ship_medium", bp, rng.randf() * TAU, 0.6)
+
+		# real street lamps + concrete barriers on land roads
+		if not on_bridge and i % 7 == 0:
+			for side in [-1.0, 1.0]:
+				var lp: Vector3 = c + p * side * (hw + 1.2)
+				if is_land.call(lp):
+					lp.y = 0.25
+					put.call("street_lamp_02", lp, atan2(p.x, p.z) + (PI if side > 0 else 0.0), 1.0)
+		if not on_bridge and rng.randf() < 0.01:
+			var bp2: Vector3 = c + p * (hw - 0.8) * (-1.0 if rng.randf() < 0.5 else 1.0)
+			put.call("concrete_road_barrier_02", bp2, atan2(fwd.x, fwd.z), 1.0)
 
 		# traffic cones on the shoulder
 		if dist >= next_cones:

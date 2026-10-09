@@ -14,6 +14,8 @@ const ORDER: Array[StringName] = [
 	&"sport_01",
 	&"suv_01",
 	&"luxury_01",
+	&"concept_01",
+	&"super_01",
 ]
 
 

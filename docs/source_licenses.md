@@ -62,3 +62,13 @@ island_tree_02, shrub_01, shrub_02, plastic_monobloc_chair_01, portable_generato
 plastic_crate_01, old_tyre, metal_jerrycan, metal_trash_can, propane_tank,
 wooden_crate_01, utility_box_01, exterior_aircon_unit, street_lamp_01,
 concrete_road_barrier. Decimated and converted to .glb with Blender.
+
+## Car models (assets/vehicles/)
+
+- rosso.glb — "Ferrari 458 Italia" by vicent091036 (via three.js examples), CC BY 4.0.
+  Draco-decoded and re-materialed in Blender. Shown in-game as "Rosso 458".
+- concept.glb — "Car Concept" from KhronosGroup glTF-Sample-Assets, CC BY 4.0
+  (Khronos trademarks/logos excluded).
+Additional Poly Haven CC0 models: island_tree_03, street_lamp_02, concrete_road_barrier_02,
+covered_car, water_manhole_cover, fire_hydrant, security_light, dutch_ship_medium,
+rollershutter_door, utility_box_02 (high detail, lightly decimated).

@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="VehicleData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/vehicles/vehicle_data.gd" id="1"]
+[ext_resource type="PackedScene" path="res://assets/vehicles/concept.glb" id="2"]
+
+[resource]
+script = ExtResource("1")
+display_name = "Eko Concept GT"
+vehicle_id = &"concept_01"
+mass = 1450.0
+wheelbase = 2.7
+track_width = 1.6
+center_of_mass_y = -0.46
+drivetrain = 1
+max_drive_force = 10000.0
+engine_brake_force = 1400.0
+max_rpm = 8000.0
+peak_power_rpm = 5800.0
+gear_ratios = PackedFloat32Array(3.2, 2.05, 1.5, 1.15, 0.92, 0.75)
+final_drive = 3.7
+brake_force = 12500.0
+handbrake_force = 7000.0
+max_steer_angle = 0.56
+lateral_grip_front = 1.55
+lateral_grip_rear = 1.59
+longitudinal_grip = 1.5
+drag_coefficient = 0.5
+model_scene = ExtResource("2")
+model_offset = Vector3(0, -0.34, 0)
+model_rotation_deg = Vector3(0, 0, 0)
+model_scale = 1.0
+price_naira = 18000000
+durability = 0.7
