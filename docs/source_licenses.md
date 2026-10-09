@@ -72,3 +72,8 @@ concrete_road_barrier. Decimated and converted to .glb with Blender.
 Additional Poly Haven CC0 models: island_tree_03, street_lamp_02, concrete_road_barrier_02,
 covered_car, water_manhole_cover, fire_hydrant, security_light, dutch_ship_medium,
 rollershutter_door, utility_box_02 (high detail, lightly decimated).
+
+## Audio (assets/audio/)
+
+- engine/engine_0..5.wav — "Racing car engine sound loops", OpenGameArt, CC0.
+- horn.ogg, engine_start.ogg — "Car sound effects pack", OpenGameArt, CC0.

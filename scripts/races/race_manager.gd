@@ -275,6 +275,10 @@ func _spawn_rivals() -> void:
 		drv.player = _player
 		drv.skill = rng.randf_range(0.75, 1.0)
 		car.add_child(drv)
+		var au := CarAudio.new()
+		au.vehicle = car
+		au.is_player = false
+		car.add_child(au)
 		var mat := StandardMaterial3D.new()
 		mat.albedo_color = colors[i % colors.size()]
 		mat.metallic = 0.3; mat.roughness = 0.35

@@ -63,6 +63,7 @@ func _build() -> void:
 	_build_land(root)
 	_build_osm_buildings(root)
 	_build_street_props(root)
+	_build_landmarks(root)
 
 
 func _frames() -> Array:
@@ -961,3 +962,199 @@ func _quad(st: SurfaceTool, v0: Vector3, v1: Vector3, v2: Vector3, v3: Vector3) 
 func _own(n: Node) -> void:
 	if Engine.is_editor_hint() and get_tree():
 		n.owner = get_tree().edited_scene_root
+
+
+# ---------------- Lagos landmarks ----------------
+## Real places placed at their real lat/lon (same projection as the pipeline's
+## geo.py). Simplified but recognisable shapes; built only if near the route.
+const _LANDMARKS := [
+	{"name": "National Theatre", "kind": "theatre", "lat": 6.4746, "lon": 3.3696},
+	{"name": "Makoko", "kind": "makoko", "lat": 6.4960, "lon": 3.3870},
+	{"name": "Civic Centre", "kind": "civic", "lat": 6.4358, "lon": 3.4296},
+	{"name": "Eko Hotel", "kind": "eko_hotel", "lat": 6.4268, "lon": 3.4306},
+	{"name": "Lekki-Ikoyi Link Bridge", "kind": "link_bridge", "lat": 6.4471, "lon": 3.4325},
+	{"name": "Lekki Toll Gate", "kind": "toll_gate", "lat": 6.4380, "lon": 3.4480},
+]
+
+
+func _geo_to_local(lat: float, lon: float) -> Vector3:
+	var o: Dictionary = chunk.get("geo_origin", {})
+	var lat0: float = o.get("lat", 0.0); var lon0: float = o.get("lon", 0.0)
+	return Vector3((lon - lon0) * 111320.0 * cos(deg_to_rad(lat0)), 0.0, (lat - lat0) * 110574.0)
+
+
+func _mat(col: Color, metal := 0.0, rough := 0.6, emit := 0.0) -> StandardMaterial3D:
+	var m := StandardMaterial3D.new()
+	m.albedo_color = col; m.metallic = metal; m.roughness = rough
+	if emit > 0.0:
+		m.emission_enabled = true; m.emission = col; m.emission_energy_multiplier = emit
+	return m
+
+
+func _prim(parent: Node3D, mesh: Mesh, pos: Vector3, mat: Material, rot := Vector3.ZERO) -> MeshInstance3D:
+	var mi := MeshInstance3D.new()
+	mi.mesh = mesh; mi.material_override = mat
+	mi.position = pos; mi.rotation = rot
+	parent.add_child(mi)
+	return mi
+
+
+func _build_landmarks(root: Node3D) -> void:
+	var samples: Array = chunk.get("road", {}).get("samples", [])
+	if samples.is_empty():
+		return
+	for lm in _LANDMARKS:
+		var p := _geo_to_local(lm["lat"], lm["lon"])
+		# distance to route + nearest sample
+		var best := 0; var bd := INF
+		for i in range(0, samples.size(), 4):
+			var s = samples[i]
+			var d := Vector2(s["x"] - p.x, s["z"] - p.z).length()
+			if d < bd:
+				bd = d; best = i
+		if bd > 4000.0:
+			continue
+		var node := Node3D.new()
+		node.name = "Landmark_" + String(lm["name"]).replace(" ", "_").replace("-", "_")
+		node.position = Vector3(p.x, 0.25, p.z)
+		root.add_child(node)
+		var top := 40.0
+		match lm["kind"]:
+			"theatre": top = _lm_theatre(node)
+			"makoko": top = _lm_makoko(node)
+			"civic": top = _lm_civic(node)
+			"eko_hotel": top = _lm_eko_hotel(node)
+			"link_bridge": top = _lm_link_bridge(node)
+			"toll_gate":
+				if bd > 600.0:
+					node.queue_free()
+					continue
+				var s2 = samples[best]
+				node.position = Vector3(s2["x"], float(s2["elev_m"]), s2["z"])
+				node.rotation.y = float(s2["heading_rad"])
+				top = _lm_toll_gate(node, float(chunk["road"]["half_width_m"]))
+		var tag := Label3D.new()
+		tag.text = lm["name"]
+		tag.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		tag.font_size = 220
+		tag.outline_size = 40
+		tag.modulate = Color(1, 0.92, 0.6)
+		tag.position = Vector3(0, top + 12.0, 0)
+		tag.visibility_range_end = 2500.0
+		node.add_child(tag)
+		_own(node)
+
+
+## National Theatre, Iganmu: the "military cap" — wide drum with a fluted, sloped crown.
+func _lm_theatre(n: Node3D) -> float:
+	var white := _mat(Color(0.88, 0.87, 0.82), 0.0, 0.7)
+	var dark := _mat(Color(0.25, 0.27, 0.3), 0.2, 0.4)
+	var drum := CylinderMesh.new(); drum.top_radius = 46; drum.bottom_radius = 48; drum.height = 16; drum.radial_segments = 48
+	_prim(n, drum, Vector3(0, 8, 0), white)
+	var band := CylinderMesh.new(); band.top_radius = 47.2; band.bottom_radius = 47.2; band.height = 4; band.radial_segments = 48
+	_prim(n, band, Vector3(0, 12, 0), dark)
+	var crown := CylinderMesh.new(); crown.top_radius = 18; crown.bottom_radius = 50; crown.height = 12; crown.radial_segments = 16
+	_prim(n, crown, Vector3(0, 22, 0), white)
+	var peak := CylinderMesh.new(); peak.top_radius = 6; peak.bottom_radius = 18; peak.height = 6; peak.radial_segments = 16
+	_prim(n, peak, Vector3(0, 31, 0), white)
+	# the cap's brim ribs
+	for k in 16:
+		var a := TAU * k / 16.0
+		var rib := BoxMesh.new(); rib.size = Vector3(1.6, 1.2, 34)
+		_prim(n, rib, Vector3(sin(a) * 34, 22.5, cos(a) * 34), dark, Vector3(-0.33, a, 0))
+	return 34.0
+
+
+## Makoko: wooden stilt houses standing in the lagoon.
+func _lm_makoko(n: Node3D) -> float:
+	var rng := RandomNumberGenerator.new(); rng.seed = 1960
+	var wood := [_mat(Color(0.42, 0.31, 0.2)), _mat(Color(0.35, 0.26, 0.17)), _mat(Color(0.5, 0.38, 0.25))]
+	var zinc := _mat(Color(0.55, 0.42, 0.32), 0.4, 0.5)
+	var stilt := CylinderMesh.new(); stilt.top_radius = 0.12; stilt.bottom_radius = 0.12; stilt.height = 3.0; stilt.radial_segments = 5
+	for k in 70:
+		var pos := Vector3(rng.randf_range(-260, 260), 0, rng.randf_range(-260, 260))
+		var w := rng.randf_range(4, 7); var d := rng.randf_range(4, 6)
+		var hut := BoxMesh.new(); hut.size = Vector3(w, 2.6, d)
+		_prim(n, hut, pos + Vector3(0, 2.6, 0), wood[k % 3], Vector3(0, rng.randf() * TAU, 0))
+		var roof := PrismMesh.new(); roof.size = Vector3(w + 0.8, 1.2, d + 0.8)
+		_prim(n, roof, pos + Vector3(0, 4.5, 0), zinc, Vector3(0, rng.randf() * TAU, 0))
+		_prim(n, stilt, pos + Vector3(0, 0.2, 0), wood[1])
+	return 6.0
+
+
+## Civic Centre, VI: twin rounded glass towers on a podium.
+func _lm_civic(n: Node3D) -> float:
+	var glass := _mat(Color(0.25, 0.45, 0.6), 0.8, 0.08)
+	var white := _mat(Color(0.9, 0.9, 0.88), 0.1, 0.5)
+	var podium := BoxMesh.new(); podium.size = Vector3(90, 10, 60)
+	_prim(n, podium, Vector3(0, 5, 0), white)
+	for k in [-1, 1]:
+		var t := CylinderMesh.new(); t.top_radius = 15; t.bottom_radius = 15; t.height = 58; t.radial_segments = 32
+		_prim(n, t, Vector3(k * 18, 39, 0), glass)
+		var cap := CylinderMesh.new(); cap.top_radius = 15.5; cap.bottom_radius = 15.5; cap.height = 2; cap.radial_segments = 32
+		_prim(n, cap, Vector3(k * 18, 69, 0), white)
+	return 70.0
+
+
+## Eko Hotel & Suites: tall white slab with blue glazing + lower wings.
+func _lm_eko_hotel(n: Node3D) -> float:
+	var white := _mat(Color(0.93, 0.93, 0.9), 0.0, 0.6)
+	var blue := _mat(Color(0.18, 0.35, 0.55), 0.7, 0.1)
+	var slab := BoxMesh.new(); slab.size = Vector3(70, 80, 18)
+	_prim(n, slab, Vector3(0, 40, 0), white)
+	for k in 20:
+		var strip := BoxMesh.new(); strip.size = Vector3(66, 1.6, 18.4)
+		_prim(n, strip, Vector3(0, 6 + k * 3.7, 0), blue)
+	var wing := BoxMesh.new(); wing.size = Vector3(50, 24, 30)
+	_prim(n, wing, Vector3(-70, 12, 10), white)
+	_prim(n, wing, Vector3(70, 12, 10), white)
+	var lbl := Label3D.new(); lbl.text = "EKO"; lbl.font_size = 900; lbl.modulate = Color(0.2, 0.5, 0.9)
+	lbl.position = Vector3(0, 70, 9.5); n.add_child(lbl)
+	return 82.0
+
+
+## Lekki-Ikoyi Link Bridge: single cable-stayed pylon with fanned cables.
+func _lm_link_bridge(n: Node3D) -> float:
+	var white := _mat(Color(0.95, 0.95, 0.95), 0.1, 0.4)
+	var pylon := BoxMesh.new(); pylon.size = Vector3(4, 90, 6)
+	_prim(n, pylon, Vector3(0, 45, 0), white)
+	var deck := BoxMesh.new(); deck.size = Vector3(14, 1.5, 300)
+	_prim(n, deck, Vector3(0, 12, 0), white)
+	var cable_m := _mat(Color(0.85, 0.85, 0.85), 0.6, 0.3)
+	for k in 10:
+		for side in [-1, 1]:
+			var zt: float = side * (20.0 + k * 12.0)
+			var a := Vector3(0, 86 - k * 3.5, 0); var b := Vector3(0, 12.5, zt)
+			var c := CylinderMesh.new(); c.top_radius = 0.18; c.bottom_radius = 0.18; c.height = a.distance_to(b); c.radial_segments = 4
+			var mi := _prim(n, c, (a + b) * 0.5, cable_m)
+			mi.quaternion = Quaternion(Vector3.UP, (b - a).normalized())
+	return 90.0
+
+
+## Lekki Toll Gate: canopy across the carriageway with booths and lights.
+func _lm_toll_gate(n: Node3D, hw: float) -> float:
+	var white := _mat(Color(0.92, 0.92, 0.9), 0.2, 0.4)
+	var red := _mat(Color(0.75, 0.1, 0.1), 0.1, 0.5)
+	var lamp := _mat(Color(1.0, 0.95, 0.8), 0.0, 0.3, 3.0)
+	var w := hw * 2.0 + 8.0
+	var canopy := BoxMesh.new(); canopy.size = Vector3(w, 1.6, 14)
+	_prim(n, canopy, Vector3(0, 7.5, 0), white)
+	var fascia := BoxMesh.new(); fascia.size = Vector3(w + 0.2, 1.0, 14.2)
+	_prim(n, fascia, Vector3(0, 6.6, 0), red)
+	var strip := BoxMesh.new(); strip.size = Vector3(w - 2, 0.15, 0.6)
+	for zz in [-4.0, 0.0, 4.0]:
+		_prim(n, strip, Vector3(0, 6.55, zz), lamp)
+	# pillars only at the outer edges + the median (lanes stay clear)
+	var pil := BoxMesh.new(); pil.size = Vector3(1.0, 7.0, 1.0)
+	for x in [-hw - 3.0, 0.0, hw + 3.0]:
+		for zz in [-5.0, 5.0]:
+			_prim(n, pil, Vector3(x, 3.5, zz), white)
+	var booth := BoxMesh.new(); booth.size = Vector3(2.0, 2.6, 4.0)
+	for x in [-hw - 3.0, hw + 3.0]:
+		_prim(n, booth, Vector3(x, 1.3, 0), white)
+	var lbl := Label3D.new(); lbl.text = "LEKKI TOLL PLAZA"; lbl.font_size = 160
+	lbl.modulate = Color(1, 1, 1); lbl.outline_size = 20
+	lbl.position = Vector3(0, 7.6, -7.2); lbl.rotation.y = PI; n.add_child(lbl)
+	var sign2 := lbl.duplicate() as Label3D
+	sign2.position = Vector3(0, 7.6, 7.2); sign2.rotation.y = 0.0; n.add_child(sign2)
+	return 10.0
