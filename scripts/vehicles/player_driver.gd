@@ -38,6 +38,7 @@ func _physics_process(_delta: float) -> void:
 	var brake := Input.get_action_strength("brake")
 	var handbrake := Input.is_action_pressed("handbrake")
 	_vehicle.set_driver_input(throttle, brake, steer, handbrake)
+	_vehicle.nitro_input = Input.is_action_pressed("nitro")
 
 	if manual_shifting:
 		_vehicle.transmission.automatic = false

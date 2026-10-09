@@ -16,6 +16,7 @@ var _debug_visible: bool = false
 @onready var _debug_panel: Panel = %DebugPanel
 @onready var _debug_label: Label = %DebugLabel
 
+var _nitro_bar: ProgressBar
 var _race_time: float = 0.0
 var _race_running: bool = false
 
@@ -24,6 +25,27 @@ func _ready() -> void:
 	_vehicle = get_node_or_null(vehicle_path) as VehicleController
 	_debug_panel.visible = _debug_visible
 	_timer_label.visible = false
+	# nitro tank bar (bottom-left, above the speed)
+	_nitro_bar = ProgressBar.new()
+	_nitro_bar.max_value = 1.0
+	_nitro_bar.step = 0.0
+	_nitro_bar.show_percentage = false
+	_nitro_bar.anchor_top = 1.0; _nitro_bar.anchor_bottom = 1.0
+	_nitro_bar.offset_left = 24; _nitro_bar.offset_right = 320
+	_nitro_bar.offset_top = -150; _nitro_bar.offset_bottom = -132
+	var fill := StyleBoxFlat.new(); fill.bg_color = Color(0.3, 0.7, 1.0)
+	fill.set_corner_radius_all(4)
+	var bgs := StyleBoxFlat.new(); bgs.bg_color = Color(0, 0, 0, 0.5)
+	bgs.set_corner_radius_all(4)
+	_nitro_bar.add_theme_stylebox_override("fill", fill)
+	_nitro_bar.add_theme_stylebox_override("background", bgs)
+	add_child(_nitro_bar)
+	var nl := Label.new()
+	nl.text = "NITRO (Shift)"
+	nl.add_theme_font_size_override("font_size", 14)
+	nl.anchor_top = 1.0; nl.anchor_bottom = 1.0
+	nl.offset_left = 24; nl.offset_top = -172; nl.offset_right = 200; nl.offset_bottom = -152
+	add_child(nl)
 
 
 func set_vehicle(v: VehicleController) -> void:
@@ -55,6 +77,7 @@ func _process(delta: float) -> void:
 	if _vehicle == null:
 		return
 
+	_nitro_bar.value = _vehicle.nitro_amount
 	var speed_kmh := _vehicle.linear_velocity.length() * 3.6
 	_speed_label.text = "%d km/h" % roundi(speed_kmh)
 	_gear_label.text = _vehicle.transmission.gear_label()

@@ -23,6 +23,7 @@ func _ready() -> void:
 	%SelectButton.pressed.connect(_select_current)
 	%BackButton.pressed.connect(func(): Game.goto_main_menu())
 	_build_preview()
+	_build_shop()
 
 	# start on the currently-selected car
 	for i in _cars.size():
@@ -53,8 +54,79 @@ func _cycle(dir: int) -> void:
 func _select_current() -> void:
 	if _cars.is_empty():
 		return
-	Game.set_selected_car(_cars[_index].vehicle_id)
+	var d := _cars[_index]
+	if not Game.owns(d.vehicle_id):
+		if not Game.buy_car(d.vehicle_id, d.price_naira):
+			_flash("Not enough money — win races to earn more")
+			_refresh()
+			return
+		_flash("Bought %s!" % d.display_name)
+	Game.set_selected_car(d.vehicle_id)
 	_refresh()
+
+
+# ---------- shop: money + upgrades (built in code) ----------
+var _money_label: Label
+var _msg_label: Label
+var _up_buttons := {}
+
+
+func _build_shop() -> void:
+	_money_label = Label.new()
+	_money_label.add_theme_font_size_override("font_size", 30)
+	_money_label.add_theme_color_override("font_color", Color(0.98, 0.76, 0.12))
+	_money_label.anchor_left = 1.0; _money_label.anchor_right = 1.0
+	_money_label.offset_left = -420; _money_label.offset_right = -24; _money_label.offset_top = 16
+	_money_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	add_child(_money_label)
+	var box := VBoxContainer.new()
+	box.anchor_left = 1.0; box.anchor_right = 1.0; box.anchor_top = 1.0; box.anchor_bottom = 1.0
+	box.offset_left = -420; box.offset_right = -24; box.offset_top = -300; box.offset_bottom = -110
+	box.add_theme_constant_override("separation", 8)
+	add_child(box)
+	var t := Label.new(); t.text = "UPGRADES"; t.add_theme_font_size_override("font_size", 22)
+	box.add_child(t)
+	for kind in Game.UPGRADE_KINDS:
+		var b := Button.new()
+		b.custom_minimum_size = Vector2(390, 44)
+		b.add_theme_font_size_override("font_size", 18)
+		var k: String = kind
+		b.pressed.connect(func(): _buy_upgrade(k))
+		box.add_child(b)
+		_up_buttons[kind] = b
+	_msg_label = Label.new()
+	_msg_label.add_theme_font_size_override("font_size", 18)
+	box.add_child(_msg_label)
+
+
+func _buy_upgrade(kind: String) -> void:
+	var id := _cars[_index].vehicle_id
+	if Game.buy_upgrade(id, kind):
+		_flash("%s upgraded!" % kind.capitalize())
+	else:
+		_flash("Can't buy — own the car, max level, or not enough money")
+	_refresh()
+
+
+func _flash(msg: String) -> void:
+	if _msg_label:
+		_msg_label.text = msg
+
+
+func _refresh_shop(d: VehicleData) -> void:
+	if _money_label == null:
+		return
+	_money_label.text = "Money: " + Game.naira(Game.money)
+	var owned := Game.owns(d.vehicle_id)
+	for kind in Game.UPGRADE_KINDS:
+		var lvl := Game.upgrade_level(d.vehicle_id, kind)
+		var b: Button = _up_buttons[kind]
+		var stars := "●".repeat(lvl) + "○".repeat(Game.MAX_UPGRADE - lvl)
+		if lvl >= Game.MAX_UPGRADE:
+			b.text = "%s  %s   MAX" % [kind.capitalize(), stars]
+		else:
+			b.text = "%s  %s   %s" % [kind.capitalize(), stars, Game.naira(Game.upgrade_cost(d.vehicle_id, kind))]
+		b.disabled = not owned or lvl >= Game.MAX_UPGRADE
 
 
 ## Builds a small live 3D viewport inside the preview panel for a turntable of
@@ -146,9 +218,16 @@ func _refresh() -> void:
 	])
 
 	var is_sel := d.vehicle_id == Game.selected_car_id
-	_selected_tag.text = "✔ SELECTED" if is_sel else ""
-	%SelectButton.text = "Selected" if is_sel else "Select this car"
+	var owned := Game.owns(d.vehicle_id)
+	_selected_tag.text = "✔ SELECTED" if is_sel else ("OWNED" if owned else "🔒 " + Game.naira(d.price_naira))
+	if is_sel:
+		%SelectButton.text = "Selected"
+	elif owned:
+		%SelectButton.text = "Select this car"
+	else:
+		%SelectButton.text = "Buy for " + Game.naira(d.price_naira)
 	%SelectButton.disabled = is_sel
+	_refresh_shop(d)
 
 
 static func _bar(label: String, v: float) -> String:

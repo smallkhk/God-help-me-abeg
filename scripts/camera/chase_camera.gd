@@ -77,4 +77,6 @@ func _physics_process(delta: float) -> void:
 
 	# Speed-reactive FOV adds a sense of velocity (spec §7).
 	var extra := minf(_target.linear_velocity.length() * speed_fov_gain, max_extra_fov)
+	if _target.nitro_active:
+		extra += 10.0
 	fov = lerpf(fov, base_fov + extra, 1.0 - exp(-4.0 * delta))

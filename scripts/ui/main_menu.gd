@@ -117,7 +117,8 @@ func _build_home() -> Control:
 	_center(v, _button("GARAGE", func(): Game.goto(Game.SCENE_GARAGE)))
 	_center(v, _button("SETTINGS", func(): _show("settings")))
 	_center(v, _button("QUIT", func(): get_tree().quit()))
-	var car := _label("Car: %s" % String(Game.selected_car_id), 20, Color(1, 1, 1, 0.75))
+	var cd := CarDatabase.get_data(Game.selected_car_id)
+	var car := _label("Car: %s    ·    %s" % [cd.display_name if cd else String(Game.selected_car_id), Game.naira(Game.money)], 20, Color(1, 1, 1, 0.85))
 	car.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(car)
 	v.get_child(0).grab_focus.call_deferred()

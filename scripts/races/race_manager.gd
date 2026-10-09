@@ -224,6 +224,15 @@ func _finish() -> void:
 	var place_txt := ""
 	if not _rivals.is_empty():
 		place_txt = "%s place of %d\n" % [_ordinal(place), _rivals.size() + 1]
+	var base_reward: int = event.reward_naira if event else 500000
+	var mult := 0.5
+	if not _rivals.is_empty():
+		mult = [1.0, 0.6, 0.4, 0.25, 0.15, 0.1][mini(place - 1, 5)]
+	var reward := int(base_reward * mult)
+	var g := get_node_or_null("/root/Game")
+	if g:
+		g.add_money(reward)
+	place_txt += "Prize: %s\n" % Game.naira(reward)
 	_results.text = "FINISH\n\n%sTime: %s\nBest: %s%s\n\nR = retry    Esc = menu" % [
 		place_txt, _fmt(final_time), _fmt(best),
 		"   (NEW BEST!)" if is_best else "",

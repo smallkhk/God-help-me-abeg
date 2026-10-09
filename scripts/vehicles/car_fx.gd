@@ -13,6 +13,7 @@ var _smoke: Array[CPUParticles3D] = []
 var _skid_mm: MultiMesh
 var _skid_i := 0
 var _last_skid := {}
+var _flames: Array[CPUParticles3D] = []
 
 
 func _ready() -> void:
@@ -46,6 +47,41 @@ func _ready() -> void:
 		t.material_override = _tail_mat
 		t.position = Vector3(sx * (half_w - 0.3), 0.75, rear_z - 0.95)
 		vehicle.add_child(t)
+	# nitro exhaust flames
+	for sx in [-0.35, 0.35]:
+		var f := CPUParticles3D.new()
+		f.amount = 60
+		f.lifetime = 0.25
+		f.emitting = false
+		f.local_coords = false
+		f.direction = Vector3(0, 0, -1)
+		f.spread = 8.0
+		f.initial_velocity_min = 6.0; f.initial_velocity_max = 10.0
+		f.gravity = Vector3.ZERO
+		f.scale_amount_min = 0.25; f.scale_amount_max = 0.5
+		var fq := QuadMesh.new(); fq.size = Vector2(0.5, 0.5)
+		var fm := StandardMaterial3D.new()
+		fm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		fm.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+		fm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		fm.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
+		fm.vertex_color_use_as_albedo = true
+		fq.material = fm
+		f.mesh = fq
+		var fg := Gradient.new()
+		fg.set_color(0, Color(0.6, 0.8, 1.0, 1.0)); fg.set_color(1, Color(1.0, 0.4, 0.1, 0.0))
+		f.color_ramp = fg
+		f.position = Vector3(sx, 0.45, rear_z - 1.0)
+		vehicle.add_child(f)
+		_flames.append(f)
+	var boost_light := OmniLight3D.new()
+	boost_light.name = "NitroLight"
+	boost_light.light_color = Color(0.5, 0.7, 1.0)
+	boost_light.omni_range = 5.0
+	boost_light.light_energy = 0.0
+	boost_light.position = Vector3(0, 0.5, rear_z - 1.4)
+	vehicle.add_child(boost_light)
+
 	# tyre smoke at the rear wheels
 	for w in vehicle.wheels:
 		if w.is_front:
@@ -98,7 +134,8 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
 	if vehicle == null:
 		return
-	var night: float = RenderingServer.global_shader_parameter_get("night_factor")
+	var nf = RenderingServer.global_shader_parameter_get("night_factor")
+	var night: float = float(nf) if nf != null else 0.0
 	for l in _heads:
 		l.light_energy = 4.0 * clampf(night * 1.4, 0.0, 1.0)
 	var braking := vehicle.brake_input > 0.1 and vehicle.forward_speed > 0.5
@@ -108,6 +145,11 @@ func _process(_delta: float) -> void:
 	var grounded := vehicle.wheels_on_ground > 0
 	for s in _smoke:
 		s.emitting = slide and grounded
+	for f in _flames:
+		f.emitting = vehicle.nitro_active
+	var nl := vehicle.get_node_or_null("NitroLight") as OmniLight3D
+	if nl:
+		nl.light_energy = 2.5 if vehicle.nitro_active else 0.0
 
 
 func _physics_process(_delta: float) -> void:

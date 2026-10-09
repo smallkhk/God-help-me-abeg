@@ -65,6 +65,31 @@ var dbg_drag_force: float = 0.0
 const INPUT_SMOOTH := 10.0
 
 
+# --- nitro ---
+var nitro_input := false
+var nitro_amount := 1.0          # 0..1 tank
+var nitro_active := false
+var nitro_capacity_s := 2.5      # seconds of boost on a full tank
+var nitro_power := 0.55          # extra drive force fraction while boosting
+
+
+## Player upgrades (garage): engine = more drive force, tyres = more grip,
+## nitro = bigger tank + stronger boost. Works on a copy of the shared data.
+func _apply_upgrades(g: Node) -> void:
+	var id: StringName = g.selected_car_id
+	var e: int = g.upgrade_level(id, "engine")
+	var t: int = g.upgrade_level(id, "tyres")
+	var n: int = g.upgrade_level(id, "nitro")
+	data = data.duplicate()
+	data.max_drive_force *= 1.0 + 0.09 * e
+	data.max_rpm += 250.0 * e
+	data.lateral_grip_front *= 1.0 + 0.05 * t
+	data.lateral_grip_rear *= 1.0 + 0.05 * t
+	data.longitudinal_grip *= 1.0 + 0.05 * t
+	nitro_capacity_s = 2.5 + 1.5 * n
+	nitro_power = 0.55 + 0.15 * n
+
+
 func _ready() -> void:
 	# The player car uses whatever was picked in the garage (if the Game autoload
 	# is present and that car's data exists). AI cars keep their assigned data.
@@ -72,6 +97,7 @@ func _ready() -> void:
 		var g := get_node_or_null("/root/Game")
 		if g and CarDatabase.exists(g.selected_car_id):
 			data = CarDatabase.get_data(g.selected_car_id)
+			_apply_upgrades(g)
 
 	if data == null:
 		push_warning("VehicleController has no VehicleData assigned; using defaults.")
@@ -153,6 +179,9 @@ func _collect_wheels() -> void:
 ## that teleport the body (spawn, restart, deterministic tests) should also zero
 ## linear/angular velocity and set the transform themselves.
 func reset_state() -> void:
+	nitro_amount = 1.0
+	nitro_active = false
+	nitro_input = false
 	current_steer_angle = 0.0
 	forward_speed = 0.0
 	lateral_speed = 0.0
@@ -190,6 +219,13 @@ func _physics_process(delta: float) -> void:
 	var speed := vel.length()
 
 	_update_steering(delta, speed)
+
+	# Nitro: drains while held with throttle, refills slowly otherwise.
+	nitro_active = nitro_input and nitro_amount > 0.0 and throttle_input > 0.1 and forward_speed > 1.0
+	if nitro_active:
+		nitro_amount = maxf(nitro_amount - delta / nitro_capacity_s, 0.0)
+	else:
+		nitro_amount = minf(nitro_amount + delta * 0.04, 1.0)
 
 	# Driven-wheel count for splitting drive force.
 	var driven_count := 0
@@ -303,6 +339,8 @@ func _apply_tyre_force(w: Wheel, offset: Vector3, up: Vector3, driven_count: int
 		var first := data.get_gear_ratio(1)
 		var gear_mult := absf(ratio) / maxf(absf(first), 0.001)
 		var drive := data.max_drive_force * transmission.torque_factor() * throttle_input * gear_mult / driven_count
+		if nitro_active and transmission.gear > 0:
+			drive *= 1.0 + nitro_power
 		if transmission.gear == -1:
 			drive = -drive
 		# Traction control (assist): cut drive if this wheel is already near its
