@@ -1,0 +1,6 @@
+[gd_scene load_steps=3 format=3 uid="uid://b0lagosshot0001"]
+[ext_resource type="Script" path="res://tests/visual/shot.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/world/maps/lagos_bridge/lagos_bridge.tscn" id="2"]
+[node name="Shot" type="Node3D"]
+script = ExtResource("1")
+[node name="LagosBridge" parent="." instance=ExtResource("2")]

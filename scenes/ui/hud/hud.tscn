@@ -60,7 +60,7 @@ offset_right = 600.0
 offset_bottom = 120.0
 theme_override_font_sizes/font_size = 16
 text = "W/S or Up/Down: throttle/brake   A/D: steer   Space: handbrake
-C: camera   R: restart   Esc: pause   F3: debug overlay"
+C: camera   R: restart   Esc: pause   N: day/sunset/night   F3: debug"
 
 [node name="DebugPanel" type="Panel" parent="."]
 unique_name_in_owner = true

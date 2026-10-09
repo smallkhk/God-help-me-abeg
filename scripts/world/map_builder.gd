@@ -318,11 +318,8 @@ func _build_water(root: Node3D) -> void:
 	pm.size = Vector2(w, d)
 	mi.mesh = pm
 	mi.position = Vector3(cx, level, cz)
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = Color(0.11, 0.26, 0.30, 0.86)
-	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	mat.metallic = 0.3
-	mat.roughness = 0.15
+	var mat := ShaderMaterial.new()
+	mat.shader = load("res://shaders/water.gdshader")
 	mi.material_override = mat
 	root.add_child(mi)
 	_own(mi)
@@ -402,10 +399,6 @@ func _build_osm_buildings(root: Node3D) -> void:
 		Color(0.86, 0.82, 0.72), Color(0.78, 0.74, 0.66), Color(0.92, 0.89, 0.80),
 		Color(0.70, 0.66, 0.60), Color(0.84, 0.76, 0.62), Color(0.74, 0.78, 0.80),
 	]
-	var roofs := [
-		Color(0.55, 0.30, 0.22), Color(0.45, 0.45, 0.47), Color(0.62, 0.58, 0.52),
-		Color(0.35, 0.38, 0.42),
-	]
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PrimitiveType.PRIMITIVE_TRIANGLES)
 	var base := 0.25
@@ -417,39 +410,51 @@ func _build_osm_buildings(root: Node3D) -> void:
 		for p in raw:
 			poly.append(Vector2(p[0], p[1]))
 		var wc: Color = walls[i % walls.size()]
-		var rc: Color = roofs[(i * 7) % roofs.size()]
 		var top := base + h
-		# walls
+		# small/low buildings get zinc roofs (alpha flag read by the shader)
+		var zinc := 1.0 if h < 14.0 else 0.0
+		# walls: UV.x = metres along perimeter, UV.y = metres up (window grid)
+		var run := 0.0
 		for k in poly.size():
 			var p0 := poly[k]
 			var p1 := poly[(k + 1) % poly.size()]
+			var seg := p0.distance_to(p1)
 			var shade := 0.85 + 0.15 * absf(sin(p0.angle_to_point(p1)))
-			var col := Color(wc.r * shade, wc.g * shade, wc.b * shade)
+			var col := Color(wc.r * shade, wc.g * shade, wc.b * shade, zinc)
 			var a := Vector3(p0.x, base, p0.y); var bb := Vector3(p1.x, base, p1.y)
 			var c := Vector3(p1.x, top, p1.y); var d := Vector3(p0.x, top, p0.y)
-			st.set_color(col); st.add_vertex(a); st.add_vertex(bb); st.add_vertex(c)
-			st.add_vertex(a); st.add_vertex(c); st.add_vertex(d)
+			var ua := Vector2(run, 0); var ub := Vector2(run + seg, 0)
+			var uc := Vector2(run + seg, h); var ud := Vector2(run, h)
+			st.set_color(col)
+			st.set_uv(ua); st.add_vertex(a); st.set_uv(ub); st.add_vertex(bb); st.set_uv(uc); st.add_vertex(c)
+			st.set_uv(ua); st.add_vertex(a); st.set_uv(uc); st.add_vertex(c); st.set_uv(ud); st.add_vertex(d)
+			run += seg
 		# roof
 		var tri := Geometry2D.triangulate_polygon(poly)
-		st.set_color(rc)
+		st.set_color(Color(wc.r, wc.g, wc.b, zinc))
 		for t in tri:
 			var q := poly[t]
+			st.set_uv(q)
 			st.add_vertex(Vector3(q.x, top, q.y))
 	st.generate_normals()
 	var mi := MeshInstance3D.new()
 	mi.name = "LagosBuildings"
 	mi.mesh = st.commit()
-	var mat := StandardMaterial3D.new()
-	mat.vertex_color_use_as_albedo = true
-	mat.roughness = 0.9
-	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+	var mat := ShaderMaterial.new()
+	mat.shader = load("res://shaders/building.gdshader")
 	mi.material_override = mat
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	root.add_child(mi)
 	_own(mi)
 
 
-func _road_material() -> StandardMaterial3D:
+func _road_material() -> Material:
+	var sm := ShaderMaterial.new()
+	sm.shader = load("res://shaders/road.gdshader")
+	return sm
+
+
+func _road_material_flat() -> StandardMaterial3D:
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = Color(0.28, 0.29, 0.31)
 	mat.roughness = 0.95

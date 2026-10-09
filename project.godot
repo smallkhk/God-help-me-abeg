@@ -122,3 +122,10 @@ renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
 environment/defaults/default_clear_color=Color(0.47, 0.58, 0.68, 1)
 anti_aliasing/quality/msaa_3d=2
+
+[shader_globals]
+
+night_factor={
+"type": "float",
+"value": 0.0
+}
