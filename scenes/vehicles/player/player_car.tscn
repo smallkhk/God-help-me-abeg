@@ -33,6 +33,7 @@ roughness = 0.8
 mass = 1250.0
 script = ExtResource("1")
 data = ExtResource("2")
+is_player = true
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)

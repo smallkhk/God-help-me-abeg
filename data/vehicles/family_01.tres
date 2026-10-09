@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="VehicleData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/vehicles/vehicle_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+display_name = "Lagos Family Saloon"
+vehicle_id = &"family_01"
+mass = 1420.0
+wheelbase = 2.75
+track_width = 1.58
+center_of_mass_y = -0.4
+drivetrain = 0
+max_drive_force = 7000.0
+engine_brake_force = 1200.0
+max_rpm = 6600.0
+peak_power_rpm = 5200.0
+gear_ratios = PackedFloat32Array(3.3, 2.0, 1.4, 1.0, 0.8)
+final_drive = 3.8
+brake_force = 11500.0
+handbrake_force = 6000.0
+max_steer_angle = 0.58
+lateral_grip_front = 1.32
+lateral_grip_rear = 1.36
+longitudinal_grip = 1.42
+drag_coefficient = 0.55
+price_naira = 1900000
+durability = 0.75

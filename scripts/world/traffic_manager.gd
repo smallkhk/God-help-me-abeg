@@ -43,6 +43,7 @@ func _spawn_all() -> void:
 
 func _spawn_one(sample_index: int, lane: float, speed: float, rng: RandomNumberGenerator) -> void:
 	var car := car_scene.instantiate() as VehicleController
+	car.is_player = false  # reuse of the player scene; make sure it's not treated as the player
 	# Strip player-only children; attach the AI driver.
 	for child_name in ["PlayerDriver", "VehicleDebug"]:
 		var c := car.get_node_or_null(child_name)

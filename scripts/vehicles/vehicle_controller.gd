@@ -18,6 +18,10 @@ extends RigidBody3D
 ## wheel named <marker>_mesh, and a CollisionShape3D for the body.
 
 @export var data: VehicleData
+## Marks the human-driven car. When true, _ready swaps in the garage-selected
+## car's data (spec §6.2/§13). Traffic/AI cars leave this false and keep the data
+## they were assigned.
+@export var is_player: bool = false
 ## Road wetness 0 (dry) .. 1 (fully wet). Rain sets this (spec §4.2, §5.2).
 @export_range(0.0, 1.0) var wetness: float = 0.0
 ## Assist preset (spec §5.6). All presets share this same physics.
@@ -62,6 +66,13 @@ const INPUT_SMOOTH := 10.0
 
 
 func _ready() -> void:
+	# The player car uses whatever was picked in the garage (if the Game autoload
+	# is present and that car's data exists). AI cars keep their assigned data.
+	if is_player:
+		var g := get_node_or_null("/root/Game")
+		if g and CarDatabase.exists(g.selected_car_id):
+			data = CarDatabase.get_data(g.selected_car_id)
+
 	if data == null:
 		push_warning("VehicleController has no VehicleData assigned; using defaults.")
 		data = VehicleData.new()

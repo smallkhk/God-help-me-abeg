@@ -6,6 +6,11 @@ var _f := 0
 func _ready() -> void:
 	if not Engine.has_singleton("Game") and get_node_or_null("/root/Game") == null:
 		printerr("[menu_smoke_test] FAIL: Game autoload missing"); get_tree().quit(1); return
+	var cars := CarDatabase.all()
+	print("[menu_smoke_test] CarDatabase loaded ", cars.size(), " cars: ",
+		", ".join(cars.map(func(d): return String(d.vehicle_id))))
+	if cars.size() != 6:
+		printerr("[menu_smoke_test] FAIL: expected 6 cars, got ", cars.size()); get_tree().quit(1); return
 	for path in [
 		"res://scenes/ui/menus/main_menu.tscn",
 		"res://scenes/ui/menus/garage.tscn",

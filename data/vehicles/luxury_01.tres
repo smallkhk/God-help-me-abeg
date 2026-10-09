@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="VehicleData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/vehicles/vehicle_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+display_name = "VI Luxury Cruiser"
+vehicle_id = &"luxury_01"
+mass = 1680.0
+wheelbase = 2.95
+track_width = 1.62
+center_of_mass_y = -0.44
+drivetrain = 2
+max_drive_force = 10000.0
+engine_brake_force = 1500.0
+max_rpm = 6800.0
+peak_power_rpm = 5400.0
+gear_ratios = PackedFloat32Array(3.1, 2.0, 1.45, 1.1, 0.88, 0.72)
+final_drive = 3.6
+brake_force = 13500.0
+handbrake_force = 7000.0
+max_steer_angle = 0.54
+lateral_grip_front = 1.4
+lateral_grip_rear = 1.44
+longitudinal_grip = 1.5
+drag_coefficient = 0.55
+price_naira = 7500000
+durability = 0.85
