@@ -4,6 +4,10 @@ render_mode cull_disabled;
 varying vec3 wpos;
 uniform sampler2D tex_asphalt : source_color, filter_linear_mipmap, repeat_enable;
 uniform sampler2D tex_concrete : source_color, filter_linear_mipmap, repeat_enable;
+uniform sampler2D tex_asphalt_n : hint_normal, filter_linear_mipmap, repeat_enable;
+uniform sampler2D tex_asphalt_r : hint_default_white, filter_linear_mipmap, repeat_enable;
+uniform sampler2D tex_concrete_n : hint_normal, filter_linear_mipmap, repeat_enable;
+uniform float bump_strength = 1.0;
 varying vec3 wnorm;
 float hash(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
 float noise(vec2 p) {
@@ -23,7 +27,10 @@ void fragment() {
 		// real asphalt photo (CC0) at 4 m tiling + large-scale wear patches
 		vec3 a = texture(tex_asphalt, wpos.xz * 0.25).rgb;
 		ALBEDO = a * (0.55 + patches * 2.0) + vec3(speck * 0.2);
-		ROUGHNESS = 0.92 - patches;
+		ROUGHNESS = clamp(texture(tex_asphalt_r, wpos.xz * 0.25).r - patches * 0.5, 0.3, 1.0);
+		vec3 tn = texture(tex_asphalt_n, wpos.xz * 0.25).rgb * 2.0 - 1.0;
+		vec3 wn = normalize(vec3(tn.x, 1.0, -tn.y) * vec3(bump_strength, 1.0, bump_strength));
+		NORMAL = normalize((VIEW_MATRIX * vec4(wn * sign(wnorm.y), 0.0)).xyz);
 	} else {
 		// Lagos-style kerb paint: black / white blocks along the barrier
 		float n = noise(wpos.xz * 0.5 + wpos.y) * 0.1;
@@ -32,5 +39,9 @@ void fragment() {
 		vec3 conc = texture(tex_concrete, vec2(wpos.x + wpos.z, wpos.y) * 0.3).rgb;
 		ALBEDO = paint * (0.75 + n) * (conc / max(dot(conc, vec3(0.333)), 0.05) * 0.4 + 0.6);
 		ROUGHNESS = 0.95;
+		vec3 cn = texture(tex_concrete_n, vec2(wpos.x + wpos.z, wpos.y) * 0.3).rgb * 2.0 - 1.0;
+		vec3 n0 = normalize(wnorm);
+		vec3 tx = normalize(cross(vec3(0.0, 1.0, 0.0), n0));
+		NORMAL = normalize((VIEW_MATRIX * vec4(normalize(n0 + (tx * cn.x + vec3(0.0, 1.0, 0.0) * cn.y) * 0.8), 0.0)).xyz);
 	}
 }

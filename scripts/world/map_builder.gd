@@ -472,6 +472,8 @@ func _build_osm_buildings(root: Node3D) -> void:
 	mat.set_shader_parameter("tex_concrete", load("res://assets/textures/concrete.jpg"))
 	mat.set_shader_parameter("tex_zinc", load("res://assets/textures/roof_zinc.jpg"))
 	mat.set_shader_parameter("tex_clay", load("res://assets/textures/roof_clay.jpg"))
+	for nm in [["tex_plaster_n", "wall_plaster_n"], ["tex_concrete_n", "concrete_n"], ["tex_zinc_n", "roof_zinc_n"], ["tex_clay_n", "roof_clay_n"]]:
+		mat.set_shader_parameter(nm[0], load("res://assets/textures/%s.jpg" % nm[1]))
 	mi.material_override = mat
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	root.add_child(mi)
@@ -916,6 +918,9 @@ func _road_material() -> Material:
 	sm.shader = load("res://shaders/road.gdshader")
 	sm.set_shader_parameter("tex_asphalt", load("res://assets/textures/asphalt.jpg"))
 	sm.set_shader_parameter("tex_concrete", load("res://assets/textures/concrete.jpg"))
+	sm.set_shader_parameter("tex_asphalt_n", load("res://assets/textures/asphalt_n.jpg"))
+	sm.set_shader_parameter("tex_asphalt_r", load("res://assets/textures/asphalt_r.jpg"))
+	sm.set_shader_parameter("tex_concrete_n", load("res://assets/textures/concrete_n.jpg"))
 	return sm
 
 
