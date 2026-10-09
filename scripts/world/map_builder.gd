@@ -186,6 +186,7 @@ func _build_markings(root: Node3D) -> void:
 	var mat := StandardMaterial3D.new()
 	mat.vertex_color_use_as_albedo = true
 	mat.roughness = 0.6
+	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
 	mi.material_override = mat
 	root.add_child(mi)
 	_own(mi)
@@ -361,6 +362,10 @@ func _road_material() -> StandardMaterial3D:
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = Color(0.28, 0.29, 0.31)
 	mat.roughness = 0.95
+	# Double-sided: the generated road triangles can wind either way, so cull
+	# nothing or the deck is invisible from above (you'd see through to the water
+	# and the car looks like it's floating).
+	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
 	return mat
 
 
