@@ -4,8 +4,8 @@ extends Camera3D
 ## transform only — it never drives vehicle movement (spec §9.3).
 
 @export var target_path: NodePath
-@export var follow_distance: float = 4.6
-@export var follow_height: float = 1.65
+@export var follow_distance: float = 5.2
+@export var follow_height: float = 2.1
 @export var look_ahead: float = 3.0
 @export var position_smooth: float = 6.0
 @export var rotation_smooth: float = 8.0
@@ -51,6 +51,10 @@ func _physics_process(delta: float) -> void:
 		var look_back := Input.is_action_pressed("look_back")
 		var behind := fwd if look_back else -fwd
 		var desired := xf.origin + behind * follow_distance + up * follow_height
+		if _cam_pos.distance_to(desired) > 60.0:
+			# teleport (race start / respawn): snap instead of flying across the map
+			_cam_pos = desired
+			global_transform = Transform3D(Basis(), desired).looking_at(xf.origin + fwd * look_ahead, up)
 		_cam_pos = _cam_pos.lerp(desired, 1.0 - exp(-position_smooth * delta))
 		global_position = _cam_pos
 

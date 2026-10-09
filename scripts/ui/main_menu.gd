@@ -8,6 +8,7 @@ extends Control
 func _ready() -> void:
 	%FreeDriveButton.pressed.connect(func(): Game.goto(Game.SCENE_TEST_TRACK))
 	%BridgeButton.pressed.connect(func(): Game.goto(Game.SCENE_BRIDGE))
+	%LekkiButton.pressed.connect(func(): Game.goto(Game.SCENE_LEKKI))
 	%GarageButton.pressed.connect(func(): Game.goto(Game.SCENE_GARAGE))
 	%QuitButton.pressed.connect(func(): get_tree().quit())
 

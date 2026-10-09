@@ -59,6 +59,20 @@ def dist_to_route(x, z, route, step=4):
     return math.sqrt(best)
 
 
+def near_route(pts, route, clear):
+    """True if any footprint corner is within `clear` m of the road (exact samples)."""
+    cx = sum(p[0] for p in pts) / len(pts); cz = sum(p[1] for p in pts) / len(pts)
+    if dist_to_route(cx, cz, route, 8) > clear + 200.0:
+        return False
+    # walk every wall edge (a long edge can cross the road even when its corners don't)
+    probe = [(cx, cz)]
+    for k in range(len(pts)):
+        (ax, az), (bx, bz) = pts[k], pts[(k + 1) % len(pts)]
+        n = max(1, int(math.hypot(bx - ax, bz - az) / 4.0))
+        probe += [(ax + (bx - ax) * t / n, az + (bz - az) * t / n) for t in range(n)]
+    return any(dist_to_route(px, pz, route, 1) < clear for px, pz in probe)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--tiles", nargs="*", default=[])
@@ -105,7 +119,7 @@ def main():
             if ar < 25.0: continue
             cx = sum(p[0] for p in pts) / len(pts); cz = sum(p[1] for p in pts) / len(pts)
             d = dist_to_route(cx, cz, route, 8)
-            if d < clear: continue
+            if d < clear or near_route(pts, route, clear): continue
             # no heights in v3: estimate from footprint (bigger plots -> taller)
             seed = zlib.crc32(row[5].encode()) % 100
             h = 3.5 + min(ar, 2500.0) / 2500.0 * 18.0 + (seed % 5)
@@ -121,7 +135,7 @@ def main():
         ar = area(pts)
         if ar < 20.0: continue
         cx = sum(p[0] for p in pts) / len(pts); cz = sum(p[1] for p in pts) / len(pts)
-        if dist_to_route(cx, cz, route) < clear: continue   # never on the road
+        if near_route(pts, route, clear): continue   # never on the road
         out.append({"pts": [[round(p[0], 2), round(p[1], 2)] for p in pts],
                     "h": round(height_for(tags, wid), 1), "a": ar})
     # keep the biggest footprints if over budget (perf on low-end GPUs)

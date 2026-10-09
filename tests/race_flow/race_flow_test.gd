@@ -26,7 +26,7 @@ func _ready() -> void:
 	data["best_times"] = {}
 	SaveManager.save_data(data)
 
-	_bridge = $LagosBridge
+	_bridge = get_child(0)
 	_car = _bridge.get_node("PlayerCar") as VehicleController
 	var driver := _bridge.get_node_or_null("PlayerCar/PlayerDriver")
 	if driver:
@@ -82,7 +82,7 @@ func _steer() -> float:
 func _finish(finished: bool) -> void:
 	_done = true
 	print("[race_flow_test] car pos=%s speed=%.1f" % [_car.global_position, _car.linear_velocity.length()])
-	var best := SaveManager.get_best_time("bridge_test_sprint")
+	var best := SaveManager.get_best_time(_race.event_id)
 	print("[race_flow_test] final state=%d  next=%d/%d  best_saved=%.3f  t=%.1fs" % [
 		_race._state, _race._next, _checkpoints.size(), best, _t])
 
@@ -97,7 +97,7 @@ func _finish(finished: bool) -> void:
 
 	# Verify the save round-trips from disk.
 	if finished and best > 0.0:
-		var reloaded := SaveManager.get_best_time("bridge_test_sprint")
+		var reloaded := SaveManager.get_best_time(_race.event_id)
 		if absf(reloaded - best) > 0.001:
 			_fail("best time did not round-trip through save file")
 

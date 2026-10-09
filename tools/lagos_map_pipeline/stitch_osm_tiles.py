@@ -33,7 +33,7 @@ def _tag(elem, key):
     return None
 
 
-def load_tiles(paths):
+def load_tiles(paths, names=(BRIDGE_NAME,)):
     nodes = {}            # id -> (lat, lon)
     segments = []         # list of node-id lists (one per TMB way), de-duped by way id
     seen_ways = set()
@@ -42,7 +42,7 @@ def load_tiles(paths):
         for n in root.findall("node"):
             nodes[n.get("id")] = (float(n.get("lat")), float(n.get("lon")))
         for w in root.findall("way"):
-            if _tag(w, "name") != BRIDGE_NAME:
+            if _tag(w, "name") not in names:
                 continue
             wid = w.get("id")
             if wid in seen_ways:
@@ -105,11 +105,14 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--tiles", nargs="+", required=True)
     ap.add_argument("--out", required=True)
+    ap.add_argument("--names", nargs="+", default=[BRIDGE_NAME],
+                    help="OSM way names to chain into the route")
+    ap.add_argument("--profile", choices=["bridge", "flat"], default="bridge")
     args = ap.parse_args()
 
-    nodes, segments = load_tiles(args.tiles)
+    nodes, segments = load_tiles(args.tiles, tuple(args.names))
     if not segments:
-        raise SystemExit("no 'Third Mainland Bridge' ways found in tiles")
+        raise SystemExit(f"no ways named {args.names} found in tiles")
     chains = chain_all(segments)
     # keep only chains whose nodes we actually have coords for
     chains = [[nd for nd in c if nd in nodes] for c in chains]
@@ -119,12 +122,17 @@ def main():
     length = chain_length_m(best, nodes)
 
     points = [{"lat": nodes[nd][0], "lon": nodes[nd][1]} for nd in best]
-    apply_bridge_profile(points)
+    if args.profile == "bridge":
+        apply_bridge_profile(points)
+    else:
+        for p in points:
+            p["elev_m"] = 2.0
+            p["on_bridge"] = False
 
     os.makedirs(os.path.dirname(args.out), exist_ok=True)
     with open(args.out, "w", encoding="utf-8") as f:
         json.dump({"source_type": "osm_real", "points": points}, f, indent=2)
-    print(f"[stitch_osm_tiles] {len(segments)} TMB segments -> {len(chains)} chains; "
+    print(f"[stitch_osm_tiles] {len(segments)} segments -> {len(chains)} chains; "
           f"longest = {len(best)} pts, {length:.0f} m -> {args.out}")
 
 

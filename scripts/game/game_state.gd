@@ -9,6 +9,7 @@ signal settings_changed
 const SCENE_MAIN_MENU := "res://scenes/ui/menus/main_menu.tscn"
 const SCENE_TEST_TRACK := "res://scenes/world/test_track.tscn"
 const SCENE_BRIDGE := "res://scenes/world/maps/lagos_bridge/lagos_bridge.tscn"
+const SCENE_LEKKI := "res://scenes/world/maps/lekki/lekki.tscn"
 const SCENE_GARAGE := "res://scenes/ui/menus/garage.tscn"
 
 var selected_car_id: StringName = &"sedan_01"
