@@ -468,6 +468,10 @@ func _build_osm_buildings(root: Node3D) -> void:
 	mi.mesh = st.commit()
 	var mat := ShaderMaterial.new()
 	mat.shader = load("res://shaders/building.gdshader")
+	mat.set_shader_parameter("tex_plaster", load("res://assets/textures/wall_plaster.jpg"))
+	mat.set_shader_parameter("tex_concrete", load("res://assets/textures/concrete.jpg"))
+	mat.set_shader_parameter("tex_zinc", load("res://assets/textures/roof_zinc.jpg"))
+	mat.set_shader_parameter("tex_clay", load("res://assets/textures/roof_clay.jpg"))
 	mi.material_override = mat
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	root.add_child(mi)
@@ -835,6 +839,8 @@ func _obox(st: SurfaceTool, c: Vector3, s: Vector3, bas: Basis, col: Color) -> v
 func _road_material() -> Material:
 	var sm := ShaderMaterial.new()
 	sm.shader = load("res://shaders/road.gdshader")
+	sm.set_shader_parameter("tex_asphalt", load("res://assets/textures/asphalt.jpg"))
+	sm.set_shader_parameter("tex_concrete", load("res://assets/textures/concrete.jpg"))
 	return sm
 
 

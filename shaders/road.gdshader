@@ -2,6 +2,8 @@ shader_type spatial;
 render_mode cull_disabled;
 // Asphalt deck (speckled, worn) + concrete barriers (vertical faces).
 varying vec3 wpos;
+uniform sampler2D tex_asphalt : source_color, filter_linear_mipmap, repeat_enable;
+uniform sampler2D tex_concrete : source_color, filter_linear_mipmap, repeat_enable;
 varying vec3 wnorm;
 float hash(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
 float noise(vec2 p) {
@@ -18,14 +20,17 @@ void fragment() {
 		float speck = hash(floor(wpos.xz * 25.0)) * 0.08;
 		float patches = noise(wpos.xz * 0.08) * 0.12;
 		float v = 0.10 + speck * 0.7 + patches * 0.6;
-		ALBEDO = vec3(v, v, v * 1.03);
+		// real asphalt photo (CC0) at 4 m tiling + large-scale wear patches
+		vec3 a = texture(tex_asphalt, wpos.xz * 0.25).rgb;
+		ALBEDO = a * (0.55 + patches * 2.0) + vec3(speck * 0.2);
 		ROUGHNESS = 0.92 - patches;
 	} else {
 		// Lagos-style kerb paint: black / white blocks along the barrier
 		float n = noise(wpos.xz * 0.5 + wpos.y) * 0.1;
 		float stripe = step(0.5, fract((wpos.x + wpos.z) * 0.25));
 		vec3 paint = mix(vec3(0.92, 0.92, 0.90), vec3(0.10, 0.10, 0.11), stripe);
-		ALBEDO = paint * (0.92 + n);
+		vec3 conc = texture(tex_concrete, vec2(wpos.x + wpos.z, wpos.y) * 0.3).rgb;
+		ALBEDO = paint * (0.75 + n) * (conc / max(dot(conc, vec3(0.333)), 0.05) * 0.4 + 0.6);
 		ROUGHNESS = 0.95;
 	}
 }

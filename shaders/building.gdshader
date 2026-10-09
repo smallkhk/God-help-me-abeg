@@ -6,6 +6,13 @@ render_mode cull_disabled;
 // Wall UV: x = metres along wall, y = metres up. Roof UV: x along, y up-slope.
 global uniform float night_factor;
 varying vec3 wpos;
+// Real CC0 photo textures (ambientCG). Used as detail over the painted colour.
+uniform sampler2D tex_plaster : source_color, filter_linear_mipmap, repeat_enable;
+uniform sampler2D tex_concrete : source_color, filter_linear_mipmap, repeat_enable;
+uniform sampler2D tex_zinc : source_color, filter_linear_mipmap, repeat_enable;
+uniform sampler2D tex_clay : source_color, filter_linear_mipmap, repeat_enable;
+// detail = texture / its average brightness, so paint colours stay as designed
+vec3 detail(sampler2D t, vec2 uv) { vec3 c = texture(t, uv).rgb; return c / max(dot(c, vec3(0.333)), 0.05) * 0.5 + 0.5; }
 
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float noise(vec2 p) {
@@ -41,7 +48,7 @@ void fragment() {
 		// ground floor: doors / shop shutters
 		float door = box(f, vec2(0.30, 0.0), vec2(0.70, 0.78)) * ground;
 		float grime = noise(vec2(uv.x * 0.35, uv.y * 0.12)) * 0.10 + smoothstep(1.2, 0.0, uv.y) * 0.10;
-		vec3 wall = col * 0.88 * (1.0 - grime);
+		vec3 wall = col * 0.88 * (1.0 - grime) * detail(tex_plaster, uv * 0.35);
 		wall = mix(wall, wall * 0.82, slab);
 		vec3 gcol = mix(vec3(0.18, 0.26, 0.34), vec3(0.35, 0.50, 0.62), hash(cell) * 0.6);
 		vec3 fcol = vec3(0.95, 0.95, 0.93);
@@ -56,13 +63,13 @@ void fragment() {
 		emit = lit * vec3(1.0, 0.80, 0.48) * 1.6;
 	} else if (k < 0.37) {
 		// --- flat concrete roof ---
-		col = vec3(0.66, 0.64, 0.60) * (0.85 + 0.2 * noise(wpos.xz * 0.6));
+		col = texture(tex_concrete, wpos.xz * 0.12).rgb * (0.85 + 0.2 * noise(wpos.xz * 0.6));
 		rough = 0.95;
 	} else if (k < 0.62) {
 		// --- corrugated zinc ---
 		float ridges = 0.5 + 0.5 * sin(UV.x * 22.0);
 		float rust = smoothstep(0.5, 0.85, noise(wpos.xz * 0.3));
-		col = mix(vec3(0.70, 0.72, 0.74), vec3(0.58, 0.32, 0.18), rust) * (0.82 + 0.18 * ridges);
+		col = mix(texture(tex_zinc, UV * vec2(0.25, 0.25)).rgb, vec3(0.58, 0.32, 0.18), rust * 0.6) * (0.85 + 0.15 * ridges);
 		rough = 0.5;
 		metal = 0.35 * (1.0 - rust);
 	} else if (k < 0.87) {
@@ -71,7 +78,7 @@ void fragment() {
 		float off = step(0.5, fract(UV.y * 1.3)) * 0.5;
 		float tcol = fract(UV.x * 3.0 + off);
 		float shade = 0.78 + 0.22 * smoothstep(0.0, 0.5, row) - 0.1 * step(0.92, tcol);
-		col = col * shade * (0.92 + 0.12 * hash(floor(wpos.xz * 0.5)));
+		col = texture(tex_clay, UV * vec2(0.3, 0.3)).rgb * (0.92 + 0.12 * hash(floor(wpos.xz * 0.5)));
 		rough = 0.8;
 	} else {
 		// --- plain painted part ---

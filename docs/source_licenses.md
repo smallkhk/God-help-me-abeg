@@ -48,3 +48,9 @@ v3** (https://sites.research.google/open-buildings/), licensed **CC BY 4.0** (al
 available under ODbL). Required attribution: *"Building footprints © Google Open
 Buildings, CC BY 4.0."* Heights are NOT in this dataset; they are estimated from
 footprint size. Road geometry remains © OpenStreetMap contributors (ODbL).
+
+## Textures (assets/textures/)
+
+Photo textures from ambientCG (https://ambientcg.com), CC0 1.0 public domain —
+no attribution required: Plaster001, Asphalt026C, RoofingTiles006,
+CorrugatedSteel005, Concrete034 (colour maps, resized to 512px).
