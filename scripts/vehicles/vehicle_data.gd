@@ -116,6 +116,18 @@ enum Drivetrain { FWD, RWD, AWD }
 @export var traction_control_strength: float = 0.7
 @export var stability_assist_strength: float = 0.5
 
+@export_group("Visual model (optional — replaces the placeholder box)")
+## A .glb/.gltf (or .tscn) car model. When set, the controller shows this instead
+## of the box body. Physics is unchanged — the model is cosmetic.
+@export var model_scene: PackedScene
+## Fit the model to the physics body: position offset, rotation (degrees) and a
+## uniform scale. Tuned per model so the wheels sit on the ground and it faces +Z.
+@export var model_offset: Vector3 = Vector3.ZERO
+@export var model_rotation_deg: Vector3 = Vector3.ZERO
+@export var model_scale: float = 1.0
+## Hide the placeholder box body + wheels when a model is shown.
+@export var hide_placeholder_when_model: bool = true
+
 @export_group("Ratings (display only — each must map to a real effect)")
 @export var price_naira: int = 1500000
 @export var durability: float = 0.7

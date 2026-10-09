@@ -1,10 +1,11 @@
-[gd_resource type="Resource" script_class="VehicleData" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="VehicleData" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/vehicles/vehicle_data.gd" id="1"]
+[ext_resource type="PackedScene" path="res://assets/vehicles/challenger.glb" id="2"]
 
 [resource]
 script = ExtResource("1")
-display_name = "Ikoyi Sport Saloon"
+display_name = "Ikoyi Muscle Coupe"
 vehicle_id = &"sport_01"
 mass = 1340.0
 wheelbase = 2.7
@@ -24,5 +25,9 @@ lateral_grip_front = 1.42
 lateral_grip_rear = 1.46
 longitudinal_grip = 1.5
 drag_coefficient = 0.5
+model_scene = ExtResource("2")
+model_offset = Vector3(0, -0.48, 0)
+model_rotation_deg = Vector3(0, 90, 0)
+model_scale = 1.0
 price_naira = 4200000
 durability = 0.7

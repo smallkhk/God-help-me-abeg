@@ -97,6 +97,30 @@ func _ready() -> void:
 
 	transmission = Transmission.new(data)
 	_collect_wheels()
+	_mount_model()
+
+
+## Swaps the placeholder box for the car's .glb model (spec §6.2). Cosmetic only;
+## physics is untouched. Alignment (offset/rotation/scale) comes from VehicleData
+## so each model is fitted without code.
+func _mount_model() -> void:
+	if data.model_scene == null:
+		return
+	var m := data.model_scene.instantiate()
+	m.name = "CarModel"
+	add_child(m)
+	if m is Node3D:
+		m.position = data.model_offset
+		m.rotation = Vector3(
+			deg_to_rad(data.model_rotation_deg.x),
+			deg_to_rad(data.model_rotation_deg.y),
+			deg_to_rad(data.model_rotation_deg.z))
+		m.scale = Vector3.ONE * data.model_scale
+	if data.hide_placeholder_when_model:
+		for n in ["Body", "Cabin", "WheelFL_mesh", "WheelFR_mesh", "WheelRL_mesh", "WheelRR_mesh"]:
+			var node := get_node_or_null(NodePath(n)) as Node3D
+			if node:
+				node.visible = false
 
 
 func _collect_wheels() -> void:
