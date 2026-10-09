@@ -21,7 +21,12 @@ func _ready() -> void:
 
 
 func _physics_process(_delta: float) -> void:
-	var steer := Input.get_axis("steer_left", "steer_right")
+	# Invert steering at the input: the car's forward is +Z with up +Y, so the
+	# car's real right side is forward×up = -X (world +X is its left). get_axis
+	# returns +1 for a right press, so we negate it so "right" steers the car to
+	# the driver's right (toward -X / screen-right). AI traffic steers by geometry
+	# and is unaffected, so the fix belongs here, on player input only.
+	var steer := -Input.get_axis("steer_left", "steer_right")
 	var throttle := Input.get_action_strength("accelerate")
 	var brake := Input.get_action_strength("brake")
 	var handbrake := Input.is_action_pressed("handbrake")
