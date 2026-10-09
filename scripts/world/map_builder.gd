@@ -186,10 +186,8 @@ func _build_markings(root: Node3D) -> void:
 	var mi := MeshInstance3D.new()
 	mi.name = "RoadMarkings"
 	mi.mesh = st.commit()
-	var mat := StandardMaterial3D.new()
-	mat.vertex_color_use_as_albedo = true
-	mat.roughness = 0.6
-	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+	var mat := ShaderMaterial.new()
+	mat.shader = load("res://shaders/road_markings.gdshader")
 	mi.material_override = mat
 	root.add_child(mi)
 	_own(mi)
