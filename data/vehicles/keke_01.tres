@@ -1,0 +1,39 @@
+[gd_resource type="Resource" script_class="VehicleData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/vehicles/vehicle_data.gd" id="1"]
+[ext_resource type="PackedScene" path="res://assets/vehicles/keke/keke.glb" id="2"]
+
+[resource]
+script = ExtResource("1")
+display_name = "Keke Napep"
+vehicle_id = &"keke_01"
+mass = 380.0
+wheelbase = 1.95
+track_width = 1.15
+center_of_mass_y = -0.25
+drivetrain = 1
+max_drive_force = 2600.0
+engine_brake_force = 500.0
+max_rpm = 7500.0
+peak_power_rpm = 5500.0
+gear_ratios = PackedFloat32Array(3.2, 2.0, 1.4, 1.0)
+final_drive = 4.5
+wheel_radius = 0.22
+brake_force = 3200.0
+handbrake_force = 1800.0
+max_steer_angle = 0.6
+suspension_rest_length = 0.35
+suspension_stiffness = 12000.0
+suspension_damping = 1300.0
+suspension_max_travel = 0.15
+anti_roll_stiffness = 2500.0
+lateral_grip_front = 1.1
+lateral_grip_rear = 1.15
+longitudinal_grip = 1.2
+drag_coefficient = 0.9
+price_naira = 0
+durability = 0.6
+model_scene = ExtResource("2")
+model_offset = Vector3(0, 0.4, 0)
+model_rotation_deg = Vector3(0, -90, 0)
+model_scale = 1.0

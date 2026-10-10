@@ -41,6 +41,7 @@ var _finish_order: Array[String] = []
 var _pos_label: Label
 
 var _initialized := false
+var _free := false
 var _ext := false
 var _ext_checkpoints: Array = []
 const RACE_LEN := 2500.0
@@ -69,6 +70,20 @@ func configure_external(spawn: Transform3D, checkpoints: Array) -> void:
 
 func _initialize() -> void:
 	_initialized = true
+	var gs := get_node_or_null("/root/Game")
+	if gs and gs.get("free_roam") and _builder:
+		# free roam: just put the car on the road and get out of the way
+		var ch := _builder.get_chunk()
+		if not ch.is_empty():
+			_spawn = MapLoader.spawn_transform(ch)
+			_player.global_transform = _spawn
+			_player.reset_state()
+		for c in get_children():
+			if c is CanvasLayer:
+				c.visible = false
+		_free = true
+		set_process_unhandled_input(false)
+		return
 	if _builder:
 		var chunk := _builder.get_chunk()
 		if not chunk.is_empty():
@@ -175,6 +190,11 @@ func _start_countdown() -> void:
 func _process(delta: float) -> void:
 	if not _initialized:
 		_initialize()
+	if _free:
+		if _player and _player.global_position.y < -25.0:
+			_player.global_transform = _spawn
+			_player.reset_state()
+		return
 
 	# Safety net: if the car ever ends up far below the deck (fell through a seam,
 	# or a track with no floor), pop it back to spawn instead of falling forever.

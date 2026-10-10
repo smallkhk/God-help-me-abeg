@@ -14,7 +14,8 @@ const RACES := [
 	{"name": "Lagos Island", "sub": "Circuit · 5.5 km Marina, Broad St, Balogun — dense city, traffic, people", "scene": "res://scenes/world/maps/island/island.tscn", "id": "island_circuit", "col": Color(0.85, 0.65, 0.10)},
 	{"name": "Bush Trail", "sub": "Off-road · 5.7 km laterite dirt trail, ruts, whoops, puddles", "scene": "res://scenes/world/maps/offroad/offroad.tscn", "id": "offroad_trail", "col": Color(0.72, 0.38, 0.18)},
 	{"name": "Mountain Valley", "sub": "Free roam · Terrain3D demo mountains, rocks, tunnel", "scene": "res://scenes/world/maps/mountain/mountain.tscn", "id": "", "col": Color(0.45, 0.50, 0.55)},
-	{"name": "Free Drive", "sub": "Test track · tune and practise", "scene": "res://scenes/world/test_track.tscn", "id": "", "col": Color(0.25, 0.55, 0.30)},
+	{"name": "Free Roam: Lagos Island", "sub": "Free roam · drive the whole city, no race", "scene": "res://scenes/world/maps/island/island.tscn", "id": "", "free": true, "col": Color(0.25, 0.55, 0.30)},
+	{"name": "Free Roam: Lekki", "sub": "Free roam · cruise Lekki Expressway", "scene": "res://scenes/world/maps/lekki/lekki.tscn", "id": "", "free": true, "col": Color(0.80, 0.35, 0.15)},
 ]
 
 var _pages := {}
@@ -157,9 +158,16 @@ func _build_race() -> Control:
 		card.add_theme_stylebox_override("focus", sh)
 		card.add_theme_stylebox_override("pressed", sh)
 		var path: String = r["scene"]
-		card.pressed.connect(func(): Game.goto(path))
-		var img_path := "res://assets/ui/tracks/%s.png" % r["id"]
-		if r["id"] != "" and ResourceLoader.exists(img_path):
+		var free: bool = r.get("free", false)
+		card.pressed.connect(func():
+			if free:
+				Game.goto_free_roam(path)
+			else:
+				Game.free_roam = false
+				Game.goto(path))
+		var img_id: String = r["id"] if r["id"] != "" else ("island_circuit" if String(path).contains("island") else ("lekki_sprint" if String(path).contains("lekki") else ""))
+		var img_path := "res://assets/ui/tracks/%s.png" % img_id
+		if img_id != "" and ResourceLoader.exists(img_path):
 			var tr := TextureRect.new()
 			tr.texture = load(img_path)
 			tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE

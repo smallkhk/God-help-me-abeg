@@ -232,6 +232,21 @@ func _build_showroom_buttons() -> void:
 		b.add_theme_font_size_override("font_size", 20)
 		b.pressed.connect(spec[1])
 		box.add_child(b)
+	# any colour you like
+	var pick := ColorPickerButton.new()
+	pick.text = "PICK COLOUR"
+	pick.custom_minimum_size = Vector2(170, 52)
+	pick.add_theme_font_size_override("font_size", 20)
+	pick.edit_alpha = false
+	pick.color = Color(0.85, 0.08, 0.08)
+	pick.color_changed.connect(func(c: Color):
+		if _cars.is_empty(): return
+		Game.set_car_color(String(_cars[_index].vehicle_id), c)
+		_update_preview(_cars[_index]))
+	var picker := pick.get_picker()
+	picker.presets_visible = true
+	picker.sampler_visible = false
+	box.add_child(pick)
 	var hint := Label.new()
 	hint.text = "Drag to look around 360°"
 	hint.add_theme_font_size_override("font_size", 16)

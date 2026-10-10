@@ -10,6 +10,8 @@ signal settings_changed
 var high_graphics: bool = true
 ## 0 = day … 1 = night; set by TimeOfDay, read by car lights.
 var night: float = 0.0
+## Free roam: drive the map with no race (gates/rivals/timer off)
+var free_roam := false
 
 const SCENE_MAIN_MENU := "res://scenes/ui/menus/main_menu.tscn"
 const SCENE_TEST_TRACK := "res://scenes/world/test_track.tscn"
@@ -17,11 +19,11 @@ const SCENE_BRIDGE := "res://scenes/world/maps/lagos_bridge/lagos_bridge.tscn"
 const SCENE_LEKKI := "res://scenes/world/maps/lekki/lekki.tscn"
 const SCENE_GARAGE := "res://scenes/ui/menus/garage.tscn"
 
-var selected_car_id: StringName = &"sedan_01"
+var selected_car_id: StringName = &"camry_01"
 
 # --- career / economy ---
 const START_MONEY := 2000000
-const STARTER_CARS := ["hatch_01", "sedan_01", "camry_01"]
+const STARTER_CARS := ["camry_01", "keke_01"]
 const UPGRADE_KINDS := ["engine", "tyres", "nitro"]
 const MAX_UPGRADE := 3
 var money: int = START_MONEY
@@ -48,8 +50,8 @@ func _ready() -> void:
 			owned.append(c)
 	if data.has("selected_car") and typeof(data["selected_car"]) == TYPE_STRING:
 		selected_car_id = StringName(data["selected_car"])
-	if not owned.has(String(selected_car_id)):
-		selected_car_id = &"sedan_01"
+	if not owned.has(String(selected_car_id)) or not CarDatabase.ORDER.has(selected_car_id):
+		selected_car_id = &"camry_01"
 
 
 func save() -> void:
@@ -77,6 +79,11 @@ func set_selected_car(car_id: StringName) -> void:
 	save()
 
 
+func goto_free_roam(scene_path: String) -> void:
+	free_roam = true
+	goto(scene_path)
+
+
 func goto(scene_path: String) -> void:
 	# Always unpause before switching, or the next scene loads frozen.
 	get_tree().paused = false
@@ -84,6 +91,7 @@ func goto(scene_path: String) -> void:
 
 
 func goto_main_menu() -> void:
+	free_roam = false
 	goto(SCENE_MAIN_MENU)
 
 

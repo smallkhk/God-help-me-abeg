@@ -42,6 +42,8 @@ class Wheel:
 	var slip_angle: float = 0.0
 	var contact_point: Vector3 = Vector3.ZERO
 	var spin_angle: float = 0.0  # visual wheel roll
+	var omega: float = 0.0       # wheel angular speed (rad/s), drives slip ratio
+	var slip_ratio: float = 0.0
 
 var wheels: Array[Wheel] = []
 
@@ -134,6 +136,7 @@ func _ready() -> void:
 ## so each model is fitted without code.
 ## Global handling tune (owner feedback: too slidey, too fast)
 const GRIP_BONUS := 1.3
+const ARB_SCALE := 3.0   # flatter cornering (less body lean)
 const SPEED_SCALE := 0.75
 
 
@@ -270,6 +273,7 @@ func _physics_process(delta: float) -> void:
 			w.grounded = false
 			w.normal_load = 0.0
 			w.slip_angle = 0.0
+			w.omega *= 0.99
 			continue
 
 		w.grounded = true
@@ -292,7 +296,7 @@ func _physics_process(delta: float) -> void:
 		var partner_i := _partner_index(i)
 		var anti := 0.0
 		if partner_i >= 0 and hit_info[partner_i]["grounded"]:
-			anti = data.anti_roll_stiffness * (compression - hit_info[partner_i]["compression"])
+			anti = data.anti_roll_stiffness * ARB_SCALE * (compression - hit_info[partner_i]["compression"])
 
 		var susp_mag := maxf(0.0, spring + damp + anti)
 		w.normal_load = susp_mag
@@ -357,8 +361,13 @@ func _apply_tyre_force(w: Wheel, offset: Vector3, up: Vector3, driven_count: int
 	# --- Longitudinal (drive / brake / engine-brake) force ---
 	var long_grip := data.longitudinal_grip * grip_scale * clampf(1.0 - 0.12 * (load / maxf(mass * 9.81 / 4.0, 1.0) - 1.0), 0.75, 1.15)
 	var max_long := long_grip * load
-	var long_force := 0.0
-
+	# --- Longitudinal: spinning wheel + Pacejka slip-ratio tyre ------------
+	# (ported from AdvancedPhysicsCar) Torques spin the wheel; the tyre force
+	# comes from the slip ratio σ = (ω·r − v)/|v|, so wheelspin, lock-ups and
+	# traction limits emerge instead of being scripted.
+	var r := data.wheel_radius
+	var inertia := 0.5 * WHEEL_MASS * r * r
+	var drive_t := 0.0
 	if w.is_driven and transmission.gear != 0:
 		var ratio := data.get_gear_ratio(transmission.gear)
 		var first := data.get_gear_ratio(1)
@@ -368,29 +377,41 @@ func _apply_tyre_force(w: Wheel, offset: Vector3, up: Vector3, driven_count: int
 			drive *= 1.0 + nitro_power
 		if transmission.gear == -1:
 			drive = -drive
-		# Traction control (assist): cut drive if this wheel is already near its
-		# longitudinal limit (spec §5.6 — modifies input, same physics).
+		# Traction control: trim torque while the wheel is already spinning up
 		var tc := _assist(data.traction_control_strength, 0.0, 0.5, 1.0)
-		if tc > 0.0 and absf(drive) > max_long:
-			drive = lerpf(drive, sign(drive) * max_long, tc)
-		long_force += drive
-
-	# Braking opposes current forward motion of the wheel.
+		if tc > 0.0 and w.slip_ratio * signf(drive) > 0.12:
+			drive *= 1.0 - tc * 0.6
+		drive_t = drive * r
+	var brake_t := 0.0
 	if brake_input > 0.0 and not (brake_input > 0.1 and forward_speed < 0.5 and transmission.gear == -1):
 		var front_bias := 0.6 if w.is_front else 0.4
-		var brake := data.brake_force * brake_input * front_bias
-		# ABS (assist): don't let brake force lock the tyre past its grip limit.
+		brake_t = data.brake_force * brake_input * front_bias * r
+		# ABS: ease the brake while the tyre is locking (σ well below 0)
 		var abs_s := _assist(data.abs_strength, 0.0, 0.6, 1.0)
-		var brake_cap := lerpf(brake, minf(brake, max_long), abs_s)
-		long_force += -sign(vf) * brake_cap
-
-	# Handbrake: strong rear brake that, with reduced rear grip above, breaks traction.
+		if w.slip_ratio < -0.12:
+			brake_t *= 1.0 - abs_s * 0.7
 	if handbrake_input and w.is_rear:
-		long_force += -sign(vf) * data.handbrake_force
+		brake_t += data.handbrake_force * r
+	if throttle_input < 0.05 and w.is_driven and transmission.gear > 0:
+		brake_t += data.engine_brake_force / driven_count * r * clampf(absf(vf) / 3.0, 0.0, 1.0)
 
-	# Engine braking when coasting in gear.
-	if throttle_input < 0.05 and w.is_driven and transmission.gear > 0 and absf(vf) > 0.5:
-		long_force += -sign(vf) * data.engine_brake_force / driven_count
+	# Implicit (stable at 60 Hz) wheel-speed solve on the tyre's linear slope:
+	#   I·dω/dt = T_drive − Fx·r,  Fx ≈ k·(ω·r − v)  with k = D·B·C / |v|
+	var denom := maxf(absf(vf), 3.0)
+	var k := max_long * LONG_B * LONG_C / denom
+	var dt := _delta
+	w.omega = (w.omega + dt / inertia * (drive_t + k * r * vf)) / (1.0 + dt / inertia * k * r * r)
+	# brakes oppose the spin and can stop it, never reverse it
+	var d_om := brake_t / inertia * dt
+	w.omega = 0.0 if absf(w.omega) <= d_om else w.omega - signf(w.omega) * d_om
+	# crawling with no torque: roll freely with the ground (no jitter)
+	if absf(vf) < 1.0 and absf(drive_t) < 1.0 and brake_t <= 0.0:
+		w.omega = vf / r
+	w.slip_ratio = (w.omega * r - vf) / denom
+	var long_force := max_long * _pacejka_long(w.slip_ratio)
+	# Standstill hold: brakes/handbrake keep a parked car parked
+	if absf(vf) < 1.0 and brake_t > 0.0:
+		long_force = clampf(-vf * mass * 0.25 / maxf(dt, 0.001), -max_long, max_long)
 
 	# Rolling resistance.
 	long_force += -sign(vf) * data.rolling_resistance * minf(absf(vf), 1.0)
@@ -412,6 +433,16 @@ func _apply_tyre_force(w: Wheel, offset: Vector3, up: Vector3, driven_count: int
 ## Pacejka "Magic Formula" (as used by real racing sims): normalised lateral
 ## force for a slip angle. Peaks (=1) at `peak` rad, then falls to ~0.75 when
 ## sliding — progressive, catchable breakaway instead of an on/off grip switch.
+const WHEEL_MASS := 20.0
+const LONG_B := 11.0
+const LONG_C := 1.65
+const LONG_E := 0.1
+## Pacejka longitudinal curve (normalised, peak 1 near σ ≈ 0.1).
+func _pacejka_long(sr: float) -> float:
+	var bx := LONG_B * sr
+	return sin(LONG_C * atan(bx - LONG_E * (bx - atan(bx))))
+
+
 const PAC_C := 1.45
 const PAC_E := -0.3
 func _pacejka(slip: float, peak: float) -> float:
@@ -560,7 +591,7 @@ func _update_wheel_visuals(delta: float, hit_info: Dictionary) -> void:
 		var w: Wheel = wheels[i]
 		if w.model_pivot:
 			# model wheels roll with road speed (spin_angle used to never advance here)
-			w.spin_angle = wrapf(w.spin_angle + (forward_speed / maxf(data.wheel_radius, 0.01)) * delta, -TAU, TAU)
+			w.spin_angle = wrapf(w.spin_angle + w.omega * delta, -TAU, TAU)
 			var sa := w.spin_angle
 			var st := current_steer_angle if w.is_front else 0.0
 			var gb := global_transform.basis * Basis(Vector3.UP, st) * Basis(Vector3.RIGHT, sa) * w.model_rest
@@ -576,7 +607,7 @@ func _update_wheel_visuals(delta: float, hit_info: Dictionary) -> void:
 		var local_pos := w.marker.position - Vector3(0, drop, 0)
 		w.mesh.position = local_pos
 		# Spin from forward speed; steer on front wheels.
-		w.spin_angle += (forward_speed / maxf(data.wheel_radius, 0.01)) * delta
+		w.spin_angle = wrapf(w.spin_angle + w.omega * delta, -TAU, TAU)
 		var steer := current_steer_angle if w.is_front else 0.0
 		w.mesh.rotation = Vector3(w.spin_angle, steer, 0.0)
 

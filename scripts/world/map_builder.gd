@@ -856,7 +856,7 @@ func _build_street_props(root: Node3D) -> void:
 			var cp: Vector3 = c + p * side2 * (hw + 2.6)
 			if is_land.call(cp):
 				cp.y = GROUND_Y
-				var kc := ["kenney/sedan", "kenney/taxi", "danfo/danfo", "kenney/suv", "danfo/danfo", "danfo/danfo", "keke/keke", "okada/okada", "okada/okada", "lagos/molue", "lagos/tanker", "lagos/cement", "lagos/watertanker"]
+				var kc := ["accord/accord", "p406/p406", "danfo/danfo", "golf3/golf3", "danfo/danfo", "danfo/danfo", "keke/keke", "okada/okada", "okada/okada", "lagos/molue", "lagos/tanker", "lagos/cement", "lagos/watertanker"]
 				var km: String = kc[rng.randi() % kc.size()]
 				var yaw := atan2(fwd.x, fwd.z) + (0.0 if rng.randf() < 0.5 else PI)
 				if _AI_VEH.has(km):
@@ -1066,7 +1066,8 @@ func _roadside_grass(root: Node3D, frames: Array, hw: float, is_land: Callable) 
 const _AI_VEH := {"danfo/danfo": [1.0, PI * 0.5, 1.0], "keke/keke": [0.9, -PI * 0.5, 1.0],
 	"okada/okada": [0.66, -PI * 0.5, 1.1], "brt/brt": [2.0, -PI * 0.5, 1.25],
 	"lagos/molue": [0.0, -PI * 0.5, 1.0], "lagos/tanker": [0.0, -PI * 0.5, 1.0],
-	"lagos/cement": [0.0, -PI * 0.5, 1.0], "lagos/watertanker": [0.0, -PI * 0.5, 1.0]}
+	"lagos/cement": [0.0, -PI * 0.5, 1.0], "lagos/watertanker": [0.0, -PI * 0.5, 1.0],
+	"accord/accord": [0.0, 0.0, 1.0], "p406/p406": [0.0, -PI * 0.5, 1.0], "golf3/golf3": [0.0, PI * 0.5, 1.0]}
 
 ## roadside model, mean spacing (m), min/max distance beyond the road edge (m)
 const _ROADSIDE := [
