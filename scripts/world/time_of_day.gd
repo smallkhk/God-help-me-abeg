@@ -11,6 +11,10 @@ var _preset: int
 var _env: Environment
 var _sky: ProceduralSkyMaterial
 var _sun: DirectionalLight3D
+var _we: WorldEnvironment
+var _sky3d: Node = null   # Sky3D (addons/sky_3d) — realistic sun/moon/clouds on High graphics
+const SKY3D_SCRIPT := "res://addons/sky_3d/src/Sky3D.gd"
+const SKY3D_TIME := {0: 13.0, 1: 18.25, 2: 22.5}   # DAY / SUNSET / NIGHT (hours)
 
 const PRESETS := {
 	Preset.DAY: {
@@ -37,12 +41,13 @@ const PRESETS := {
 func _ready() -> void:
 	var p := get_parent()
 	var we := p.get_node_or_null("WorldEnvironment") as WorldEnvironment
+	_we = we
 	_sun = p.get_node_or_null("Sun") as DirectionalLight3D
 	if we and we.environment:
 		_env = we.environment
 		if _env.sky and _env.sky.sky_material is ProceduralSkyMaterial:
 			_sky = _env.sky.sky_material
-	apply(start_preset)
+	apply.call_deferred(start_preset)
 
 
 func _unhandled_input(ev: InputEvent) -> void:
@@ -55,9 +60,48 @@ func _unhandled_input(ev: InputEvent) -> void:
 		apply(_preset)
 
 
+## Sky3D on High graphics: swaps out our WorldEnvironment + Sun for its own.
+func _use_sky3d(on: bool) -> void:
+	var host := get_parent()
+	if on and _sky3d == null and ResourceLoader.exists(SKY3D_SCRIPT):
+		if _we and _we.is_inside_tree():
+			host.remove_child(_we)
+		if _sun:
+			_sun.visible = false
+		_sky3d = (load(SKY3D_SCRIPT) as GDScript).new()
+		_sky3d.name = "Sky3D"
+		host.add_child(_sky3d)
+		# Lagos, Nigeria (UTC+1), sun & stars where they really are
+		_sky3d.tod.latitude = deg_to_rad(6.45)
+		_sky3d.tod.longitude = deg_to_rad(3.40)
+		_sky3d.tod.utc = 1.0
+		_sky3d.game_time_enabled = false   # fixed time per preset (N cycles)
+		_sky3d.sky_contribution = 0.75     # recommended for the Compatibility renderer
+		_sky3d.sun.directional_shadow_max_distance = 250.0
+	elif not on and _sky3d != null:
+		_sky3d.queue_free()
+		_sky3d = null
+		if _we and not _we.is_inside_tree():
+			host.add_child(_we)
+		if _sun:
+			_sun.visible = true
+
+
 func apply(preset: int) -> void:
 	_preset = preset
 	var c: Dictionary = PRESETS[preset]
+	_use_sky3d(Game.high_graphics)
+	if _sky3d:
+		_sky3d.current_time = SKY3D_TIME[preset]
+		_sky3d.moon_energy = 0.9          # brighter moonlight so night races are drivable
+		_sky3d.night_sky_contribution = 0.9
+		var e: Environment = _sky3d.environment
+		e.glow_enabled = true
+		e.glow_intensity = 0.6 if preset == Preset.NIGHT else 0.3
+		e.glow_hdr_threshold = 1.0
+		RenderingServer.global_shader_parameter_set("night_factor", c["night"])
+		Game.night = c["night"]
+		return
 	if _sun:
 		var r: Vector3 = c["sun_rot"]
 		_sun.rotation = Vector3(deg_to_rad(r.x), deg_to_rad(r.y), deg_to_rad(r.z))

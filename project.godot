@@ -131,3 +131,7 @@ night_factor={
 "type": "float",
 "value": 0.0
 }
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/sky_3d/plugin.cfg")
