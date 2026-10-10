@@ -10,6 +10,7 @@ var vehicle: VehicleController
 var _heads: Array[SpotLight3D] = []
 var _tail_mat: StandardMaterial3D
 var _smoke: Array[CPUParticles3D] = []
+const _SMOKE_TEX := preload("res://assets/textures/fx/smoke.png")
 var _skid_mm: MultiMesh
 var _skid_i := 0
 var _last_skid := {}
@@ -87,7 +88,9 @@ func _ready() -> void:
 		if w.is_front:
 			continue
 		var s := CPUParticles3D.new()
-		s.amount = 40
+		s.amount = 60
+		s.angle_min = 0.0; s.angle_max = 360.0
+		s.angular_velocity_min = -40.0; s.angular_velocity_max = 40.0
 		s.lifetime = 1.6
 		s.emitting = false
 		s.local_coords = false
@@ -98,8 +101,9 @@ func _ready() -> void:
 		s.scale_amount_min = 1.0; s.scale_amount_max = 2.5
 		var curve := Curve.new(); curve.add_point(Vector2(0, 0.4)); curve.add_point(Vector2(1, 1.6))
 		s.scale_amount_curve = curve
-		var q := QuadMesh.new(); q.size = Vector2(1.2, 1.2)
+		var q := QuadMesh.new(); q.size = Vector2(1.6, 1.6)
 		var sm := StandardMaterial3D.new()
+		sm.albedo_texture = _SMOKE_TEX   # Kenney Particle Pack (CC0) puff
 		sm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 		sm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 		sm.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
@@ -107,7 +111,9 @@ func _ready() -> void:
 		q.material = sm
 		s.mesh = q
 		var g := Gradient.new()
-		g.set_color(0, Color(0.85, 0.85, 0.85, 0.55)); g.set_color(1, Color(0.9, 0.9, 0.9, 0.0))
+		g.set_color(0, Color(0.72, 0.70, 0.68, 0.0)); g.set_color(1, Color(0.80, 0.79, 0.78, 0.0))
+		g.add_point(0.12, Color(0.70, 0.68, 0.66, 0.5))
+		g.add_point(0.5, Color(0.76, 0.75, 0.73, 0.3))
 		s.color_ramp = g
 		s.position = w.marker.position + Vector3(0, -0.2, 0)
 		vehicle.add_child(s)

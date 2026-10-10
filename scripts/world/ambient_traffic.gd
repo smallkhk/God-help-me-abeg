@@ -175,8 +175,8 @@ func _physics_process(dt: float) -> void:
 	if _vehicles.is_empty():
 		return
 	var pd := _player_d()
-	var nv = RenderingServer.global_shader_parameter_get("night_factor")
-	var night: float = nv if nv is float else 0.0
+	var gs := get_node_or_null("/root/Game")
+	var night: float = float(gs.get("night")) if gs else 0.0
 	for v in _vehicles:
 		var spd: float = v["speed"]
 		if v["kind"] == "danfo":

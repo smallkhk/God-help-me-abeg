@@ -11,12 +11,14 @@ var vehicle: VehicleController
 var is_player := true
 var _layers: Array[AudioStreamPlayer3D] = []
 var _horn: AudioStreamPlayer3D
-# procedural screech
 var _scr: AudioStreamPlayer3D
-var _pb: AudioStreamGeneratorPlayback
+var _wind: AudioStreamPlayer3D
+var _crash: AudioStreamPlayer3D
+var _nitro: AudioStreamPlayer3D
 var _screech := 0.0
-var _noise := 0.0
-var _ph := 0.0
+var _last_speed := 0.0
+var _was_nitro := false
+var _crash_cd := 0.0
 
 
 func _ready() -> void:
@@ -48,16 +50,32 @@ func _ready() -> void:
 		start.volume_db = -6.0
 		add_child(start)
 		start.play()
-	# screech generator
-	var gen := AudioStreamGenerator.new()
-	gen.mix_rate = RATE
-	gen.buffer_length = 0.1
-	_scr = AudioStreamPlayer3D.new()
-	_scr.stream = gen
-	_scr.unit_size = 12.0
-	add_child(_scr)
-	_scr.play()
-	_pb = _scr.get_stream_playback()
+	# tyre screech, wind, crash, nitro (recorded/generated samples)
+	_scr = _loop_player("res://assets/audio/sfx/screech.ogg", 12.0)
+	if is_player:
+		_wind = _loop_player("res://assets/audio/sfx/wind.ogg", 30.0)
+		_crash = AudioStreamPlayer3D.new()
+		_crash.stream = load("res://assets/audio/sfx/crash.ogg")
+		_crash.unit_size = 20.0
+		add_child(_crash)
+		_nitro = AudioStreamPlayer3D.new()
+		_nitro.stream = load("res://assets/audio/sfx/nitro.ogg")
+		_nitro.unit_size = 20.0
+		add_child(_nitro)
+
+
+func _loop_player(path: String, unit: float) -> AudioStreamPlayer3D:
+	var st: AudioStream = load(path)
+	if st is AudioStreamOggVorbis:
+		st = st.duplicate()
+		st.loop = true
+	var p := AudioStreamPlayer3D.new()
+	p.stream = st
+	p.unit_size = unit
+	p.volume_db = -80.0
+	add_child(p)
+	p.play()
+	return p
 
 
 func _unhandled_input(ev: InputEvent) -> void:
@@ -98,9 +116,20 @@ func _process(_delta: float) -> void:
 	if vehicle.handbrake_input and absf(vehicle.forward_speed) > 5.0 and vehicle.wheels_on_ground > 0:
 		target = maxf(target, 0.7)
 	_screech = lerpf(_screech, target, 0.15)
-	if _pb:
-		for k in _pb.get_frames_available():
-			_ph = fmod(_ph + 900.0 / RATE, 1.0)
-			_noise = lerpf(_noise, randf() * 2.0 - 1.0, 0.35)
-			var v := (_noise * 0.7 + sin(_ph * TAU) * 0.3) * _screech * 0.35
-			_pb.push_frame(Vector2(v, v))
+	_scr.volume_db = linear_to_db(maxf(_screech, 0.0001)) - 2.0
+	_scr.pitch_scale = 0.9 + _screech * 0.2
+	var spd := vehicle.linear_velocity.length()
+	if _wind:
+		var wv := clampf((spd - 12.0) / 40.0, 0.0, 1.0)
+		_wind.volume_db = linear_to_db(maxf(wv * 0.8, 0.0001))
+		_wind.pitch_scale = 0.8 + wv * 0.5
+	# crash: a sudden loss of speed means we hit something
+	_crash_cd -= _delta
+	if _crash and _crash_cd <= 0.0 and _last_speed - spd > 5.0 and _last_speed > 8.0:
+		_crash.volume_db = linear_to_db(clampf((_last_speed - spd) / 15.0, 0.3, 1.0)) + 2.0
+		_crash.play()
+		_crash_cd = 0.8
+	_last_speed = spd
+	if _nitro and vehicle.nitro_active and not _was_nitro:
+		_nitro.play()
+	_was_nitro = vehicle.nitro_active

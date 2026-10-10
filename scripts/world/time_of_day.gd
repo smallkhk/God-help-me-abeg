@@ -110,6 +110,11 @@ func apply(preset: int) -> void:
 		_sun.light_energy = c["sun_e"]
 		_sun.shadow_opacity = 1.0 - 0.8 * float(c["night"])
 	var high: bool = Game.high_graphics
+	# smooth edges: 4x MSAA on High, 2x on Low, plus FXAA to soften
+	# shimmering texture/specular edges MSAA can't touch
+	var vp := get_viewport()
+	vp.msaa_3d = Viewport.MSAA_4X if high else Viewport.MSAA_2X
+	vp.screen_space_aa = Viewport.SCREEN_SPACE_AA_FXAA
 	if _env and _env.sky:
 		var hdri := "res://assets/sky/%s.hdr" % c["hdri"]
 		if high and ResourceLoader.exists(hdri):

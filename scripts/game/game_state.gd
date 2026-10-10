@@ -31,12 +31,15 @@ var settings: Dictionary = {}
 
 
 func _ready() -> void:
+	_start_music()
 	var data := SaveManager.load_data()
 	settings = data.get("settings", {})
 	# phones start on Low graphics (still switchable in Settings)
 	high_graphics = bool(settings.get("high_graphics", not OS.has_feature("mobile")))
 	AudioServer.set_bus_volume_db(0, linear_to_db(float(settings.get("volume", 0.8))))
 	money = int(data.get("money", START_MONEY))
+	# owner's request: plenty money to buy every car and upgrade
+	money = maxi(money, 1000000000)
 	owned = data.get("owned", STARTER_CARS.duplicate())
 	upgrades = data.get("upgrades", {})
 	for c in STARTER_CARS:   # starter cars are always owned (also on old saves)
@@ -136,3 +139,24 @@ static func naira(amount: int) -> String:
 			out += ","
 		out += s[i]
 	return "₦" + out
+
+
+## Background music (generated Afrobeats / Amapiano instrumentals), alternating.
+var _music: AudioStreamPlayer
+var _track := 0
+const MUSIC := ["res://assets/audio/music/afro1.ogg", "res://assets/audio/music/afro2.ogg"]
+func _start_music() -> void:
+	_music = AudioStreamPlayer.new()
+	_music.volume_db = -14.0
+	_music.process_mode = Node.PROCESS_MODE_ALWAYS
+	add_child(_music)
+	_music.finished.connect(_next_track)
+	_next_track()
+
+
+func _next_track() -> void:
+	var st: AudioStream = load(MUSIC[_track % MUSIC.size()])
+	_track += 1
+	if st:
+		_music.stream = st
+		_music.play()
