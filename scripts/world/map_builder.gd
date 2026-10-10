@@ -758,6 +758,8 @@ func _build_street_props(root: Node3D) -> void:
 			inst[model] = []
 		inst[model].append(Transform3D(Basis(Vector3.UP, yaw).scaled(Vector3.ONE * sc), pos))
 	var next_junk := 20.0
+	var next_extra := {}
+	var next_brtb := 300.0; var next_check := 900.0; var next_fb := 700.0
 
 	for i in frames.size():
 		if i > 0:
@@ -850,7 +852,7 @@ func _build_street_props(root: Node3D) -> void:
 			var cp: Vector3 = c + p * side2 * (hw + 2.6)
 			if is_land.call(cp):
 				cp.y = GROUND_Y
-				var kc := ["kenney/sedan", "kenney/taxi", "danfo/danfo", "kenney/suv", "danfo/danfo", "danfo/danfo", "keke/keke", "okada/okada", "okada/okada"]
+				var kc := ["kenney/sedan", "kenney/taxi", "danfo/danfo", "kenney/suv", "danfo/danfo", "danfo/danfo", "keke/keke", "okada/okada", "okada/okada", "lagos/molue", "lagos/tanker", "lagos/cement", "lagos/watertanker"]
 				var km: String = kc[rng.randi() % kc.size()]
 				var yaw := atan2(fwd.x, fwd.z) + (0.0 if rng.randf() < 0.5 else PI)
 				if _AI_VEH.has(km):
@@ -899,6 +901,43 @@ func _build_street_props(root: Node3D) -> void:
 			if is_land.call(sp0):
 				put.call("people/stall", Vector3(sp0.x, GROUND_Y + 1.0, sp0.z), rng.randf() * TAU, 4.0)
 				put.call("people/mama", Vector3(sp0.x, GROUND_Y + 0.9, sp0.z) + fwd * 1.3, rng.randf() * TAU, 1.0)
+
+		# AI-generated Lagos roadside life (models normalised: base at y=0, front +X)
+		if not on_bridge:
+			for e in _ROADSIDE:
+				var mname: String = e[0]
+				if dist < float(next_extra.get(mname, rng.randf_range(0.0, float(e[1])))):
+					if not next_extra.has(mname):
+						next_extra[mname] = dist + rng.randf_range(0.0, float(e[1]))
+					continue
+				next_extra[mname] = dist + float(e[1]) * rng.randf_range(0.6, 1.4)
+				var es: float = -1.0 if rng.randf() < 0.5 else 1.0
+				var ep: Vector3 = c + p * es * (hw + rng.randf_range(float(e[2]), float(e[3]))) + fwd * rng.randf_range(-3.0, 3.0)
+				if not is_land.call(ep):
+					continue
+				ep.y = GROUND_Y - 0.05
+				var face: Vector3 = -p * es
+				put.call("lagos/" + mname, ep, atan2(-face.z, face.x) + rng.randf_range(-0.15, 0.15), 1.0)
+			# open gutter along the kerb, BRT lane dividers, police checkpoint, footbridge
+			if i % 5 == 0 and rng.randf() < 0.35:
+				var gs: float = -1.0 if rng.randf() < 0.5 else 1.0
+				var gp: Vector3 = c + p * gs * (hw + 1.1)
+				if is_land.call(gp):
+					put.call("lagos/gutter", Vector3(gp.x, GROUND_Y - 0.1, gp.z), atan2(-fwd.z, fwd.x), 1.0)
+			if dist >= next_brtb:
+				next_brtb = dist + rng.randf_range(500.0, 900.0)
+				for k in 6:
+					var bp: Vector3 = c + p * (hw - 0.6) + fwd * (k * 3.2)
+					put.call("lagos/brtbarrier", bp, atan2(-fwd.z, fwd.x) + PI * 0.5, 1.0)
+			if dist >= next_check:
+				next_check = dist + rng.randf_range(1400.0, 2200.0)
+				var cs2: float = -1.0 if rng.randf() < 0.5 else 1.0
+				put.call("lagos/checkpoint", c + p * cs2 * (hw - 2.0), atan2(-p.z, p.x), 1.0)
+				put.call("lagos/barricade", c + p * cs2 * (hw - 1.5) + fwd * 8.0, atan2(-fwd.z, fwd.x), 1.0)
+				put.call("lagos/lastma", c + p * cs2 * (hw + 1.5) + fwd * 4.0, atan2(p.z * cs2, -p.x * cs2), 1.0)
+			if dist >= next_fb and is_land.call(c + p * (hw + 6.0)) and is_land.call(c - p * (hw + 6.0)):
+				next_fb = dist + rng.randf_range(1300.0, 2000.0)
+				put.call("lagos/footbridge", Vector3(c.x, GROUND_Y - 0.05, c.z), atan2(-p.z, p.x), (2.0 * hw + 14.0) / 36.0)
 
 		# roadside Lagos clutter: chairs, gens, crates, tyres, jerrycans, bins, AC units
 		if not on_bridge and dist >= next_junk:
@@ -971,7 +1010,18 @@ func _build_street_props(root: Node3D) -> void:
 ## AI-generated (fal/Tripo) vehicles are centred on their middle and lie along X:
 ## [lift to put wheels on the ground, yaw offset to face along the road]
 const _AI_VEH := {"danfo/danfo": [1.0, PI * 0.5, 1.0], "keke/keke": [0.9, -PI * 0.5, 1.0],
-	"okada/okada": [0.66, -PI * 0.5, 1.1], "brt/brt": [2.0, -PI * 0.5, 1.25]}
+	"okada/okada": [0.66, -PI * 0.5, 1.1], "brt/brt": [2.0, -PI * 0.5, 1.25],
+	"lagos/molue": [0.0, -PI * 0.5, 1.0], "lagos/tanker": [0.0, -PI * 0.5, 1.0],
+	"lagos/cement": [0.0, -PI * 0.5, 1.0], "lagos/watertanker": [0.0, -PI * 0.5, 1.0]}
+
+## roadside model, mean spacing (m), min/max distance beyond the road edge (m)
+const _ROADSIDE := [
+	["suya", 260.0, 4.0, 8.0], ["mamaput", 320.0, 5.0, 9.0], ["mechanic", 420.0, 6.0, 10.0],
+	["vulcaniser", 300.0, 3.0, 6.0], ["generator", 200.0, 3.0, 7.0], ["bole", 280.0, 3.0, 6.0],
+	["purewater", 240.0, 2.5, 5.0], ["wreck", 550.0, 4.0, 10.0], ["lastma", 500.0, 1.5, 2.5],
+	["church", 900.0, 24.0, 40.0], ["mosque", 1000.0, 24.0, 40.0], ["petrol", 1100.0, 16.0, 26.0],
+	["bank", 800.0, 18.0, 30.0], ["tower", 300.0, 90.0, 320.0],
+]
 
 
 ## One MultiMesh per mesh part of each glb model (cheap to draw thousands).
@@ -1483,7 +1533,14 @@ func _build_terrain(root: Node3D) -> void:
 	var inst := {}
 	var rng := RandomNumberGenerator.new(); rng.seed = 99
 	var kinds := ["k_tree_oak", "k_tree_default", "k_tree_fat", "k_tree_detailed", "k_tree_palmTall"]
+	var bush := ["rocks", "rocks", "rocks", "fallentree", "fallentree", "termite", "termite", "mudhut", "villagekiosk", "palmoil"]
 	for p in chunk.get("trees", []):
+		if rng.randf() < 0.14:
+			var bk: String = "lagos/" + bush[rng.randi() % bush.size()]
+			if not inst.has(bk):
+				inst[bk] = []
+			inst[bk].append(Transform3D(Basis(Vector3.UP, rng.randf() * TAU).scaled(Vector3.ONE * rng.randf_range(0.85, 1.2)), Vector3(p[0], p[1] - 0.15, p[2])))
+			continue
 		var k: String = kinds[rng.randi() % kinds.size()]
 		if not inst.has(k):
 			inst[k] = []

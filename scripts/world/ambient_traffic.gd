@@ -15,6 +15,10 @@ const MODELS := {
 	"sedan": ["res://assets/vehicles/kenney/sedan.glb", 0.0, 0.0, 1.75, 4.5, 2],
 	"taxi": ["res://assets/vehicles/kenney/taxi.glb", 0.0, 0.0, 1.75, 4.5, 2],
 	"suv": ["res://assets/vehicles/kenney/suv.glb", 0.0, 0.0, 1.75, 4.8, 2],
+	"molue": ["res://assets/models/lagos/molue.glb", 0.0, -PI * 0.5, 1.0, 11.0, 2],
+	"tanker": ["res://assets/models/lagos/tanker.glb", 0.0, -PI * 0.5, 1.0, 12.0, 1],
+	"cement": ["res://assets/models/lagos/cement.glb", 0.0, -PI * 0.5, 1.0, 9.0, 1],
+	"watertanker": ["res://assets/models/lagos/watertanker.glb", 0.0, -PI * 0.5, 1.0, 8.0, 1],
 }
 
 var chunk: Dictionary
@@ -98,8 +102,9 @@ func _spawn(initial: bool) -> void:
 	body.add_child(vis)
 	var cs := CollisionShape3D.new()
 	var box := BoxShape3D.new()
-	var wid := 0.8 if kind == "okada" else (2.6 if kind == "brt" else 1.8)
-	box.size = Vector3(wid, 1.6 if kind != "brt" else 3.0, m[4])
+	var big: bool = kind in ["brt", "molue", "tanker", "cement", "watertanker"]
+	var wid := 0.8 if kind == "okada" else (2.6 if big else 1.8)
+	box.size = Vector3(wid, 3.0 if big else 1.6, m[4])
 	cs.shape = box
 	cs.position = Vector3(0, box.size.y * 0.5, 0)
 	body.add_child(cs)
@@ -108,7 +113,9 @@ func _spawn(initial: bool) -> void:
 	var lane := _rng.randi_range(0, maxi(_lanes - 1, 0))
 	if kind in ["danfo", "keke", "brt"]:
 		lane = maxi(_lanes - 1, 0)   # slow vehicles keep to the kerb lane
-	var spd: float = {"danfo": 12.0, "keke": 9.0, "okada": 14.0, "brt": 11.0}.get(kind, 16.0) * _rng.randf_range(0.85, 1.2)
+	if kind in ["molue", "tanker", "cement", "watertanker"]:
+		lane = maxi(_lanes - 1, 0)
+	var spd: float = {"molue": 11.0, "tanker": 10.0, "cement": 10.0, "watertanker": 10.0, "danfo": 12.0, "keke": 9.0, "okada": 14.0, "brt": 11.0}.get(kind, 16.0) * _rng.randf_range(0.85, 1.2)
 	var pd := _player_d()
 	var d := pd + _rng.randf_range(-radius, radius) if initial else pd + (radius * 0.9 if _rng.randf() < 0.6 else -radius * 0.9)
 	var v := {"body": body, "kind": kind, "dir": dir, "lane": lane, "speed": spd, "d": fposmod(d, _len),

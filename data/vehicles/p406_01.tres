@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="VehicleData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/vehicles/vehicle_data.gd" id="1"]
+[ext_resource type="PackedScene" path="res://assets/vehicles/p406/p406.glb" id="2"]
+
+[resource]
+script = ExtResource("1")
+display_name = "Peugeot 406"
+vehicle_id = &"p406_01"
+mass = 1350.0
+wheelbase = 2.75
+track_width = 1.58
+center_of_mass_y = -0.4
+drivetrain = 0
+max_drive_force = 7600.0
+lateral_grip_front = 1.33
+lateral_grip_rear = 1.36
+price_naira = 2200000
+durability = 0.8
+model_scene = ExtResource("2")
+model_offset = Vector3(0, -0.5, 0)
+model_rotation_deg = Vector3(0, -90, 0)
+model_scale = 1.0

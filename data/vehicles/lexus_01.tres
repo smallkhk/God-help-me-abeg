@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="VehicleData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/vehicles/vehicle_data.gd" id="1"]
+[ext_resource type="PackedScene" path="res://assets/vehicles/lexus/lexus.glb" id="2"]
+
+[resource]
+script = ExtResource("1")
+display_name = "Lexus RX 350 (Lagos Big Man)"
+vehicle_id = &"lexus_01"
+mass = 1950.0
+wheelbase = 2.75
+track_width = 1.58
+center_of_mass_y = -0.4
+drivetrain = 2
+max_drive_force = 10500.0
+lateral_grip_front = 1.34
+lateral_grip_rear = 1.37
+price_naira = 7500000
+durability = 0.8
+model_scene = ExtResource("2")
+model_offset = Vector3(0, -0.5, 0)
+model_rotation_deg = Vector3(0, 90, 0)
+model_scale = 1.0
