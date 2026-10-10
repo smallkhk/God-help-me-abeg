@@ -5,12 +5,12 @@ func _init() -> void:
 	await process_frame
 	var g = root.get_node("Game")
 	var fails := []
-	g.money = 1000000; g.owned = ["hatch_01", "sedan_01"]; g.upgrades = {}
+	g.money = 1000000; g.owned = ["camry_01", "camry_01"]; g.upgrades = {}
 	if g.buy_car(&"super_01", 25000000): fails.append("bought supercar without money")
-	if not g.buy_car(&"hatch_01", 1) == false: fails.append("rebuy owned car")
-	var c0: int = g.upgrade_cost(&"sedan_01", "engine")
-	if not g.buy_upgrade(&"sedan_01", "engine"): fails.append("engine upgrade failed")
-	if g.upgrade_level(&"sedan_01", "engine") != 1: fails.append("level not 1")
+	if not g.buy_car(&"camry_01", 1) == false: fails.append("rebuy owned car")
+	var c0: int = g.upgrade_cost(&"camry_01", "engine")
+	if not g.buy_upgrade(&"camry_01", "engine"): fails.append("engine upgrade failed")
+	if g.upgrade_level(&"camry_01", "engine") != 1: fails.append("level not 1")
 	if g.money != 1000000 - c0: fails.append("money not deducted")
 	if g.buy_upgrade(&"super_01", "engine"): fails.append("upgraded unowned car")
 	print("[economy] cost lvl1=", c0, " money=", g.money, " naira=", g.naira(1234567))
@@ -34,7 +34,7 @@ func _init() -> void:
 		await process_frame
 	print("[economy] speed after 3s: normal %.1f m/s, nitro %.1f m/s" % speeds)
 	if speeds[1] <= speeds[0] + 1.0: fails.append("nitro gave no boost")
-	g.money = 2000000; g.owned = ["hatch_01", "sedan_01"]; g.upgrades = {}; g.save()
+	g.money = 2000000; g.owned = ["camry_01", "camry_01"]; g.upgrades = {}; g.save()
 	for f in fails: printerr("[economy] FAIL: ", f)
 	print("[economy] PASS" if fails.is_empty() else "[economy] FAILED")
 	quit(0 if fails.is_empty() else 1)

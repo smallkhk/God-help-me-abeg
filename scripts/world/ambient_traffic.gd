@@ -12,7 +12,7 @@ const MODELS := {
 	"keke": ["res://assets/vehicles/keke/keke.glb", 0.9, -PI * 0.5, 1.0, 2.7, 3],
 	"okada": ["res://assets/vehicles/okada/okada.glb", 0.66, -PI * 0.5, 1.1, 2.0, 4],
 	"brt": ["res://assets/vehicles/brt/brt.glb", 2.0, -PI * 0.5, 1.25, 12.0, 1],
-	"accord": ["res://assets/vehicles/accord/accord.glb", 0.0, 0.0, 1.0, 4.85, 2],
+	"accord": ["res://assets/vehicles/sf_accord08/accord08.glb", 0.0, 0.0, 1.0, 4.85, 2],
 	"p406": ["res://assets/vehicles/p406/p406.glb", 0.0, -PI * 0.5, 1.0, 4.7, 2],
 	"golf3": ["res://assets/vehicles/golf3/golf3.glb", 0.0, PI * 0.5, 1.0, 4.05, 2],
 	"molue": ["res://assets/models/lagos/molue.glb", 0.0, -PI * 0.5, 1.0, 11.0, 2],

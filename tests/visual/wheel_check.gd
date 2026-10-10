@@ -3,7 +3,7 @@ extends SceneTree
 func _init() -> void:
 	await process_frame
 	var ok := true
-	for id in ["camry_01", "super_01", "concept_01", "sedan_01", "hatch_01", "family_01", "suv_01", "luxury_01"]:
+	for id in ["camry_01", "super_01", "concept_01", "camry_01", "camry_01", "family_01", "suv_01", "luxury_01"]:
 		var car: VehicleController = load("res://scenes/vehicles/player/player_car.tscn").instantiate()
 		car.is_player = false; car.data = CarDatabase.get_data(id); car.freeze = true
 		root.add_child(car)

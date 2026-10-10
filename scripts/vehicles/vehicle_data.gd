@@ -15,7 +15,7 @@ enum Drivetrain { FWD, RWD, AWD }
 
 @export_group("Identity")
 @export var display_name: String = "Danfo-Spec Sedan"
-@export var vehicle_id: StringName = &"sedan_01"
+@export var vehicle_id: StringName = &"camry_01"
 
 @export_group("Mass & Geometry")
 ## Total mass in kg. Heavier cars resist speed/direction changes more.

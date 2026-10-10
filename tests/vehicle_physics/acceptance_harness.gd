@@ -171,7 +171,7 @@ func _finish() -> void:
 	if not det_ok:
 		_fail("physics not deterministic across identical runs")
 
-	print("\n========== ACCEPTANCE RESULTS (sedan_01) ==========")
+	print("\n========== ACCEPTANCE RESULTS (camry_01) ==========")
 	print("0-100 km/h time      : %s" % ("%.2f s" % _t_0_100 if _t_0_100 > 0 else "n/a"))
 	print("Top speed (observed) : %.1f km/h  (gear %d @ %.0f rpm)" % [_top_speed * KMH, _top_gear, _top_rpm])
 	print("Braking 50->0 dry    : %.1f m" % _dist_dry)

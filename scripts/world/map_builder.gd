@@ -814,7 +814,7 @@ func _build_street_props(root: Node3D) -> void:
 		if dist >= next_board:
 			next_board = dist + rng.randf_range(350.0, 650.0)
 			var side: float = -1.0 if rng.randf() < 0.5 else 1.0
-			var pos: Vector3 = c + p * side * (hw + rng.randf_range(14.0, 30.0))
+			var pos: Vector3 = c + p * side * (hw + rng.randf_range(4.5, 5.5))
 			if is_land.call(pos):
 				pos.y = GROUND_Y
 				boards.append([pos, atan2(p.x, p.z) + (PI * 0.5 if side < 0 else -PI * 0.5), -p * side])
@@ -841,7 +841,7 @@ func _build_street_props(root: Node3D) -> void:
 		if not on_bridge and i % 5 == 0:
 			for side in [-1.0, 1.0]:
 				if rng.randf() < 0.6:
-					var rp: Vector3 = c + p * side * (hw + rng.randf_range(4.0, 10.0)) + fwd * rng.randf_range(-3.0, 3.0)
+					var rp: Vector3 = c + p * side * (hw + rng.randf_range(3.6, 4.8)) + fwd * rng.randf_range(-3.0, 3.0)
 					if is_land.call(rp):
 						rp.y = GROUND_Y
 						# real leafy trees (fal/Tripo), roadside only
@@ -856,7 +856,7 @@ func _build_street_props(root: Node3D) -> void:
 			var cp: Vector3 = c + p * side2 * (hw + 2.6)
 			if is_land.call(cp):
 				cp.y = GROUND_Y
-				var kc := ["accord/accord", "p406/p406", "danfo/danfo", "golf3/golf3", "danfo/danfo", "danfo/danfo", "keke/keke", "okada/okada", "okada/okada", "lagos/molue", "lagos/tanker", "lagos/cement", "lagos/watertanker"]
+				var kc := ["sf_accord08/accord08", "p406/p406", "danfo/danfo", "golf3/golf3", "danfo/danfo", "danfo/danfo", "keke/keke", "okada/okada", "okada/okada", "lagos/molue", "lagos/tanker", "lagos/cement", "lagos/watertanker"]
 				var km: String = kc[rng.randi() % kc.size()]
 				var yaw := atan2(fwd.x, fwd.z) + (0.0 if rng.randf() < 0.5 else PI)
 				if _AI_VEH.has(km):
@@ -886,7 +886,7 @@ func _build_street_props(root: Node3D) -> void:
 					put.call("okada/okada", opos, atan2(-od.z, od.x) + 0.45, ov[2])
 		if not on_bridge and i % 6 == 3 and rng.randf() < 0.12:
 			var ks: float = -1.0 if rng.randf() < 0.5 else 1.0
-			var kpos: Vector3 = c + p * ks * (hw + rng.randf_range(6.0, 9.0))
+			var kpos: Vector3 = c + p * ks * (hw + rng.randf_range(3.6, 4.6))
 			if is_land.call(kpos):
 				var face := -p * ks
 				kpos.y = GROUND_Y - 0.05 + 1.25 * 1.6
@@ -901,18 +901,19 @@ func _build_street_props(root: Node3D) -> void:
 				put.call(["people/walker", "people/mama", "people/walker"][rng.randi() % 3], pp0, rng.randf() * TAU, rng.randf_range(0.93, 1.06))
 		if not on_bridge and i % 4 == 1 and rng.randf() < 0.1:
 			var ss: float = -1.0 if rng.randf() < 0.5 else 1.0
-			var sp0: Vector3 = c + p * ss * (hw + rng.randf_range(4.0, 7.0))
+			var sp0: Vector3 = c + p * ss * (hw + rng.randf_range(3.4, 4.6))
 			if is_land.call(sp0):
 				put.call("people/stall", Vector3(sp0.x, GROUND_Y + 1.0, sp0.z), rng.randf() * TAU, 4.0)
 				put.call("people/mama", Vector3(sp0.x, GROUND_Y + 0.9, sp0.z) + fwd * 1.3, rng.randf() * TAU, 1.0)
 
 		# continuous row of real Lagos buildings right along the road
 		if not on_bridge and dist >= next_row:
-			next_row = dist + rng.randf_range(16.0, 26.0)
+			next_row = dist + rng.randf_range(10.5, 13.5)
 			for rs in [-1.0, 1.0]:
-				if rng.randf() > 0.8:
+				if rng.randf() > 0.88:
 					continue
-				var rp: Vector3 = c + p * rs * (hw + rng.randf_range(13.0, 17.0))
+				# right up at the road: front wall ~6 m from the kerb
+				var rp: Vector3 = c + p * rs * (hw + rng.randf_range(9.6, 10.4))
 				if not is_land.call(rp):
 					continue
 				var face: Vector3 = -p * rs
@@ -966,7 +967,7 @@ func _build_street_props(root: Node3D) -> void:
 		if not on_bridge and dist >= next_junk:
 			next_junk = dist + rng.randf_range(12.0, 30.0)
 			var side: float = -1.0 if rng.randf() < 0.5 else 1.0
-			var base: Vector3 = c + p * side * (hw + rng.randf_range(3.0, 9.0)) + fwd * rng.randf_range(-4.0, 4.0)
+			var base: Vector3 = c + p * side * (hw + rng.randf_range(2.6, 4.8)) + fwd * rng.randf_range(-4.0, 4.0)
 			if is_land.call(base):
 				base.y = GROUND_Y
 				var junk := ["plastic_monobloc_chair_01", "portable_generator", "plastic_crate_01",
@@ -1067,13 +1068,13 @@ const _AI_VEH := {"danfo/danfo": [1.0, PI * 0.5, 1.0], "keke/keke": [0.9, -PI * 
 	"okada/okada": [0.66, -PI * 0.5, 1.1], "brt/brt": [2.0, -PI * 0.5, 1.25],
 	"lagos/molue": [0.0, -PI * 0.5, 1.0], "lagos/tanker": [0.0, -PI * 0.5, 1.0],
 	"lagos/cement": [0.0, -PI * 0.5, 1.0], "lagos/watertanker": [0.0, -PI * 0.5, 1.0],
-	"accord/accord": [0.0, 0.0, 1.0], "p406/p406": [0.0, -PI * 0.5, 1.0], "golf3/golf3": [0.0, PI * 0.5, 1.0]}
+	"sf_accord08/accord08": [0.0, 0.0, 1.0], "p406/p406": [0.0, -PI * 0.5, 1.0], "golf3/golf3": [0.0, PI * 0.5, 1.0]}
 
 ## roadside model, mean spacing (m), min/max distance beyond the road edge (m)
 const _ROADSIDE := [
-	["suya", 260.0, 4.0, 8.0], ["mamaput", 320.0, 5.0, 9.0], ["mechanic", 420.0, 6.0, 10.0],
-	["vulcaniser", 300.0, 3.0, 6.0], ["generator", 200.0, 3.0, 7.0], ["bole", 280.0, 3.0, 6.0],
-	["purewater", 240.0, 2.5, 5.0], ["wreck", 550.0, 4.0, 10.0], ["lastma", 500.0, 1.5, 2.5],
+	["suya", 260.0, 3.0, 4.8], ["mamaput", 320.0, 3.8, 4.8], ["mechanic", 420.0, 9.0, 10.0],
+	["vulcaniser", 300.0, 2.6, 4.5], ["generator", 200.0, 3.0, 5.0], ["bole", 280.0, 2.6, 4.5],
+	["purewater", 240.0, 2.5, 4.5], ["wreck", 550.0, 3.0, 4.5], ["lastma", 500.0, 1.5, 2.5],
 	["church", 900.0, 24.0, 40.0], ["mosque", 1000.0, 24.0, 40.0], ["petrol", 1100.0, 16.0, 26.0],
 	["bank", 800.0, 18.0, 30.0], ["tower", 300.0, 90.0, 320.0],
 ]
@@ -1092,7 +1093,7 @@ func _spawn_model_instances(root: Node3D, inst: Dictionary) -> void:
 		if model.begins_with("trees/"):
 			_apply_tree_wind(scene)
 		# race-track draw distance: nothing far from the road needs drawing
-		var far := 260.0 if (model.begins_with("trees/") or model.begins_with("k_tree")) else 140.0
+		var far := 260.0 if model.begins_with("trees/") else 140.0
 		# draw distance by real size: people/props pop out early, buildings stay
 		if model.begins_with("people/") or model in ["lagos/generator", "lagos/bole", "lagos/purewater", "lagos/gutter", "lagos/brtbarrier", "lagos/barricade", "lagos/palmoil", "lagos/lastma"]:
 			far = 60.0
