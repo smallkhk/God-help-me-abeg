@@ -11,7 +11,8 @@ uniform float bump_strength = 1.0;
 uniform float half_width = 12.0;
 uniform float lane_width = 3.5;
 uniform float median_half = 0.6;
-varying vec2 ruv;   // x = metres across the road (signed), y = metres along it
+varying vec2 ruv;
+global uniform float wetness;   // x = metres across the road (signed), y = metres along it
 varying vec3 wnorm;
 float hash(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
 float noise(vec2 p) {
@@ -55,8 +56,13 @@ void fragment() {
 		float cn = noise(wpos.xz * 0.9 + 11.0);
 		float crack = (1.0 - smoothstep(0.0, 0.025, abs(cn - 0.5))) * smoothstep(0.55, 0.75, noise(wpos.xz * 0.06 + 3.0));
 		alb *= 1.0 - crack * 0.6;
+		// rain: darker soaked asphalt, standing water in dips/ruts/potholes (mirror-like)
+		float pool = clamp(smoothstep(0.55, 0.7, noise(wpos.xz * 0.12 + 21.0)) + trk * 0.6 + hole, 0.0, 1.0) * wetness;
+		alb *= 1.0 - wetness * 0.45;
+		alb = mix(alb, vec3(0.02), pool * 0.6);
 		ALBEDO = alb;
-		ROUGHNESS = clamp(texture(tex_asphalt_r, wpos.xz * 0.25).r - patches * 0.5 - hole * 0.6 - trk * 0.18 - oil * 0.3 + edge * 0.2, 0.15, 1.0);
+		ROUGHNESS = mix(clamp(texture(tex_asphalt_r, wpos.xz * 0.25).r - patches * 0.5 - hole * 0.6 - trk * 0.18 - oil * 0.3 + edge * 0.2, 0.15, 1.0), 0.02, max(wetness * 0.55, pool));
+		SPECULAR = 0.5 + pool * 0.5;
 		vec3 tn = texture(tex_asphalt_n, wpos.xz * 0.25).rgb * 2.0 - 1.0;
 		vec3 wn = normalize(vec3(tn.x, 1.0, -tn.y) * vec3(bump_strength, 1.0, bump_strength));
 		NORMAL = normalize((VIEW_MATRIX * vec4(wn * sign(wnorm.y), 0.0)).xyz);

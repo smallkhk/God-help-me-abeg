@@ -4,6 +4,7 @@ render_mode cull_disabled;
 // grass creeping in from the verges and a crown of weeds down the middle.
 varying vec3 wpos;
 varying vec2 ruv;
+global uniform float wetness;
 uniform sampler2D tex_dirt : source_color, filter_linear_mipmap, repeat_enable;
 uniform sampler2D tex_grass : source_color, filter_linear_mipmap, repeat_enable;
 uniform float half_width = 5.5;
@@ -35,7 +36,8 @@ void fragment() {
 	float crown = (1.0 - smoothstep(0.15, 0.45, a)) * step(0.45, fbm(wpos.xz * 0.7)) * 0.6;
 	alb = mix(alb, grass * 0.85, clamp(verge + crown, 0.0, 1.0));
 	// puddle in the occasional dip of a rut
-	float pud = smoothstep(0.72, 0.8, fbm(wpos.xz * 0.08 + 7.0)) * rut;
+	float pud = smoothstep(0.72 - wetness * 0.2, 0.8 - wetness * 0.2, fbm(wpos.xz * 0.08 + 7.0)) * rut;
+	alb *= 1.0 - wetness * 0.35;   // mud
 	alb = mix(alb, alb * 0.35 + vec3(0.03, 0.03, 0.035), pud);
 	ALBEDO = alb;
 	ROUGHNESS = mix(0.95, 0.08, pud);

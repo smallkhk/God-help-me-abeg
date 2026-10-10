@@ -173,6 +173,10 @@ night_factor={
 "type": "float",
 "value": 0.0
 }
+wetness={
+"type": "float",
+"value": 0.0
+}
 
 [editor_plugins]
 

@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="RaceEvent" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/races/race_event.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+event_id = &"island_circuit"
+display_name = "Lagos Island Circuit"
+kind = 1
+laps = 2
+countdown = 3.0
+reward_naira = 1200000
+allowed_classes = "any"
+time_of_day = "sunset"
+weather = "rain"

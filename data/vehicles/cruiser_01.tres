@@ -1,0 +1,40 @@
+[gd_resource type="Resource" script_class="VehicleData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/vehicles/vehicle_data.gd" id="1"]
+[ext_resource type="PackedScene" path="res://assets/vehicles/landcruiser/landcruiser.glb" id="2"]
+
+[resource]
+script = ExtResource("1")
+display_name = "Land Cruiser 70 (Off-road)"
+vehicle_id = &"cruiser_01"
+mass = 2200.0
+wheelbase = 3.0
+track_width = 1.6
+center_of_mass_y = -0.3
+drivetrain = 2
+max_drive_force = 12500.0
+engine_brake_force = 1600.0
+max_rpm = 5200.0
+peak_power_rpm = 3800.0
+gear_ratios = PackedFloat32Array(4.0, 2.4, 1.6, 1.15, 0.85)
+final_drive = 4.1
+wheel_radius = 0.38
+brake_force = 13000.0
+handbrake_force = 7000.0
+max_steer_angle = 0.55
+suspension_rest_length = 0.6
+suspension_stiffness = 26000.0
+suspension_damping = 3400.0
+suspension_max_travel = 0.32
+anti_roll_stiffness = 6000.0
+lateral_grip_front = 1.3
+lateral_grip_rear = 1.32
+longitudinal_grip = 1.45
+wet_grip_multiplier = 0.88
+drag_coefficient = 0.6
+price_naira = 6500000
+durability = 0.95
+model_scene = ExtResource("2")
+model_offset = Vector3(0, 0.64, 0)
+model_rotation_deg = Vector3(0, -90, 0)
+model_scale = 1.2

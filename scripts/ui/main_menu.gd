@@ -11,6 +11,7 @@ const RACES := [
 	{"name": "Third Mainland Bridge", "sub": "Sprint · 9.5 km over the lagoon", "scene": "res://scenes/world/maps/lagos_bridge/lagos_bridge.tscn", "id": "bridge_test_sprint", "col": Color(0.15, 0.45, 0.75)},
 	{"name": "Lekki Expressway", "sub": "Sprint · 6.5 km Lekki Phase 1 → east", "scene": "res://scenes/world/maps/lekki/lekki.tscn", "id": "lekki_sprint", "col": Color(0.80, 0.35, 0.15)},
 	{"name": "Hills Loop", "sub": "Sprint · 5.1 km through sculpted hills (Terrain3D)", "scene": "res://scenes/world/maps/hills/hills.tscn", "id": "hills_sprint", "col": Color(0.30, 0.60, 0.25)},
+	{"name": "Lagos Island", "sub": "Circuit · 5.5 km Marina, Broad St, Balogun — dense city, traffic, people", "scene": "res://scenes/world/maps/island/island.tscn", "id": "island_circuit", "col": Color(0.85, 0.65, 0.10)},
 	{"name": "Bush Trail", "sub": "Off-road · 5.7 km laterite dirt trail, ruts, whoops, puddles", "scene": "res://scenes/world/maps/offroad/offroad.tscn", "id": "offroad_trail", "col": Color(0.72, 0.38, 0.18)},
 	{"name": "Mountain Valley", "sub": "Free roam · Terrain3D demo mountains, rocks, tunnel", "scene": "res://scenes/world/maps/mountain/mountain.tscn", "id": "", "col": Color(0.45, 0.50, 0.55)},
 	{"name": "Free Drive", "sub": "Test track · tune and practise", "scene": "res://scenes/world/test_track.tscn", "id": "", "col": Color(0.25, 0.55, 0.30)},

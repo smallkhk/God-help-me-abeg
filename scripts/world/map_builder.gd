@@ -58,6 +58,10 @@ func _build() -> void:
 	if chunk["road"].get("surface", "asphalt") != "dirt":
 		_build_markings(root)
 		_build_streetlights(root)
+	if not Engine.is_editor_hint():
+		var wx := Weather.new()
+		wx.name = "Weather"
+		root.add_child(wx)
 	if chunk.has("terrain"):
 		# Terrain3D hills map: sculpted terrain + trees + grass instead of city layers
 		_build_terrain(root)
@@ -70,7 +74,13 @@ func _build() -> void:
 	_build_land(root)
 	_build_osm_buildings(root)
 	_build_street_props(root)
-	_build_landmarks(root)
+	if not chunk.get("no_landmarks", false):
+		_build_landmarks(root)
+	if not Engine.is_editor_hint() and chunk.get("ambient_traffic", true):
+		var at := AmbientTraffic.new()
+		at.name = "AmbientTraffic"
+		at.chunk = chunk
+		root.add_child(at)
 
 
 func _frames() -> Array:
@@ -814,6 +824,13 @@ func _build_street_props(root: Node3D) -> void:
 			var pos: Vector3 = c + p * side * (hw + 4.0)
 			pos.y = GROUND_Y if is_land.call(pos) else c.y
 			_bus_stop(st, pos, Basis(Vector3.UP, atan2(p.x, p.z)))
+			# people waiting at the stop + an agbero calling passengers
+			if pos.y == GROUND_Y:
+				for k in rng.randi_range(2, 4):
+					var pp: Vector3 = pos + fwd * rng.randf_range(-2.5, 2.5) + p * side * rng.randf_range(-0.6, 0.8) + Vector3(0, 0.9, 0)
+					put.call(["people/walker", "people/mama"][rng.randi() % 2], pp, rng.randf() * TAU, rng.randf_range(0.95, 1.05))
+				var tr: Vector3 = -p * side
+				put.call("people/agbero", pos + fwd * 3.5 - p * side * 1.2 + Vector3(0, 0.9, 0), atan2(-tr.z, tr.x) + rng.randf_range(-0.6, 0.6), 1.0)
 			if pos.y == GROUND_Y and rng.randf() < 0.45:
 				var bv: Array = _AI_VEH["brt/brt"]
 				put.call("brt/brt", pos + p * side * 3.6 + Vector3(0, bv[0], 0), atan2(fwd.x, fwd.z) + bv[1], bv[2])
@@ -868,6 +885,20 @@ func _build_street_props(root: Node3D) -> void:
 				var face := -p * ks
 				kpos.y = GROUND_Y - 0.05 + 1.25 * 1.6
 				put.call("kiosk/kiosk", kpos, atan2(-face.z, face.x), 1.6)
+
+		# pedestrians on the roadside + umbrella stalls with a trader
+		if not on_bridge and i % 2 == 0 and rng.randf() < 0.22:
+			var ps: float = -1.0 if rng.randf() < 0.5 else 1.0
+			var pp0: Vector3 = c + p * ps * (hw + rng.randf_range(1.5, 5.0)) + fwd * rng.randf_range(-3.0, 3.0)
+			if is_land.call(pp0):
+				pp0.y = GROUND_Y + 0.9
+				put.call(["people/walker", "people/mama", "people/walker"][rng.randi() % 3], pp0, rng.randf() * TAU, rng.randf_range(0.93, 1.06))
+		if not on_bridge and i % 4 == 1 and rng.randf() < 0.1:
+			var ss: float = -1.0 if rng.randf() < 0.5 else 1.0
+			var sp0: Vector3 = c + p * ss * (hw + rng.randf_range(4.0, 7.0))
+			if is_land.call(sp0):
+				put.call("people/stall", Vector3(sp0.x, GROUND_Y + 1.0, sp0.z), rng.randf() * TAU, 4.0)
+				put.call("people/mama", Vector3(sp0.x, GROUND_Y + 0.9, sp0.z) + fwd * 1.3, rng.randf() * TAU, 1.0)
 
 		# roadside Lagos clutter: chairs, gens, crates, tyres, jerrycans, bins, AC units
 		if not on_bridge and dist >= next_junk:

@@ -105,3 +105,5 @@ heights applied to footprints by tools/lagos_map_pipeline/apply_google_25d_heigh
 - assets/vehicles/keke/keke.glb — Tripo v2.5 text-to-3D (PBR), Keke Napep.
 - assets/models/lagos_house/house.glb — Tripo v2.5 text-to-3D (PBR), Lagos 2-storey house.
 - assets/vehicles/okada, assets/vehicles/brt, assets/models/{plaza,kiosk,unfinished,billboard} — Tripo v2.5 text-to-3D (PBR) via fal.ai, generated for this project.
+- assets/vehicles/{hilux,landcruiser}, assets/models/people/* — Tripo v2.5 text-to-3D (PBR) via fal.ai, generated for this project.
+- assets/audio/sfx/*.ogg — CassetteAI sound-effects generator via fal.ai, generated for this project.

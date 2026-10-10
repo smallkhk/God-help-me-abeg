@@ -93,6 +93,7 @@ func _apply_upgrades(g: Node) -> void:
 
 
 func _ready() -> void:
+	add_to_group(&"vehicles")
 	# The player car uses whatever was picked in the garage (if the Game autoload
 	# is present and that car's data exists). AI cars keep their assigned data.
 	if is_player:
