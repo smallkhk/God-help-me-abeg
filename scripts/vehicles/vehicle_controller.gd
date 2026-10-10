@@ -499,9 +499,13 @@ func _bind_model_wheels() -> void:
 		return
 	var cands: Array[Node3D] = []
 	for n in m.find_children("*", "Node3D", true, false):
-		var nm := String(n.name).to_lower().replace("_", "")
-		var is_pivot := (nm.begins_with("wheel") and (nm.contains("fl") or nm.contains("fr") or nm.contains("rl") or nm.contains("rr") or nm.contains("front") or nm.contains("rear"))) \
-			and not nm.contains("brake") and not nm.contains("rim") and n.get_child_count() > 0
+		var nm := String(n.name).to_lower().replace("_", "").replace("-", "").replace(" ", "")
+		var axle := nm.contains("front") or nm.contains("rear") or nm.contains("back") \
+			or nm.ends_with("fl") or nm.ends_with("fr") or nm.ends_with("rl") or nm.ends_with("rr")
+		var side := nm.contains("left") or nm.contains("right") or nm.ends_with("l") or nm.ends_with("r")
+		var is_pivot := nm.begins_with("wheel") and axle and side \
+			and not nm.contains("brake") and not nm.contains("rim") \
+			and (n.get_child_count() > 0 or n is MeshInstance3D)
 		if is_pivot:
 			cands.append(n as Node3D)
 	if cands.size() < 4:

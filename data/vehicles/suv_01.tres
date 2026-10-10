@@ -1,6 +1,7 @@
-[gd_resource type="Resource" script_class="VehicleData" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="VehicleData" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/vehicles/vehicle_data.gd" id="1"]
+[ext_resource type="PackedScene" path="res://assets/vehicles/kenney/suv.glb" id="2"]
 
 [resource]
 script = ExtResource("1")
@@ -29,3 +30,7 @@ longitudinal_grip = 1.42
 drag_coefficient = 0.68
 price_naira = 5800000
 durability = 0.9
+model_scene = ExtResource("2")
+model_offset = Vector3(0, -0.5, 0)
+model_rotation_deg = Vector3(0, 0, 0)
+model_scale = 1.75

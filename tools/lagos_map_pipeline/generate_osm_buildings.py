@@ -79,7 +79,9 @@ def main():
     ap.add_argument("--gob", default="", help="Google Open Buildings v3 CSV (CC BY 4.0)")
     ap.add_argument("--min-conf", type=float, default=0.70)
     ap.add_argument("--chunk", required=True)
-    ap.add_argument("--max", type=int, default=12000)
+    ap.add_argument("--max", type=int, default=15000)
+    ap.add_argument("--keep-radius", type=float, default=450.0,
+                    help="only keep buildings this close to the race road (the rest is never seen)")
     a = ap.parse_args()
 
     chunk = json.load(open(a.chunk, encoding="utf-8"))
@@ -119,7 +121,7 @@ def main():
             if ar < 25.0: continue
             cx = sum(p[0] for p in pts) / len(pts); cz = sum(p[1] for p in pts) / len(pts)
             d = dist_to_route(cx, cz, route, 8)
-            if d < clear or near_route(pts, route, clear): continue
+            if d < clear or d > a.keep_radius or near_route(pts, route, clear): continue
             # no heights in v3: estimate from footprint (bigger plots -> taller)
             seed = zlib.crc32(row[5].encode()) % 100
             h = 3.5 + min(ar, 2500.0) / 2500.0 * 18.0 + (seed % 5)
@@ -136,6 +138,7 @@ def main():
         if ar < 20.0: continue
         cx = sum(p[0] for p in pts) / len(pts); cz = sum(p[1] for p in pts) / len(pts)
         if near_route(pts, route, clear): continue   # never on the road
+        if dist_to_route(cx, cz, route, 4) > a.keep_radius: continue
         out.append({"pts": [[round(p[0], 2), round(p[1], 2)] for p in pts],
                     "h": round(height_for(tags, wid), 1), "a": ar})
     # keep the biggest footprints if over budget (perf on low-end GPUs)

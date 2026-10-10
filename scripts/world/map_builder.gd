@@ -411,6 +411,41 @@ func _land_cells() -> Dictionary:
 	return _land_cache
 
 
+func _ground_material() -> ShaderMaterial:
+	var m := ShaderMaterial.new()
+	m.shader = load("res://shaders/ground.gdshader")
+	m.set_shader_parameter("tex_sand", load("res://assets/textures/ground_sand.jpg"))
+	m.set_shader_parameter("tex_dirt", load("res://assets/textures/ground_dirt.jpg"))
+	m.set_shader_parameter("tex_grass", load("res://assets/textures/ground_grass.jpg"))
+	return m
+
+
+## Real OSM side streets (chunk "side_streets") as sandy/laterite strips on the ground.
+func _add_side_streets(st: SurfaceTool) -> void:
+	var y := GROUND_Y + 0.04
+	st.set_color(Color(0.6, 0.45, 0.35, 0.5))
+	for s in chunk.get("side_streets", []):
+		var pts: Array = s["pts"]
+		var hw: float = float(s["w"]) * 0.5
+		var run := 0.0
+		for k in range(pts.size() - 1):
+			var a := Vector3(pts[k][0], y, pts[k][1]); var b := Vector3(pts[k + 1][0], y, pts[k + 1][1])
+			var d := b - a
+			if d.length() < 0.1:
+				continue
+			var side := Vector3(-d.z, 0, d.x).normalized() * hw
+			var l := d.length()
+			# u across the street (for tyre ruts), v along
+			st.set_uv(Vector2(0, run)); st.add_vertex(a - side)
+			st.set_uv(Vector2(1, run)); st.add_vertex(a + side)
+			st.set_uv(Vector2(1, run + l)); st.add_vertex(b + side)
+			st.set_uv(Vector2(0, run)); st.add_vertex(a - side)
+			st.set_uv(Vector2(1, run + l)); st.add_vertex(b + side)
+			st.set_uv(Vector2(0, run + l)); st.add_vertex(b - side)
+			run += l
+	st.set_color(Color(0.80, 0.70, 0.52, 1.0))
+
+
 func _build_land(root: Node3D) -> void:
 	var lc: Dictionary = chunk.get("land_cells", {})
 	var land := _land_cells()
@@ -424,7 +459,8 @@ func _build_land(root: Node3D) -> void:
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PrimitiveType.PRIMITIVE_TRIANGLES)
 	st.set_normal(Vector3.UP)
-	st.set_color(Color(0.80, 0.70, 0.52))
+	st.set_uv(Vector2.ZERO)
+	st.set_color(Color(0.80, 0.70, 0.52, 1.0))
 	for c in cells:
 		var x0: float = c[0] * s
 		var z0: float = c[1] * s
@@ -439,18 +475,15 @@ func _build_land(root: Node3D) -> void:
 			if not land.has(k + e[0]):
 				var p0: Vector3 = e[1]; var p1: Vector3 = e[2]
 				var q0 := Vector3(p0.x, lo, p0.z); var q1 := Vector3(p1.x, lo, p1.z)
-				st.set_color(Color(0.55, 0.47, 0.36))
+				st.set_color(Color(0.55, 0.47, 0.36, 0.0))
 				st.add_vertex(p0); st.add_vertex(q1); st.add_vertex(p1)
 				st.add_vertex(p0); st.add_vertex(q0); st.add_vertex(q1)
-				st.set_color(Color(0.80, 0.70, 0.52))
+				st.set_color(Color(0.80, 0.70, 0.52, 1.0))
+	_add_side_streets(st)
 	var mi := MeshInstance3D.new()
 	mi.name = "Land"
 	mi.mesh = st.commit()
-	var mat := StandardMaterial3D.new()
-	mat.vertex_color_use_as_albedo = true
-	mat.roughness = 1.0
-	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
-	mi.material_override = mat
+	mi.material_override = _ground_material()
 	root.add_child(mi)
 	_own(mi)
 
@@ -728,7 +761,7 @@ func _build_street_props(root: Node3D) -> void:
 					var pos: Vector3 = c + p * side * (hw + rng.randf_range(10.0, 220.0)) + fwd * rng.randf_range(-6.0, 6.0)
 					if is_land.call(pos):
 						pos.y = GROUND_Y
-						put.call(["island_tree_01", "island_tree_02", "island_tree_03"][rng.randi() % 3], pos, rng.randf() * TAU, rng.randf_range(0.8, 1.2))
+						put.call(["island_tree_01", "island_tree_02", "island_tree_03"][rng.randi() % 3], pos, rng.randf() * TAU, rng.randf_range(2.6, 3.4))
 						if rng.randf() < 0.5:
 							var sp: Vector3 = pos + Vector3(rng.randf_range(-4, 4), 0, rng.randf_range(-4, 4))
 							put.call("shrub_01" if rng.randf() < 0.5 else "shrub_02", sp, rng.randf() * TAU, rng.randf_range(0.8, 1.5))
@@ -758,6 +791,24 @@ func _build_street_props(root: Node3D) -> void:
 			var pos: Vector3 = c + p * side * (hw + 4.0)
 			pos.y = GROUND_Y if is_land.call(pos) else c.y
 			_bus_stop(st, pos, Basis(Vector3.UP, atan2(p.x, p.z)))
+
+		# palm rows right along the roadside (real ~15 m coconut palms)
+		if not on_bridge and i % 4 == 0:
+			for side in [-1.0, 1.0]:
+				if rng.randf() < 0.7:
+					var rp: Vector3 = c + p * side * (hw + rng.randf_range(4.0, 10.0)) + fwd * rng.randf_range(-3.0, 3.0)
+					if is_land.call(rp):
+						rp.y = GROUND_Y
+						put.call(["island_tree_01", "island_tree_02", "island_tree_03"][rng.randi() % 3], rp, rng.randf() * TAU, rng.randf_range(2.6, 3.4))
+
+		# parked cars on the roadside (Kenney CC0 models)
+		if not on_bridge and i % 3 == 0 and rng.randf() < 0.3:
+			var side2: float = -1.0 if rng.randf() < 0.5 else 1.0
+			var cp: Vector3 = c + p * side2 * (hw + 2.6)
+			if is_land.call(cp):
+				cp.y = GROUND_Y
+				var kc := ["kenney/sedan", "kenney/taxi", "kenney/van", "kenney/suv", "kenney/taxi", "kenney/van"]
+				put.call(kc[rng.randi() % kc.size()], cp, atan2(fwd.x, fwd.z) + (0.0 if rng.randf() < 0.5 else PI), 1.75)
 
 		# roadside Lagos clutter: chairs, gens, crates, tyres, jerrycans, bins, AC units
 		if not on_bridge and dist >= next_junk:
@@ -823,7 +874,7 @@ func _build_street_props(root: Node3D) -> void:
 ## One MultiMesh per mesh part of each glb model (cheap to draw thousands).
 func _spawn_model_instances(root: Node3D, inst: Dictionary) -> void:
 	for model in inst:
-		var path := "res://assets/models/%s.glb" % model
+		var path := ("res://assets/vehicles/%s.glb" % model) if model.begins_with("kenney/") else ("res://assets/models/%s.glb" % model)
 		if not ResourceLoader.exists(path):
 			continue
 		var scene := (load(path) as PackedScene).instantiate()
@@ -831,6 +882,9 @@ func _spawn_model_instances(root: Node3D, inst: Dictionary) -> void:
 		var far := 600.0 if model.begins_with("island_tree") else 180.0
 		for m in scene.find_children("*", "MeshInstance3D", true, false):
 			var mesh_i := m as MeshInstance3D
+			var mn := String(mesh_i.name).to_upper()
+			if mn.contains("LOD") and not mn.contains("LOD0"):
+				continue  # keep only the most detailed LOD (others were stacked on top)
 			var local := _local_to(scene, mesh_i)
 			# split into 300 m cells so off-screen / far groups are culled
 			var cells := {}
@@ -848,7 +902,7 @@ func _spawn_model_instances(root: Node3D, inst: Dictionary) -> void:
 				for k in list.size():
 					mm.set_instance_transform(k, list[k] * local)
 				var mmi := MultiMeshInstance3D.new()
-				mmi.name = "%s_%s_%d_%d" % [model, mesh_i.name, key.x, key.y]
+				mmi.name = "%s_%s_%d_%d" % [model.replace("/", "_"), mesh_i.name, key.x, key.y]
 				mmi.multimesh = mm
 				mmi.visibility_range_end = far + 300.0
 				mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if far > 200.0 else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF

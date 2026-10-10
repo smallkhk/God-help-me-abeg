@@ -92,3 +92,6 @@ derived textures are shared under the same licence):
 
 Google Open Buildings 2.5D Temporal (2023 epoch), CC BY 4.0 — measured building
 heights applied to footprints by tools/lagos_map_pipeline/apply_google_25d_heights.py.
+
+## Kenney Car Kit (assets/vehicles/kenney/) — CC0, https://kenney.nl/assets/car-kit
+## Ground textures (ground_sand/dirt/grass.jpg) — ambientCG Ground080/054/068, CC0
