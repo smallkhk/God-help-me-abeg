@@ -58,6 +58,12 @@ driveable offline today. To use real geometry:
    correcting `bridge.*` and the `elev_m` / `on_bridge` values by hand and
    re-exporting.
 
+## Lagos Island street circuit
+
+The Island map is a compact district built around a 2.9 km lap circuit
+(continuous roadside frontage, tight ground footprint, lap races). It has its own
+generator, `generate_island_district.py`; see [island_district.md](island_district.md).
+
 ## In-engine build (`scripts/world/map_builder.gd`)
 
 A `@tool` node. Tick its **build** checkbox in the editor to regenerate, or let

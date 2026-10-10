@@ -84,6 +84,7 @@ the path with wherever your Godot .exe is:
 & "C:\path\to\Godot_v4.4.2-stable_win64.exe" --headless --path . res://tests/map_validation/bridge_drive_test.tscn
 & "C:\path\to\Godot_v4.4.2-stable_win64.exe" --headless --path . res://tests/race_flow/race_flow_test.tscn
 & "C:\path\to\Godot_v4.4.2-stable_win64.exe" --headless --path . res://tests/map_validation/traffic_test.tscn
+& "C:\path\to\Godot_v4.4.2-stable_win64.exe" --headless --path . res://tests/map_validation/island_circuit_test.tscn
 ```
 
 Each prints `PASS` or `FAIL` and exits. (The bridge/race/traffic ones take a

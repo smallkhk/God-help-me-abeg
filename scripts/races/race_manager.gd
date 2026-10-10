@@ -47,6 +47,18 @@ var _ext_checkpoints: Array = []
 const RACE_LEN := 2500.0
 var _finish_idx := -1
 
+# --- laps (closed circuits: chunk "loop": true) ---
+var _loop := false
+var _laps := 1
+var _lap := 0                  # completed laps
+var _lap_start := 0.0
+var _best_lap := 0.0
+var _lap_label: Label
+var _player_wraps := 0
+var _lanes: Array[float] = []
+var _elapsed_banner := 0.0
+var _fall_check := 0.0
+
 
 func _ready() -> void:
 	_player = get_node_or_null(player_path) as VehicleController
@@ -90,17 +102,32 @@ func _initialize() -> void:
 			_spawn = MapLoader.spawn_transform(chunk)
 			_route = chunk["road"]["samples"]
 			_start_idx = _nearest_sample(_spawn.origin, 0, _route.size())
-			# short, punchy races: keep only the gates within RACE_LEN metres
-			var d0: float = float(_route[_start_idx].get("dist_m", 0.0))
+			_loop = bool(chunk.get("loop", false))
+			var r: Dictionary = chunk["road"]
+			var lw: float = float(r.get("lane_width_m", 3.5))
+			for k in int(r.get("lanes_per_direction", 2)):
+				_lanes.append(float(r.get("median_width_m", 1.0)) * 0.5 + lw * (k + 0.5))
 			var cps: Array = []
-			for cp in chunk.get("checkpoints", []):
-				if float(cp.get("dist_m", 0.0)) - d0 <= RACE_LEN or cps.size() < 2:
+			if _loop:
+				# street circuit: every gate, the last one is the start/finish line
+				_laps = maxi(1, event.laps if event else 1)
+				for cp in chunk.get("checkpoints", []):
 					var c2: Dictionary = cp.duplicate()
 					c2["index"] = cps.size()
 					cps.append(c2)
-			_spawn_gates(cps)
-			var last: Dictionary = cps[cps.size() - 1] if not cps.is_empty() else {}
-			_finish_idx = _nearest_sample(Vector3(last.get("x", 0.0), 0, last.get("z", 0.0)), 0, _route.size()) if not last.is_empty() else _route.size() - 1
+				_spawn_gates(cps)
+				_finish_idx = -1
+			else:
+				# short, punchy races: keep only the gates within RACE_LEN metres
+				var d0: float = float(_route[_start_idx].get("dist_m", 0.0))
+				for cp in chunk.get("checkpoints", []):
+					if float(cp.get("dist_m", 0.0)) - d0 <= RACE_LEN or cps.size() < 2:
+						var c2: Dictionary = cp.duplicate()
+						c2["index"] = cps.size()
+						cps.append(c2)
+				_spawn_gates(cps)
+				var last: Dictionary = cps[cps.size() - 1] if not cps.is_empty() else {}
+				_finish_idx = _nearest_sample(Vector3(last.get("x", 0.0), 0, last.get("z", 0.0)), 0, _route.size()) if not last.is_empty() else _route.size() - 1
 			_spawn_rivals()
 	elif _ext:
 		_spawn_gates(_ext_checkpoints)
@@ -138,6 +165,15 @@ func _build_ui() -> void:
 	_pos_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_layer.add_child(_pos_label)
 
+	_lap_label = Label.new()
+	_lap_label.add_theme_font_size_override("font_size", 30)
+	_lap_label.add_theme_color_override("font_outline_color", Color.BLACK)
+	_lap_label.add_theme_constant_override("outline_size", 8)
+	_lap_label.anchor_left = 1.0; _lap_label.anchor_right = 1.0
+	_lap_label.offset_left = -360; _lap_label.offset_right = -24; _lap_label.offset_top = 68
+	_lap_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_layer.add_child(_lap_label)
+
 
 func _spawn_gates(checkpoints: Array) -> void:
 	if checkpoint_scene == null:
@@ -157,6 +193,12 @@ func _reset_to_idle() -> void:
 	_state = State.IDLE
 	_next = 0
 	_elapsed = 0.0
+	_lap = 0
+	_lap_start = 0.0
+	_best_lap = 0.0
+	_player_wraps = 0
+	if _lap_label:
+		_lap_label.text = ("LAP 1/%d" % _laps) if _loop else ""
 	_results.visible = false
 	for g in _gates:
 		g.set_target(g.index == 0)
@@ -196,9 +238,19 @@ func _process(delta: float) -> void:
 			_player.reset_state()
 		return
 
-	# Safety net: if the car ever ends up far below the deck (fell through a seam,
-	# or a track with no floor), pop it back to spawn instead of falling forever.
-	if _player and _player.global_position.y < -25.0:
+	# Safety net: if the car ever ends up below the road (fell through a seam, got
+	# shoved by traffic, or a track with no floor), put it back on the road where
+	# it was, facing along the route — not back at the start grid.
+	if _player and _route.size() > 1:
+		_fall_check -= delta
+		if _player.global_position.y < -25.0:
+			_recover_player()
+		elif _fall_check <= 0.0:
+			_fall_check = 0.25
+			var i := _nearest_sample(_player.global_position, 0, _route.size())
+			if _player.global_position.y < float(_route[i]["elev_m"]) - 2.5:
+				_recover_player()
+	elif _player and _player.global_position.y < -25.0:
 		_player.linear_velocity = Vector3.ZERO
 		_player.angular_velocity = Vector3.ZERO
 		_player.global_transform = _spawn
@@ -213,8 +265,13 @@ func _process(delta: float) -> void:
 				_center_label.text = str(int(ceil(_countdown)))
 		State.RUNNING:
 			_elapsed += delta
-			_center_label.text = ""
+			if _center_label.text != "" and _elapsed - _elapsed_banner > 1.5:
+				_center_label.text = ""
 			_update_positions()
+			if _loop:
+				_lap_label.text = "LAP %d/%d   %s" % [mini(_lap + 1, _laps), _laps, _fmt(_elapsed - _lap_start)]
+				if _best_lap > 0.0:
+					_lap_label.text += "\nBEST LAP %s" % _fmt(_best_lap)
 
 
 func _begin_run() -> void:
@@ -222,6 +279,7 @@ func _begin_run() -> void:
 	_elapsed = 0.0
 	_next = 0
 	_center_label.text = "GO!"
+	_elapsed_banner = 0.0
 	for g in _gates:
 		g.set_target(g.index == 0)
 	for r in _rivals:
@@ -237,9 +295,26 @@ func _on_checkpoint_passed(index: int) -> void:
 	_gates[index].set_target(false)
 	_next += 1
 	if _next >= _gates.size():
+		if _loop:
+			var lt := _elapsed - _lap_start
+			if _best_lap <= 0.0 or lt < _best_lap:
+				_best_lap = lt
+			_lap += 1
+			_lap_start = _elapsed
+			if _lap < _laps:
+				_next = 0
+				_gates[0].set_target(true)
+				_center_label.text = "FINAL LAP" if _lap == _laps - 1 else "LAP %d" % (_lap + 1)
+				_elapsed_text_hold()
+				return
 		_finish()
 	else:
 		_gates[_next].set_target(true)
+
+
+func _elapsed_text_hold() -> void:
+	# show the lap banner for a moment (cleared in _process)
+	_elapsed_banner = _elapsed
 
 
 func _finish() -> void:
@@ -265,6 +340,8 @@ func _finish() -> void:
 	if g:
 		g.add_money(reward)
 	place_txt += "Prize: %s\n" % Game.naira(reward)
+	if _loop and _best_lap > 0.0:
+		place_txt += "Best lap: %s\n" % _fmt(_best_lap)
 	_results.text = "FINISH\n\n%sTime: %s\nBest: %s%s\n\nR = retry    Esc = menu" % [
 		place_txt, _fmt(final_time), _fmt(best),
 		"   (NEW BEST!)" if is_best else "",
@@ -305,6 +382,11 @@ func _spawn_rivals() -> void:
 		drv.name = "RivalDriver"
 		drv.route = _route
 		drv.player = _player
+		if _loop:
+			drv.loop = true
+			drv.laps_needed = _laps + 1    # first wrap = crossing the start line
+			if not _lanes.is_empty():
+				drv.lanes.assign(_lanes)
 		drv.skill = rng.randf_range(0.75, 1.0)
 		car.add_child(drv)
 		var au := CarAudio.new()
@@ -334,12 +416,19 @@ func _spawn_rivals() -> void:
 ## Starting grid: player front-left; rivals fill the other lanes and rows behind.
 func _place_rivals() -> void:
 	var slots := [[0, 5.9], [0, 9.4], [-1, 2.4], [-1, 5.9], [-1, 9.4]]
+	var row_step := 2
+	if _loop and _lanes.size() >= 2:
+		var l0: float = _lanes[0]; var l1: float = _lanes[_lanes.size() - 1]
+		slots = [[0, l0], [-1, l1], [-1, l0], [-2, l1], [-2, l0]]
+		var sp: float = float(_route[1]["dist_m"]) - float(_route[0]["dist_m"])
+		row_step = maxi(1, int(ceil(8.0 / maxf(sp, 0.5))))
+	var m := _route.size() - 1
 	for i in _rivals.size():
 		var car := _rivals[i]
 		if not car.is_inside_tree():
 			continue
 		var row: int = slots[i][0]; var lane: float = slots[i][1]
-		var si := clampi(_start_idx + row * 2, 0, _route.size() - 1)
+		var si := posmod(_start_idx + row * row_step, m) if _loop else clampi(_start_idx + row * 2, 0, _route.size() - 1)
 		var smp = _route[si]
 		var h: float = smp["heading_rad"]
 		var pos := Vector3(smp["x"], float(smp["elev_m"]) + 0.6, smp["z"]) + Vector3(cos(h), 0, -sin(h)) * lane
@@ -351,6 +440,7 @@ func _place_rivals() -> void:
 		d.active = false
 		d.finished = false
 		d.progress = si
+		d.wraps = 0
 		d.lane_offset = lane
 		if _finish_idx > 0:
 			d.finish_idx = _finish_idx
@@ -360,8 +450,27 @@ func _update_positions() -> void:
 	if _rivals.is_empty() or _player == null:
 		_pos_label.text = ""
 		return
-	_player_prog = _nearest_sample(_player.global_position, maxi(_player_prog - 20, 0), mini(_player_prog + 60, _route.size()))
 	var ahead := 0
+	if _loop:
+		var m := _route.size() - 1
+		var prev := _player_prog
+		_player_prog = _nearest_loop(_player.global_position, prev, m)
+		if prev > m * 3 / 4 and _player_prog < m / 4:
+			_player_wraps += 1
+		elif prev < m / 4 and _player_prog > m * 3 / 4:
+			_player_wraps -= 1
+		var mine := _player_wraps * m + _player_prog
+		for r in _rivals:
+			var d := r.get_node("RivalDriver") as RivalDriver
+			if d.finished:
+				if not _finish_order.has(String(r.name)):
+					_finish_order.append(String(r.name))
+				ahead += 1
+			elif d.wraps * m + d.progress > mine:
+				ahead += 1
+		_pos_label.text = "POS %d/%d" % [ahead + 1, _rivals.size() + 1]
+		return
+	_player_prog = _nearest_sample(_player.global_position, maxi(_player_prog - 20, 0), mini(_player_prog + 60, _route.size()))
 	for r in _rivals:
 		var d := r.get_node("RivalDriver") as RivalDriver
 		if d.finished:
@@ -371,6 +480,30 @@ func _update_positions() -> void:
 		elif d.progress > _player_prog:
 			ahead += 1
 	_pos_label.text = "POS %d/%d" % [ahead + 1, _rivals.size() + 1]
+
+
+func _recover_player() -> void:
+	var i := _nearest_sample(_player.global_position, 0, _route.size())
+	var smp = _route[i]
+	var h: float = smp["heading_rad"]
+	var lane: float = _lanes[_lanes.size() - 1] if not _lanes.is_empty() else 0.0
+	var pos := Vector3(smp["x"], float(smp["elev_m"]) + 0.8, smp["z"]) + Vector3(cos(h), 0, -sin(h)) * lane
+	_player.linear_velocity = Vector3.ZERO
+	_player.angular_velocity = Vector3.ZERO
+	_player.global_transform = Transform3D(Basis(Vector3.UP, h), pos)
+	_player.reset_state()
+
+
+## Nearest route sample on a closed loop, searching a window that wraps.
+func _nearest_loop(p: Vector3, around: int, m: int) -> int:
+	var best := around; var bd := INF
+	for k in range(-20, 61):
+		var i := posmod(around + k, m)
+		var s = _route[i]
+		var d := Vector2(s["x"] - p.x, s["z"] - p.z).length_squared()
+		if d < bd:
+			bd = d; best = i
+	return best
 
 
 func _nearest_sample(p: Vector3, a: int, b: int) -> int:

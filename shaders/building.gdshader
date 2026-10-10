@@ -101,6 +101,26 @@ void fragment() {
 		col = texture(tex_clay, UV * vec2(0.3, 0.3)).rgb * (0.92 + 0.12 * hash(floor(wpos.xz * 0.5)));
 		rough = 0.8;
 		nb = bump(wn, tex_clay_n, UV * 0.3, 1.0);
+	} else if (k < 0.925) {
+		// --- compound wall: rendered sandcrete blocks (45 x 22.5 cm courses) ---
+		vec2 uv = UV;
+		float row = floor(uv.y / 0.225);
+		float bx = fract(uv.x / 0.45 + 0.5 * mod(row, 2.0));
+		float by = fract(uv.y / 0.225);
+		float joint = max(1.0 - smoothstep(0.0, 0.035, bx) * smoothstep(1.0, 0.965, bx), 1.0 - smoothstep(0.0, 0.07, by));
+		float faded = smoothstep(0.35, 0.75, noise(uv * vec2(0.4, 0.9)));   // render worn off in patches
+		float grime = smoothstep(1.0, 0.0, uv.y) * 0.25 + noise(uv * vec2(0.25, 0.08)) * 0.12;
+		vec3 wall = col * detail(tex_plaster, uv * 0.5) * (1.0 - grime);
+		col = mix(wall, wall * (1.0 - joint * 0.28), faded);
+		rough = 0.95;
+		nb = bump(wn, tex_plaster_n, uv * 0.5, 0.8);
+	} else if (k < 0.975) {
+		// --- painted steel gate: vertical ribs, rust at the bottom ---
+		float rib = 0.5 + 0.5 * sin(UV.x * 31.4);
+		float rust = smoothstep(0.6, 0.0, UV.y) * smoothstep(0.3, 0.7, noise(UV * vec2(2.0, 4.0)));
+		col = mix(col * (0.75 + 0.35 * rib), vec3(0.42, 0.22, 0.12), rust * 0.7);
+		rough = mix(0.45, 0.9, rust);
+		metal = 0.5 * (1.0 - rust);
 	} else {
 		// --- plain painted part ---
 		col *= 0.95 + 0.05 * noise(wpos.xz * 2.0 + wpos.y);

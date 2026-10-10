@@ -41,6 +41,8 @@ var _horn_t := 6.0
 var _horn_player: AudioStreamPlayer3D
 var _conductor: AudioStreamPlayer3D
 var _okada_snd: AudioStream
+var _cars: Array = []          # player + rivals (refreshed every second)
+var _cars_t := 0.0
 
 
 func _ready() -> void:
@@ -120,7 +122,7 @@ func _spawn(initial: bool) -> void:
 	var spd: float = {"molue": 11.0, "tanker": 10.0, "cement": 10.0, "watertanker": 10.0, "danfo": 12.0, "keke": 9.0, "okada": 14.0, "brt": 11.0}.get(kind, 16.0) * _rng.randf_range(0.85, 1.2)
 	var pd := _player_d()
 	var d := pd + _rng.randf_range(-radius, radius) if initial else pd + (radius * 0.9 if _rng.randf() < 0.6 else -radius * 0.9)
-	var v := {"body": body, "kind": kind, "dir": dir, "lane": lane, "speed": spd, "d": fposmod(d, _len),
+	var v := {"body": body, "kind": kind, "dir": dir, "lane": lane, "speed": spd, "v": spd, "d": fposmod(d, _len),
 		"stop": 0.0, "next_stop": _rng.randf_range(80.0, 300.0), "phase": _rng.randf() * TAU, "x": 0.0}
 	if kind == "danfo" or kind == "brt":
 		var l := SpotLight3D.new()
@@ -177,8 +179,40 @@ func _physics_process(dt: float) -> void:
 	var pd := _player_d()
 	var gs := get_node_or_null("/root/Game")
 	var night: float = float(gs.get("night")) if gs else 0.0
+	_cars_t -= dt
+	if _cars_t <= 0.0:
+		_cars_t = 1.0
+		_cars = _scene_root().find_children("*", "VehicleController", true, false)
 	for v in _vehicles:
 		var spd: float = v["speed"]
+		# brake for anything just ahead in this lane (player, rivals, other traffic):
+		# these bodies are moved kinematically, so driving into a car would shove it
+		# through the road instead of bumping it
+		var body: Node3D = v["body"]
+		var bfwd := body.global_transform.basis.z
+		var reach: float = 4.0 + float(MODELS[v["kind"]][4]) * 0.5 + float(v["v"]) * 0.9
+		var hold := false
+		for c in _cars:
+			if is_instance_valid(c) and _ahead(body.global_position, bfwd, (c as Node3D).global_position, reach):
+				hold = true
+				break
+		if not hold:
+			for o in _vehicles:
+				if o != v and o["dir"] == v["dir"] and _ahead(body.global_position, bfwd, (o["body"] as Node3D).global_position, reach):
+					hold = true
+					break
+		if hold:
+			spd = 0.0
+			v["held"] = float(v.get("held", 0.0)) + dt
+			if v["held"] > 5.0:
+				# jammed (something parked on its nose): drive it off-screen elsewhere
+				v["held"] = 0.0
+				v["v"] = float(v["speed"])
+				v["d"] = fposmod(pd + (radius * 0.95 if _rng.randf() < 0.5 else -radius * 0.95), _len)
+				_place(v)
+				continue
+		else:
+			v["held"] = 0.0
 		if v["kind"] == "danfo":
 			# pick-up stops: pull over, wait, shout, go
 			if v["stop"] > 0.0:
@@ -197,7 +231,8 @@ func _physics_process(dt: float) -> void:
 		elif v["kind"] == "okada":
 			v["phase"] += dt * 0.7
 			v["x"] = sin(v["phase"]) * _lane_w * 0.45   # weaving
-		v["d"] = fposmod(float(v["d"]) + spd * dt * float(v["dir"]), _len)
+		v["v"] = move_toward(float(v["v"]), spd, dt * (9.0 if spd < float(v["v"]) else 2.5))
+		v["d"] = fposmod(float(v["d"]) + float(v["v"]) * dt * float(v["dir"]), _len)
 		_place(v)
 		if v.has("light"):
 			(v["light"] as SpotLight3D).light_energy = 3.0 * night
@@ -212,6 +247,14 @@ func _physics_process(dt: float) -> void:
 		var near: Node3D = _vehicles[_rng.randi() % _vehicles.size()]["body"]
 		_horn_player.global_position = near.global_position
 		_horn_player.play(_rng.randf() * 4.0)
+
+
+func _ahead(from: Vector3, fwd: Vector3, p: Vector3, reach: float) -> bool:
+	var rel := p - from
+	var along := rel.dot(fwd)
+	if along <= 0.0 or along > reach:
+		return false
+	return absf(rel.dot(Vector3(fwd.z, 0.0, -fwd.x))) < 2.3
 
 
 func _ambience() -> void:

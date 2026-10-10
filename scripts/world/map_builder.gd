@@ -71,7 +71,12 @@ func _build() -> void:
 	_build_water(root)
 	_build_skyline(root)
 	_build_land(root)
-	_build_osm_buildings(root)
+	if chunk.get("district", false):
+		_build_district(root)
+		_build_district_markings(root)
+		_build_pavements(root)
+	else:
+		_build_osm_buildings(root)
 	_build_street_props(root)
 	if not chunk.get("no_landmarks", false):
 		_build_landmarks(root)
@@ -144,6 +149,7 @@ func _build_road(root: Node3D) -> void:
 	mi.name = "RoadMesh"
 	mi.mesh = mesh
 	mi.material_override = _road_material()
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF   # flat: nothing to shade
 	root.add_child(mi)
 	_own(mi)
 
@@ -210,6 +216,7 @@ func _build_markings(root: Node3D) -> void:
 	var mi := MeshInstance3D.new()
 	mi.name = "RoadMarkings"
 	mi.mesh = st.commit()
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	var mat := ShaderMaterial.new()
 	mat.shader = load("res://shaders/road_markings.gdshader")
 	mi.material_override = mat
@@ -337,6 +344,7 @@ func _build_water(root: Node3D) -> void:
 
 	var mi := MeshInstance3D.new()
 	mi.name = "Lagoon"
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	var pm := PlaneMesh.new()
 	pm.size = Vector2(w, d)
 	mi.mesh = pm
@@ -416,6 +424,11 @@ func _land_cells() -> Dictionary:
 		return _land_cache
 	var lc: Dictionary = chunk.get("land_cells", {})
 	var cs: float = lc.get("cell_m", 50.0)
+	if chunk.get("district", false):
+		# compact district: the chunk's footprint (road corridor only) is the land
+		for c in lc.get("cells", []):
+			_land_cache[Vector2i(int(c[0]), int(c[1]))] = true
+		return _land_cache
 	var near := _near_cells()
 	for c in lc.get("cells", []):
 		var k := Vector2i(int(c[0]), int(c[1]))
@@ -507,6 +520,7 @@ func _build_land(root: Node3D) -> void:
 	mi.name = "Land"
 	mi.mesh = st.commit()
 	mi.material_override = _ground_material()
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	root.add_child(mi)
 	_own(mi)
 	# solid ground: cars that leave the road drive on it instead of sinking
@@ -753,6 +767,15 @@ func _build_street_props(root: Node3D) -> void:
 	var cs: float = lc.get("cell_m", 50.0)
 	var is_land := func(p: Vector3) -> bool:
 		return land.has(Vector2i(int(floor(p.x / cs)), int(floor(p.z / cs))))
+	# compact district: buildings start right behind the pavement, so roadside
+	# props stay on the pavement (lim) and nothing is left on the racing surface
+	var dz: bool = chunk.get("district", false)
+	var pave: float = float(chunk.get("pavement_m", 99.0))
+	var lim := func(o: float) -> float:
+		return minf(o, pave - 0.7) if dz else o
+	# per-sample spawn chances were tuned for 6 m samples
+	var rs_all: Array = chunk["road"]["samples"]
+	var ps: float = clampf(float(chunk["road"].get("length_m", 6.0 * rs_all.size())) / maxf(rs_all.size(), 1) / 6.0, 0.25, 1.0)
 
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PrimitiveType.PRIMITIVE_TRIANGLES)
@@ -802,7 +825,7 @@ func _build_street_props(root: Node3D) -> void:
 			last_pole = {-1.0: null, 1.0: null}
 
 		# telecom masts (red/white), visible from far
-		if dist >= next_mast:
+		if not dz and dist >= next_mast:
 			next_mast = dist + rng.randf_range(700.0, 1100.0)
 			var side: float = -1.0 if rng.randf() < 0.5 else 1.0
 			var pos: Vector3 = c + p * side * rng.randf_range(120.0, 450.0)
@@ -811,7 +834,7 @@ func _build_street_props(root: Node3D) -> void:
 				_mast(st, pos)
 
 		# billboards
-		if dist >= next_board:
+		if not dz and dist >= next_board:
 			next_board = dist + rng.randf_range(350.0, 650.0)
 			var side: float = -1.0 if rng.randf() < 0.5 else 1.0
 			var pos: Vector3 = c + p * side * (hw + rng.randf_range(4.5, 5.5))
@@ -823,7 +846,7 @@ func _build_street_props(root: Node3D) -> void:
 		if not on_bridge and dist >= next_stop:
 			next_stop = dist + 280.0
 			var side: float = -1.0 if rng.randf() < 0.5 else 1.0
-			var pos: Vector3 = c + p * side * (hw + 4.0)
+			var pos: Vector3 = c + p * side * (hw + lim.call(4.0))
 			pos.y = GROUND_Y if is_land.call(pos) else c.y
 			_bus_stop(st, pos, Basis(Vector3.UP, atan2(p.x, p.z)))
 			# people waiting at the stop + an agbero calling passengers
@@ -840,8 +863,8 @@ func _build_street_props(root: Node3D) -> void:
 		# palm rows right along the roadside (real ~15 m coconut palms)
 		if not on_bridge and i % 5 == 0:
 			for side in [-1.0, 1.0]:
-				if rng.randf() < 0.6:
-					var rp: Vector3 = c + p * side * (hw + rng.randf_range(3.6, 4.8)) + fwd * rng.randf_range(-3.0, 3.0)
+				if rng.randf() < (0.06 if dz else 0.6):
+					var rp: Vector3 = c + p * side * (hw + lim.call(rng.randf_range(3.6, 4.8))) + fwd * rng.randf_range(-3.0, 3.0)
 					if is_land.call(rp):
 						rp.y = GROUND_Y
 						# real leafy trees (fal/Tripo), roadside only
@@ -851,7 +874,7 @@ func _build_street_props(root: Node3D) -> void:
 							put.call("trees/bush", rp + fwd * rng.randf_range(2.0, 4.0), rng.randf() * TAU, rng.randf_range(0.8, 1.4))
 
 		# parked cars on the roadside (Kenney CC0 models)
-		if not on_bridge and i % 3 == 0 and rng.randf() < 0.3:
+		if not on_bridge and i % 3 == 0 and rng.randf() < 0.3 * ps:
 			var side2: float = -1.0 if rng.randf() < 0.5 else 1.0
 			var cp: Vector3 = c + p * side2 * (hw + 2.6)
 			if is_land.call(cp):
@@ -865,7 +888,7 @@ func _build_street_props(root: Node3D) -> void:
 					put.call(km, cp, yaw, 1.75)
 
 		# keke ranks: 3-4 kekes lined up nose-to-tail on the roadside
-		if not on_bridge and i % 3 == 1 and rng.randf() < 0.12:
+		if not on_bridge and i % 3 == 1 and rng.randf() < 0.12 * ps:
 			var sd: float = -1.0 if rng.randf() < 0.5 else 1.0
 			var kp0: Vector3 = c + p * sd * (hw + 3.2)
 			if is_land.call(kp0):
@@ -875,7 +898,7 @@ func _build_street_props(root: Node3D) -> void:
 					put.call("keke/keke", kp, kyaw + _AI_VEH["keke/keke"][1], 1.0)
 
 		# okada park (3-6 bikes at an angle) and container kiosks facing the road
-		if not on_bridge and i % 5 == 2 and rng.randf() < 0.1:
+		if not on_bridge and i % 5 == 2 and rng.randf() < 0.1 * ps:
 			var os: float = -1.0 if rng.randf() < 0.5 else 1.0
 			var op0: Vector3 = c + p * os * (hw + 3.0)
 			if is_land.call(op0):
@@ -884,30 +907,30 @@ func _build_street_props(root: Node3D) -> void:
 					var opos: Vector3 = op0 + fwd * (kk * 1.1) + Vector3(0, GROUND_Y + ov[0] - op0.y, 0)
 					var od := -p * os
 					put.call("okada/okada", opos, atan2(-od.z, od.x) + 0.45, ov[2])
-		if not on_bridge and i % 6 == 3 and rng.randf() < 0.12:
+		if not on_bridge and i % 6 == 3 and rng.randf() < 0.12 * ps:
 			var ks: float = -1.0 if rng.randf() < 0.5 else 1.0
-			var kpos: Vector3 = c + p * ks * (hw + rng.randf_range(3.6, 4.6))
+			var kpos: Vector3 = c + p * ks * (hw + lim.call(rng.randf_range(3.6, 4.6)))
 			if is_land.call(kpos):
 				var face := -p * ks
 				kpos.y = GROUND_Y - 0.05 + 1.25 * 1.6
 				put.call("kiosk/kiosk", kpos, atan2(-face.z, face.x), 1.6)
 
 		# pedestrians on the roadside + umbrella stalls with a trader
-		if not on_bridge and i % 2 == 0 and rng.randf() < 0.22:
-			var ps: float = -1.0 if rng.randf() < 0.5 else 1.0
-			var pp0: Vector3 = c + p * ps * (hw + rng.randf_range(1.5, 5.0)) + fwd * rng.randf_range(-3.0, 3.0)
+		if not on_bridge and i % 2 == 0 and rng.randf() < 0.22 * ps:
+			var pside: float = -1.0 if rng.randf() < 0.5 else 1.0
+			var pp0: Vector3 = c + p * pside * (hw + lim.call(rng.randf_range(1.5, 5.0))) + fwd * rng.randf_range(-3.0, 3.0)
 			if is_land.call(pp0):
 				pp0.y = GROUND_Y + 0.9
 				put.call(["people/walker", "people/mama", "people/walker"][rng.randi() % 3], pp0, rng.randf() * TAU, rng.randf_range(0.93, 1.06))
-		if not on_bridge and i % 4 == 1 and rng.randf() < 0.1:
+		if not on_bridge and i % 4 == 1 and rng.randf() < 0.1 * ps:
 			var ss: float = -1.0 if rng.randf() < 0.5 else 1.0
-			var sp0: Vector3 = c + p * ss * (hw + rng.randf_range(3.4, 4.6))
+			var sp0: Vector3 = c + p * ss * (hw + lim.call(rng.randf_range(3.4, 4.6)))
 			if is_land.call(sp0):
 				put.call("people/stall", Vector3(sp0.x, GROUND_Y + 1.0, sp0.z), rng.randf() * TAU, 4.0)
 				put.call("people/mama", Vector3(sp0.x, GROUND_Y + 0.9, sp0.z) + fwd * 1.3, rng.randf() * TAU, 1.0)
 
 		# continuous row of real Lagos buildings right along the road
-		if not on_bridge and dist >= next_row:
+		if not on_bridge and not dz and dist >= next_row:
 			next_row = dist + rng.randf_range(10.5, 13.5)
 			for rs in [-1.0, 1.0]:
 				if rng.randf() > 0.88:
@@ -930,50 +953,56 @@ func _build_street_props(root: Node3D) -> void:
 		if not on_bridge:
 			for e in _ROADSIDE:
 				var mname: String = e[0]
+				if dz and float(e[2]) > pave:
+					continue   # churches, petrol stations, banks... need open land
 				if dist < float(next_extra.get(mname, rng.randf_range(0.0, float(e[1])))):
 					if not next_extra.has(mname):
 						next_extra[mname] = dist + rng.randf_range(0.0, float(e[1]))
 					continue
 				next_extra[mname] = dist + float(e[1]) * rng.randf_range(0.6, 1.4)
 				var es: float = -1.0 if rng.randf() < 0.5 else 1.0
-				var ep: Vector3 = c + p * es * (hw + rng.randf_range(float(e[2]), float(e[3]))) + fwd * rng.randf_range(-3.0, 3.0)
+				var ep: Vector3 = c + p * es * (hw + lim.call(rng.randf_range(float(e[2]), float(e[3])))) + fwd * rng.randf_range(-3.0, 3.0)
 				if not is_land.call(ep):
 					continue
 				ep.y = GROUND_Y - 0.05
 				var face: Vector3 = -p * es
 				put.call("lagos/" + mname, ep, atan2(-face.z, face.x) + rng.randf_range(-0.15, 0.15), 1.0)
 			# open gutter along the kerb, BRT lane dividers, police checkpoint, footbridge
-			if i % 5 == 0 and rng.randf() < 0.35:
+			if i % 5 == 0 and rng.randf() < 0.35 * ps:
 				var gs: float = -1.0 if rng.randf() < 0.5 else 1.0
 				var gp: Vector3 = c + p * gs * (hw + 1.1)
 				if is_land.call(gp):
 					put.call("lagos/gutter", Vector3(gp.x, GROUND_Y - 0.1, gp.z), atan2(-fwd.z, fwd.x), 1.0)
-			if dist >= next_brtb:
+			if not dz and dist >= next_brtb:
 				next_brtb = dist + rng.randf_range(500.0, 900.0)
 				for k in 6:
 					var bp: Vector3 = c + p * (hw - 0.6) + fwd * (k * 3.2)
 					put.call("lagos/brtbarrier", bp, atan2(-fwd.z, fwd.x) + PI * 0.5, 1.0)
-			if dist >= next_check:
+			if not dz and dist >= next_check:
 				next_check = dist + rng.randf_range(1400.0, 2200.0)
 				var cs2: float = -1.0 if rng.randf() < 0.5 else 1.0
 				put.call("lagos/checkpoint", c + p * cs2 * (hw - 2.0), atan2(-p.z, p.x), 1.0)
 				put.call("lagos/barricade", c + p * cs2 * (hw - 1.5) + fwd * 8.0, atan2(-fwd.z, fwd.x), 1.0)
 				put.call("lagos/lastma", c + p * cs2 * (hw + 1.5) + fwd * 4.0, atan2(p.z * cs2, -p.x * cs2), 1.0)
-			if dist >= next_fb and is_land.call(c + p * (hw + 6.0)) and is_land.call(c - p * (hw + 6.0)):
+			if not dz and dist >= next_fb and is_land.call(c + p * (hw + 6.0)) and is_land.call(c - p * (hw + 6.0)):
 				next_fb = dist + rng.randf_range(1300.0, 2000.0)
 				put.call("lagos/footbridge", Vector3(c.x, GROUND_Y - 0.05, c.z), atan2(-p.z, p.x), (2.0 * hw + 14.0) / 36.0)
 
 		# roadside Lagos clutter: chairs, gens, crates, tyres, jerrycans, bins, AC units
 		if not on_bridge and dist >= next_junk:
-			next_junk = dist + rng.randf_range(12.0, 30.0)
+			next_junk = dist + (rng.randf_range(22.0, 48.0) if dz else rng.randf_range(12.0, 30.0))
 			var side: float = -1.0 if rng.randf() < 0.5 else 1.0
-			var base: Vector3 = c + p * side * (hw + rng.randf_range(2.6, 4.8)) + fwd * rng.randf_range(-4.0, 4.0)
+			var base: Vector3 = c + p * side * (hw + lim.call(rng.randf_range(2.6, 4.8))) + fwd * rng.randf_range(-4.0, 4.0)
 			if is_land.call(base):
 				base.y = GROUND_Y
 				var junk := ["plastic_monobloc_chair_01", "portable_generator", "plastic_crate_01",
 					"old_tyre", "metal_jerrycan", "metal_trash_can", "propane_tank", "wooden_crate_01",
 					"utility_box_01", "exterior_aircon_unit", "utility_box_02", "fire_hydrant",
 					"security_light", "covered_car"]
+				if dz:
+					# single-mesh props only: multi-part ones cost a draw call per part per cell
+					junk = ["plastic_monobloc_chair_01", "portable_generator", "plastic_crate_01", "old_tyre",
+						"metal_jerrycan", "propane_tank", "utility_box_01", "exterior_aircon_unit", "utility_box_02"]
 				for k in rng.randi_range(1, 4):
 					var jp: Vector3 = base + Vector3(rng.randf_range(-2.0, 2.0), 0, rng.randf_range(-2.0, 2.0))
 					put.call(junk[rng.randi() % junk.size()], jp, rng.randf() * TAU, 1.0)
@@ -993,12 +1022,12 @@ func _build_street_props(root: Node3D) -> void:
 				if is_land.call(lp):
 					lp.y = GROUND_Y
 					put.call("street_lamp_02", lp, atan2(p.x, p.z) + (PI if side > 0 else 0.0), 1.0)
-		if not on_bridge and rng.randf() < 0.01:
+		if not on_bridge and not dz and rng.randf() < 0.01:
 			var bp2: Vector3 = c + p * (hw - 0.8) * (-1.0 if rng.randf() < 0.5 else 1.0)
 			put.call("concrete_road_barrier_02", bp2, atan2(fwd.x, fwd.z), 1.0)
 
 		# traffic cones on the shoulder
-		if dist >= next_cones:
+		if not dz and dist >= next_cones:
 			next_cones = dist + rng.randf_range(350.0, 700.0)
 			var side: float = -1.0 if rng.randf() < 0.5 else 1.0
 			for k in 4:
@@ -1049,6 +1078,10 @@ func _roadside_grass(root: Node3D, frames: Array, hw: float, is_land: Callable) 
 		for k in per:
 			var side: float = -1.0 if rng.randf() < 0.5 else 1.0
 			var d := hw + 1.5 + pow(rng.randf(), 2.0) * 22.0
+			if chunk.get("district", false):
+				if rng.randf() < 0.6:
+					continue
+				d = hw + 0.5 + rng.randf() * 1.2   # weeds along the gutter
 			var pos: Vector3 = c + p * side * d + Vector3(-p.z, 0, p.x) * rng.randf_range(-6.0, 6.0)
 			if not is_land.call(pos):
 				continue
@@ -1081,7 +1114,7 @@ const _ROADSIDE := [
 
 
 ## One MultiMesh per mesh part of each glb model (cheap to draw thousands).
-func _spawn_model_instances(root: Node3D, inst: Dictionary) -> void:
+func _spawn_model_instances(root: Node3D, inst: Dictionary, cell_fixed := 0.0, end_fixed := 0.0) -> void:
 	for model in inst:
 		var path := "res://assets/vehicles/%s.glb" % model
 		if not ResourceLoader.exists(path):
@@ -1100,6 +1133,8 @@ func _spawn_model_instances(root: Node3D, inst: Dictionary) -> void:
 		elif model in ["lagos/church", "lagos/mosque", "lagos/tower", "lagos/bank", "lagos/petrol", "lagos/footbridge", "plaza/plaza", "lagos_house/house", "unfinished/unfinished", "billboard/billboard"]:
 			far = 420.0
 		var cell_m := 80.0 if far < 200.0 else 160.0
+		if cell_fixed > 0.0:
+			cell_m = cell_fixed
 		for m in scene.find_children("*", "MeshInstance3D", true, false):
 			var mesh_i := m as MeshInstance3D
 			var mn := String(mesh_i.name).to_upper()
@@ -1124,7 +1159,7 @@ func _spawn_model_instances(root: Node3D, inst: Dictionary) -> void:
 				var mmi := MultiMeshInstance3D.new()
 				mmi.name = "%s_%s_%d_%d" % [model.replace("/", "_"), mesh_i.name, key.x, key.y]
 				mmi.multimesh = mm
-				mmi.visibility_range_end = far + cell_m * 0.7
+				mmi.visibility_range_end = end_fixed if end_fixed > 0.0 else far + cell_m * 0.7
 				mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if far > 200.0 else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 				root.add_child(mmi)
 				_own(mmi)
@@ -1715,3 +1750,479 @@ func _try_place_model(poly: PackedVector2Array, h: float, out: Dictionary, route
 		out[model] = []
 	out[model].append(Transform3D(basis, Vector3(ctr.x, GROUND_Y - 0.1 + dim.y * 0.5 * sy, ctr.y)))
 	return true
+
+
+# ───────────────────────── compact street district ─────────────────────────
+## District chunks ("district": true) describe a race circuit with a continuous
+## row of roadside buildings: footprints with optional model hints ("m"), compound
+## walls / gates / railings ("walls"), trees, background ground ("back_cells") and
+## distant towers ("towers"). Buildings are merged per DISTRICT_CELL so off-screen
+## groups are frustum-culled and far ones fade out; collision is one simple
+## static shape of low wall quads (no per-building bodies).
+const DISTRICT_CELL := 120.0
+const DISTRICT_FAR := 480.0
+const DISTRICT_LOD := 140.0   # real house models closer than this, stand-ins beyond
+
+
+func _building_material() -> ShaderMaterial:
+	var mat := ShaderMaterial.new()
+	mat.shader = load("res://shaders/building.gdshader")
+	mat.set_shader_parameter("tex_plaster", load("res://assets/textures/wall_plaster.jpg"))
+	mat.set_shader_parameter("tex_concrete", load("res://assets/textures/concrete.jpg"))
+	mat.set_shader_parameter("tex_zinc", load("res://assets/textures/roof_zinc.jpg"))
+	mat.set_shader_parameter("tex_clay", load("res://assets/textures/roof_clay.jpg"))
+	for nm in [["tex_plaster_n", "wall_plaster_n"], ["tex_concrete_n", "concrete_n"], ["tex_zinc_n", "roof_zinc_n"], ["tex_clay_n", "roof_clay_n"]]:
+		mat.set_shader_parameter(nm[0], load("res://assets/textures/%s.jpg" % nm[1]))
+	return mat
+
+
+func _build_district(root: Node3D) -> void:
+	var blds: Array = chunk.get("osm_buildings", [])
+	var rng := RandomNumberGenerator.new()
+	var base := GROUND_Y - 0.6
+	var tools := {}
+	var far_tools := {}
+	var models := {}
+	var near_models := {}
+	var faces := PackedVector3Array()
+	var signs: Array = []
+	for i in blds.size():
+		var b: Dictionary = blds[i]
+		if b.get("yard", false):
+			continue
+		rng.seed = i * 7919 + 13
+		var poly := PackedVector2Array()
+		for p in b["pts"]:
+			poly.append(Vector2(p[0], p[1]))
+		var h: float = b["h"]
+		var cen := Vector2.ZERO
+		for q in poly:
+			cen += q
+		cen /= poly.size()
+		if not b.get("nocol", false):
+			_wall_faces(faces, poly, GROUND_Y - 0.3, GROUND_Y + minf(h, 5.0))
+		if b.has("m") and _put_model_hint(near_models, b, cen):
+			# far LOD: a cheap procedural stand-in on the same cell grid
+			if b.has("dp"):
+				_procedural_building(_cell_tool(far_tools, cen), poly, h, base, rng, -1)
+			continue
+		var st := _cell_tool(tools, cen)
+		_procedural_building(st, poly, h, base, rng, int(b.get("fe", -1)))
+		if b.has("fe") and rng.randf() < 0.3 and h < 17.0:
+			signs.append([poly, int(b["fe"])])
+	# compound walls, gates, Marina railing
+	for w in chunk.get("walls", []):
+		var a := Vector2(w["a"][0], w["a"][1]); var e := Vector2(w["b"][0], w["b"][1])
+		if a.distance_to(e) < 0.05:
+			continue
+		var col := Color(w["c"][0], w["c"][1], w["c"][2])
+		var st := _cell_tool(tools, (a + e) * 0.5)
+		_wall_piece(st, a, e, float(w["h"]), float(w["t"]), String(w["k"]), col)
+		if w["k"] != "rail":
+			var y0 := GROUND_Y - 0.3; var y1: float = GROUND_Y + float(w["h"])
+			for v in [Vector3(a.x, y0, a.y), Vector3(e.x, y0, e.y), Vector3(e.x, y1, e.y), Vector3(a.x, y0, a.y), Vector3(e.x, y1, e.y), Vector3(a.x, y1, a.y)]:
+				faces.push_back(v)
+	var mat := _building_material()
+	var shadows: bool = _hi_gfx()
+	for k in tools:
+		var st: SurfaceTool = tools[k]
+		st.generate_normals()
+		var mi := MeshInstance3D.new()
+		mi.name = "Block_%d_%d" % [k.x, k.y]
+		mi.mesh = st.commit()
+		mi.material_override = mat
+		mi.visibility_range_end = DISTRICT_FAR
+		mi.visibility_range_end_margin = 40.0
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if shadows else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		root.add_child(mi)
+		_own(mi)
+	for k in far_tools:
+		var st: SurfaceTool = far_tools[k]
+		st.generate_normals()
+		var mi := MeshInstance3D.new()
+		mi.name = "FarBlock_%d_%d" % [k.x, k.y]
+		mi.mesh = st.commit()
+		mi.material_override = mat
+		mi.visibility_range_begin = DISTRICT_LOD
+		mi.visibility_range_end = DISTRICT_FAR
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		root.add_child(mi)
+		_own(mi)
+	if not near_models.is_empty():
+		_spawn_model_instances(root, near_models, DISTRICT_CELL, DISTRICT_LOD)
+	_district_towers(root, mat)
+	_district_signs(root, signs, rng)
+	for t in chunk.get("trees", []):
+		var key: String = "trees/" + String(t[2])
+		if not models.has(key):
+			models[key] = []
+		rng.seed = int(t[0] * 31.0 + t[1] * 17.0)
+		models[key].append(Transform3D(Basis(Vector3.UP, rng.randf() * TAU).scaled(Vector3.ONE * rng.randf_range(0.85, 1.1)), Vector3(t[0], GROUND_Y, t[1])))
+	if not models.is_empty():
+		_spawn_model_instances(root, models)
+	if not faces.is_empty():
+		var shape := ConcavePolygonShape3D.new()
+		shape.set_faces(faces)
+		shape.backface_collision = true
+		var body := StaticBody3D.new()
+		body.name = "BuildingCollision"
+		var cs := CollisionShape3D.new()
+		cs.shape = shape
+		body.add_child(cs)
+		root.add_child(body)
+	_build_back_ground(root)
+
+
+func _hi_gfx() -> bool:
+	var g := get_node_or_null("/root/Game")
+	return g == null or bool(g.get("high_graphics"))
+
+
+func _cell_tool(tools: Dictionary, p: Vector2) -> SurfaceTool:
+	var k := Vector2i(int(floor(p.x / DISTRICT_CELL)), int(floor(p.y / DISTRICT_CELL)))
+	if not tools.has(k):
+		var st := SurfaceTool.new()
+		st.begin(Mesh.PrimitiveType.PRIMITIVE_TRIANGLES)
+		tools[k] = st
+	return tools[k]
+
+
+## Vertical collision quads round a footprint (only as tall as a car needs).
+func _wall_faces(faces: PackedVector3Array, poly: PackedVector2Array, y0: float, y1: float) -> void:
+	for k in poly.size():
+		var a := poly[k]; var b := poly[(k + 1) % poly.size()]
+		for v in [Vector3(a.x, y0, a.y), Vector3(b.x, y0, b.y), Vector3(b.x, y1, b.y), Vector3(a.x, y0, a.y), Vector3(b.x, y1, b.y), Vector3(a.x, y1, a.y)]:
+			faces.push_back(v)
+
+
+## Real Lagos model (house / shop row / uncompleted block) fitted to its lot,
+## scaled uniformly from its true size so windows and doors keep their scale.
+func _put_model_hint(out: Dictionary, b: Dictionary, cen: Vector2) -> bool:
+	var model: String = b["m"]
+	if not _BLD.has(model):
+		return false
+	var dim: Vector3 = _BLD[model]
+	var f := Vector2(b["f"][0], b["f"][1])
+	var sx: float = float(b["dp"]) / dim.x
+	var sz: float = float(b["w"]) / dim.z
+	var sy: float = float(b["h"]) / dim.y
+	var yaw := atan2(-f.y, f.x)
+	var basis := Basis(Vector3.UP, yaw) * Basis.from_scale(Vector3(sx, sy, sz))
+	if not out.has(model):
+		out[model] = []
+	out[model].append(Transform3D(basis, Vector3(cen.x, GROUND_Y - 0.1 + dim.y * 0.5 * sy, cen.y)))
+	return true
+
+
+## Procedural Lagos building: painted walls with windows / shop shutters, gable
+## (zinc or clay) or flat roof with water tanks, awning over the road-side front.
+func _procedural_building(st: SurfaceTool, poly: PackedVector2Array, h: float, base: float, rng: RandomNumberGenerator, front_edge: int) -> void:
+	var wc: Color = _WALLS[rng.randi() % _WALLS.size()]
+	var top := base + h
+	var ob := _obb(poly)
+	var w := float(ob["v1"]) - float(ob["v0"])
+	var l := float(ob["u1"]) - float(ob["u0"])
+	var roof_roll := rng.randf()
+	var run := 0.0
+	for k in poly.size():
+		var p0 := poly[k]; var p1 := poly[(k + 1) % poly.size()]
+		var seg := p0.distance_to(p1)
+		var sh := 0.86 + 0.14 * absf(sin(p0.angle_to_point(p1)))
+		var col := Color(wc.r * sh, wc.g * sh, wc.b * sh, 0.0)
+		_bq(st, Vector3(p0.x, base, p0.y), Vector3(p1.x, base, p1.y),
+			Vector3(p1.x, top, p1.y), Vector3(p0.x, top, p0.y), col,
+			Vector2(run, 0), Vector2(run + seg, 0), Vector2(run + seg, h), Vector2(run, h))
+		run += seg
+	if h < 11.0 and w < 22.0 and roof_roll < 0.6:
+		_gable(st, ob, top, roof_roll < 0.35, wc)
+	else:
+		_flat_roof(st, poly, top, wc, rng)
+		if l > 5.0 and w > 5.0:
+			for t in 1 + rng.randi() % 2:
+				var u := lerpf(float(ob["u0"]) + 1.5, float(ob["u1"]) - 1.5, rng.randf())
+				var v := lerpf(float(ob["v0"]) + 1.5, float(ob["v1"]) - 1.5, rng.randf())
+				var c2d: Vector2 = ob["c"] * u + ob["n"] * v
+				_box(st, Vector3(c2d.x, top + 0.9, c2d.y), Vector3(1.3, 1.6, 1.3), _TANKS[rng.randi() % _TANKS.size()])
+	if front_edge >= 0 and h < 18.0:
+		# awning over the road-side front only: hand _awning just that edge plus
+		# an inner point so it knows which way is out
+		var p0 := poly[front_edge]; var p1 := poly[(front_edge + 1) % poly.size()]
+		var cen := Vector2.ZERO
+		for q in poly:
+			cen += q
+		cen /= poly.size()
+		var mid := (p0 + p1) * 0.5
+		_awning(st, PackedVector2Array([p0, p1, mid + (cen - mid).normalized() * 1.0]), _AWNINGS[rng.randi() % _AWNINGS.size()], base)
+
+
+## Wall / gate / railing piece from a to b (UVs in metres for the shader).
+func _wall_piece(st: SurfaceTool, a: Vector2, b: Vector2, h: float, t: float, kind: String, col: Color) -> void:
+	var y0 := GROUND_Y - 0.3
+	var d := (b - a).normalized()
+	var n := Vector2(-d.y, d.x) * t * 0.5
+	if kind == "rail":
+		var seg_len := a.distance_to(b)
+		var c := Color(col.r, col.g, col.b, 1.0)
+		var posts := maxi(1, int(seg_len / 2.5))
+		for k in posts + 1:
+			var q := a.lerp(b, float(k) / posts)
+			_box(st, Vector3(q.x, GROUND_Y + h * 0.5 - 0.15, q.y), Vector3(0.09, h + 0.3, 0.09), c)
+		for yy in [h, h * 0.5]:
+			var m := (a + b) * 0.5
+			_obox(st, Vector3(m.x, GROUND_Y + yy, m.y), Vector3(0.07, 0.07, seg_len), Basis(Vector3.UP, atan2(d.x, d.y)), c)
+		return
+	var k_alpha := 0.9 if kind == "wall" else 0.95
+	var y1 := GROUND_Y + h
+	var c4 := Color(col.r, col.g, col.b, k_alpha)
+	var q0 := a - n; var q1 := b - n; var q2 := b + n; var q3 := a + n
+	for e in [[q0, q1], [q2, q3], [q1, q2], [q3, q0]]:
+		var p0: Vector2 = e[0]; var p1: Vector2 = e[1]
+		var sl := p0.distance_to(p1)
+		_bq(st, Vector3(p0.x, y0, p0.y), Vector3(p1.x, y0, p1.y), Vector3(p1.x, y1, p1.y), Vector3(p0.x, y1, p0.y), c4,
+			Vector2(0, 0), Vector2(sl, 0), Vector2(sl, y1 - y0), Vector2(0, y1 - y0))
+	# lighter cap on top
+	var cap := Color(minf(col.r * 1.15, 1.0), minf(col.g * 1.15, 1.0), minf(col.b * 1.15, 1.0), 1.0) if kind == "wall" else Color(0.1, 0.1, 0.12, 1.0)
+	var pad := n.normalized() * (t * 0.5 + 0.05)
+	_bq(st, Vector3(q0.x - pad.x, y1, q0.y - pad.y), Vector3(q3.x + pad.x, y1, q3.y + pad.y), Vector3(q2.x + pad.x, y1, q2.y + pad.y), Vector3(q1.x - pad.x, y1, q1.y - pad.y), cap,
+		Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO)
+
+
+## Distant towers (Marina / Broad Street high-rises) seen over the rooftops.
+func _district_towers(root: Node3D, mat: Material) -> void:
+	var tw: Array = chunk.get("towers", [])
+	if tw.is_empty():
+		return
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PrimitiveType.PRIMITIVE_TRIANGLES)
+	var rng := RandomNumberGenerator.new()
+	for i in tw.size():
+		rng.seed = 9000 + i
+		var poly := PackedVector2Array()
+		for p in tw[i]["pts"]:
+			poly.append(Vector2(p[0], p[1]))
+		_procedural_building(st, poly, float(tw[i]["h"]), GROUND_Y - 0.6, rng, -1)
+	st.generate_normals()
+	var mi := MeshInstance3D.new()
+	mi.name = "Towers"
+	mi.mesh = st.commit()
+	mi.material_override = mat
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	root.add_child(mi)
+	_own(mi)
+
+
+## A few painted shop signboards (fictional Lagos brands) above the awnings.
+func _district_signs(root: Node3D, signs: Array, rng: RandomNumberGenerator) -> void:
+	rng.seed = 31337
+	var names := _BRANDS + ["GOD'S TIME PROVISIONS", "BLESSED HANDS SALON", "ALHAJI & SONS", "EKO PHONES", "IYA BASIRAT BUKKA", "NO WAHALA PHARMACY", "ADE & CO MOTOR PARTS", "JESUS IS LORD BUSINESS CENTRE"]
+	for sg in signs:
+		var poly: PackedVector2Array = sg[0]
+		var k: int = sg[1]
+		var p0 := poly[k]; var p1 := poly[(k + 1) % poly.size()]
+		var mid := (p0 + p1) * 0.5
+		var dir := (p1 - p0).normalized()
+		var cen := Vector2.ZERO
+		for q in poly:
+			cen += q
+		cen /= poly.size()
+		var out := Vector2(-dir.y, dir.x)
+		if out.dot(mid - cen) < 0.0:
+			out = -out
+		var lb := Label3D.new()
+		lb.text = names[rng.randi() % names.size()]
+		lb.font_size = 64
+		lb.pixel_size = 0.012
+		lb.outline_size = 0
+		lb.modulate = [Color(0.95, 0.95, 0.9), Color(1, 0.86, 0.2), Color(0.95, 0.3, 0.25), Color(0.3, 0.75, 1.0)][rng.randi() % 4]
+		lb.position = Vector3(mid.x + out.x * 0.08, GROUND_Y + 3.9, mid.y + out.y * 0.08)
+		lb.rotation.y = atan2(out.x, out.y)
+		lb.visibility_range_end = 90.0
+		lb.double_sided = false
+		root.add_child(lb)
+		_own(lb)
+
+
+## Cheap ground behind the frontage (no collision): seen only through gaps.
+func _build_back_ground(root: Node3D) -> void:
+	var bc: Dictionary = chunk.get("back_cells", {})
+	var cells: Array = bc.get("cells", [])
+	if cells.is_empty():
+		return
+	var s: float = bc.get("cell_m", 20.0)
+	var y := GROUND_Y - 0.25
+	var have := {}
+	for c in cells:
+		have[Vector2i(int(c[0]), int(c[1]))] = true
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PrimitiveType.PRIMITIVE_TRIANGLES)
+	st.set_normal(Vector3.UP)
+	st.set_uv(Vector2.ZERO)
+	st.set_color(Color(0.62, 0.55, 0.42, 1.0))
+	for k in have:
+		var x0: float = k.x * s; var z0: float = k.y * s
+		var a := Vector3(x0, y, z0); var b := Vector3(x0 + s, y, z0)
+		var c3 := Vector3(x0 + s, y, z0 + s); var d := Vector3(x0, y, z0 + s)
+		st.add_vertex(a); st.add_vertex(b); st.add_vertex(c3)
+		st.add_vertex(a); st.add_vertex(c3); st.add_vertex(d)
+		for e in [[Vector2i(0, -1), a, b], [Vector2i(1, 0), b, c3], [Vector2i(0, 1), c3, d], [Vector2i(-1, 0), d, a]]:
+			if not have.has(k + e[0]):
+				var p0: Vector3 = e[1]; var p1: Vector3 = e[2]
+				var q0 := Vector3(p0.x, -1.5, p0.z); var q1 := Vector3(p1.x, -1.5, p1.z)
+				st.add_vertex(p0); st.add_vertex(q1); st.add_vertex(p1)
+				st.add_vertex(p0); st.add_vertex(q0); st.add_vertex(q1)
+	var mi := MeshInstance3D.new()
+	mi.name = "BackGround"
+	mi.mesh = st.commit()
+	mi.material_override = _ground_material()
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	root.add_child(mi)
+	_own(mi)
+
+
+## Zebra crossings + chequered start/finish line with an overhead gantry.
+func _build_district_markings(root: Node3D) -> void:
+	var r: Dictionary = chunk["road"]
+	var hw: float = r["half_width_m"]
+	var samples: Array = r["samples"]
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PrimitiveType.PRIMITIVE_TRIANGLES)
+	var lift := Vector3.UP * 0.035
+	var frame_at := func(d: float) -> Array:
+		var best := 0; var bd := INF
+		for i in samples.size():
+			var dd := absf(float(samples[i]["dist_m"]) - d)
+			if dd < bd:
+				bd = dd; best = i
+		var s0 = samples[best]
+		var h: float = s0["heading_rad"]
+		return [Vector3(s0["x"], s0["elev_m"], s0["z"]), Vector3(cos(h), 0, -sin(h)), Vector3(sin(h), 0, cos(h))]
+	var quad := func(c: Vector3, along: Vector3, across: Vector3, la: float, lc: float, col: Color) -> void:
+		var v := [c - along * la - across * lc, c + along * la - across * lc, c + along * la + across * lc, c - along * la + across * lc]
+		for k in [0, 1, 2, 0, 2, 3]:
+			st.set_color(col); st.add_vertex(v[k] + lift)
+	var white := Color(0.92, 0.92, 0.9)
+	for d in chunk.get("crossings", []):
+		var f: Array = frame_at.call(float(d))
+		var x := -hw + 0.9
+		while x < hw - 0.6:
+			quad.call(f[0] + f[1] * (x + 0.25), f[2], f[1], 1.6, 0.25, white)
+			x += 1.0
+		# stop lines either side
+		quad.call(f[0] + f[2] * 3.2 + f[1] * hw * 0.5, f[2], f[1], 0.2, hw * 0.5 - 0.4, white)
+		quad.call(f[0] - f[2] * 3.2 - f[1] * hw * 0.5, f[2], f[1], 0.2, hw * 0.5 - 0.4, white)
+	var sl: Dictionary = chunk.get("start_line", {})
+	if not sl.is_empty():
+		var f: Array = frame_at.call(float(sl.get("dist_m", 0.0)))
+		var n := int(hw * 2.0)
+		for row in 2:
+			for k in n:
+				var black := (k + row) % 2 == 0
+				quad.call(f[0] + f[1] * (-hw + 0.5 + k) + f[2] * (row - 0.5), f[2], f[1], 0.5, 0.5, Color(0.05, 0.05, 0.05) if black else white)
+		_start_gantry(root, f, hw)
+	var mi := MeshInstance3D.new()
+	mi.name = "DistrictMarkings"
+	mi.mesh = st.commit()
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	var mat := ShaderMaterial.new()
+	mat.shader = load("res://shaders/road_markings.gdshader")
+	mi.material_override = mat
+	root.add_child(mi)
+	_own(mi)
+
+
+func _start_gantry(root: Node3D, f: Array, hw: float) -> void:
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PrimitiveType.PRIMITIVE_TRIANGLES)
+	var c: Vector3 = f[0]; var across: Vector3 = f[1]; var along: Vector3 = f[2]
+	var bas := Basis(Vector3.UP, atan2(along.x, along.z))
+	var steel := Color(0.15, 0.15, 0.17)
+	for sd in [-1.0, 1.0]:
+		_obox(st, c + across * sd * (hw + 0.8) + Vector3(0, 3.6, 0), Vector3(0.45, 7.2, 0.45), bas, steel)
+	_obox(st, c + Vector3(0, 6.9, 0), Vector3(hw * 2.0 + 2.2, 0.5, 0.5), bas, steel)
+	_obox(st, c + Vector3(0, 6.0, 0), Vector3(0.18, 1.4, hw * 1.6), bas * Basis(Vector3.UP, PI * 0.5), Color(0.98, 0.76, 0.12))
+	var mi := MeshInstance3D.new()
+	mi.name = "StartGantry"
+	mi.mesh = st.commit()
+	var mat := StandardMaterial3D.new()
+	mat.vertex_color_use_as_albedo = true
+	mat.roughness = 0.6
+	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+	mi.material_override = mat
+	root.add_child(mi)
+	_own(mi)
+	for sd in [1.0, -1.0]:
+		var lb := Label3D.new()
+		lb.text = "START  ·  FINISH"
+		lb.font_size = 160
+		lb.pixel_size = 0.01
+		lb.modulate = Color(0.05, 0.05, 0.06)
+		lb.outline_size = 0
+		lb.position = c + Vector3(0, 6.0, 0) + along * sd * 0.12
+		lb.rotation.y = atan2(along.x, along.z) + (0.0 if sd > 0 else PI)
+		lb.double_sided = false
+		root.add_child(lb)
+		_own(lb)
+
+
+## Raised concrete pavements (with collision) between the kerb and the shop
+## fronts; wider promenade along the Marina waterfront.
+func _build_pavements(root: Node3D) -> void:
+	var pave: float = float(chunk.get("pavement_m", 0.0))
+	if pave <= 0.0:
+		return
+	var hw: float = chunk["road"]["half_width_m"]
+	var frames := _frames()
+	var samples: Array = chunk["road"]["samples"]
+	var prom: Dictionary = chunk.get("promenade", {})
+	# flush with the ground (roadside props stand at GROUND_Y); the road + kerb sit higher
+	var top := GROUND_Y + 0.035
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PrimitiveType.PRIMITIVE_TRIANGLES)
+	st.set_normal(Vector3.UP)
+	var soup := PackedVector3Array()
+	var width_at := func(i: int, side: float) -> float:
+		if not prom.is_empty() and side == float(prom["side"]):
+			var d: float = samples[i]["dist_m"]
+			if d >= float(prom["from"]) and d <= float(prom["to"]):
+				return float(prom["w"])
+		return pave
+	var run := 0.0
+	for i in range(frames.size() - 1):
+		var a = frames[i]; var b = frames[i + 1]
+		var seg: float = (a["c"] as Vector3).distance_to(b["c"])
+		for side in [-1.0, 1.0]:
+			var wa: float = width_at.call(i, side); var wb: float = width_at.call(i + 1, side)
+			var ai: Vector3 = a["c"] + a["p"] * side * hw; var ao: Vector3 = a["c"] + a["p"] * side * (hw + wa)
+			var bi: Vector3 = b["c"] + b["p"] * side * hw; var bo: Vector3 = b["c"] + b["p"] * side * (hw + wb)
+			ai.y = top; ao.y = top; bi.y = top; bo.y = top
+			var q := [ai, bi, bo, ao] if side > 0.0 else [ai, ao, bo, bi]
+			var uv := [Vector2(0, run), Vector2(0, run + seg), Vector2(wb, run + seg), Vector2(wa, run)] if side > 0.0 else [Vector2(0, run), Vector2(wa, run), Vector2(wb, run + seg), Vector2(0, run + seg)]
+			for k in [0, 1, 2, 0, 2, 3]:
+				st.set_uv(uv[k]); st.add_vertex(q[k]); soup.push_back(q[k])
+			# outer edge face down to the ground
+			var lo := GROUND_Y - 0.1
+			var e := [ao, bo, Vector3(bo.x, lo, bo.z), Vector3(ao.x, lo, ao.z)]
+			for k in [0, 1, 2, 0, 2, 3]:
+				st.set_uv(Vector2(0.3, 0.0)); st.add_vertex(e[k])
+		run += seg
+	st.generate_normals()
+	var mi := MeshInstance3D.new()
+	mi.name = "Pavements"
+	mi.mesh = st.commit()
+	var mat := ShaderMaterial.new()
+	mat.shader = load("res://shaders/pavement.gdshader")
+	mat.set_shader_parameter("tex_concrete", load("res://assets/textures/concrete.jpg"))
+	mat.set_shader_parameter("tex_concrete_n", load("res://assets/textures/concrete_n.jpg"))
+	mi.material_override = mat
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	root.add_child(mi)
+	_own(mi)
+	var shape := ConcavePolygonShape3D.new()
+	shape.set_faces(soup)
+	shape.backface_collision = true
+	var body := StaticBody3D.new()
+	body.name = "PavementCollision"
+	var cs := CollisionShape3D.new()
+	cs.shape = shape
+	body.add_child(cs)
+	root.add_child(body)
