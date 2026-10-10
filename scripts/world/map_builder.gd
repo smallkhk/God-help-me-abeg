@@ -991,6 +991,17 @@ func _mat(col: Color, metal := 0.0, rough := 0.6, emit := 0.0) -> StandardMateri
 	return m
 
 
+## Photo-textured material (real Wikimedia Commons photos, see docs/source_licenses.md).
+## Triplanar so a facade photo tiles across a box at real-world scale (`tile` m).
+func _photo_mat(file: String, tile: Vector2, rough := 0.5, metal := 0.0) -> StandardMaterial3D:
+	var m := StandardMaterial3D.new()
+	m.albedo_texture = load("res://assets/textures/landmarks/%s" % file)
+	m.uv1_triplanar = true
+	m.uv1_scale = Vector3(1.0 / tile.x, 1.0 / tile.y, 1.0 / tile.x)
+	m.roughness = rough; m.metallic = metal
+	return m
+
+
 func _prim(parent: Node3D, mesh: Mesh, pos: Vector3, mat: Material, rot := Vector3.ZERO) -> MeshInstance3D:
 	var mi := MeshInstance3D.new()
 	mi.mesh = mesh; mi.material_override = mat
@@ -1019,6 +1030,12 @@ func _build_landmarks(root: Node3D) -> void:
 		node.position = Vector3(p.x, 0.25, p.z)
 		root.add_child(node)
 		var top := 40.0
+		# ground pad so landmarks never float where the map has no land cells
+		if lm["kind"] in ["theatre", "civic", "eko_hotel"]:
+			var pad := BoxMesh.new(); pad.size = Vector3(320, 0.6, 320)
+			_prim(node, pad, Vector3(0, -0.2, 0), _mat(Color(0.80, 0.70, 0.52), 0.0, 0.95))
+			var lawn := BoxMesh.new(); lawn.size = Vector3(200, 0.6, 200)
+			_prim(node, lawn, Vector3(0, -0.1, 0), _mat(Color(0.36, 0.52, 0.25), 0.0, 0.95))
 		match lm["kind"]:
 			"theatre": top = _lm_theatre(node)
 			"makoko": top = _lm_makoko(node)
@@ -1049,10 +1066,12 @@ func _build_landmarks(root: Node3D) -> void:
 func _lm_theatre(n: Node3D) -> float:
 	var white := _mat(Color(0.88, 0.87, 0.82), 0.0, 0.7)
 	var dark := _mat(Color(0.25, 0.27, 0.3), 0.2, 0.4)
-	var drum := CylinderMesh.new(); drum.top_radius = 46; drum.bottom_radius = 48; drum.height = 16; drum.radial_segments = 48
-	_prim(n, drum, Vector3(0, 8, 0), white)
-	var band := CylinderMesh.new(); band.top_radius = 47.2; band.bottom_radius = 47.2; band.height = 4; band.radial_segments = 48
-	_prim(n, band, Vector3(0, 12, 0), dark)
+	var facade := StandardMaterial3D.new()
+	facade.albedo_texture = load("res://assets/textures/landmarks/theatre_facade.jpg")
+	facade.uv1_scale = Vector3(6, 1, 1)  # wrap the photo band 6x around the drum
+	facade.roughness = 0.6
+	var drum := CylinderMesh.new(); drum.top_radius = 50; drum.bottom_radius = 44; drum.height = 20; drum.radial_segments = 64
+	_prim(n, drum, Vector3(0, 10, 0), facade)
 	var crown := CylinderMesh.new(); crown.top_radius = 18; crown.bottom_radius = 50; crown.height = 12; crown.radial_segments = 16
 	_prim(n, crown, Vector3(0, 22, 0), white)
 	var peak := CylinderMesh.new(); peak.top_radius = 6; peak.bottom_radius = 18; peak.height = 6; peak.radial_segments = 16
@@ -1068,8 +1087,9 @@ func _lm_theatre(n: Node3D) -> float:
 ## Makoko: wooden stilt houses standing in the lagoon.
 func _lm_makoko(n: Node3D) -> float:
 	var rng := RandomNumberGenerator.new(); rng.seed = 1960
-	var wood := [_mat(Color(0.42, 0.31, 0.2)), _mat(Color(0.35, 0.26, 0.17)), _mat(Color(0.5, 0.38, 0.25))]
-	var zinc := _mat(Color(0.55, 0.42, 0.32), 0.4, 0.5)
+	var wall := _photo_mat("makoko_wall.jpg", Vector2(6, 3), 0.9)
+	var wood := [wall, wall, wall]
+	var zinc := _photo_mat("makoko_roof.jpg", Vector2(6, 1.5), 0.6, 0.3)
 	var stilt := CylinderMesh.new(); stilt.top_radius = 0.12; stilt.bottom_radius = 0.12; stilt.height = 3.0; stilt.radial_segments = 5
 	for k in 70:
 		var pos := Vector3(rng.randf_range(-260, 260), 0, rng.randf_range(-260, 260))
@@ -1082,32 +1102,30 @@ func _lm_makoko(n: Node3D) -> float:
 	return 6.0
 
 
-## Civic Centre, VI: twin rounded glass towers on a podium.
+## Civic Towers, VI: rectangular blue-glass tower with a tall spire (photo facade).
 func _lm_civic(n: Node3D) -> float:
-	var glass := _mat(Color(0.25, 0.45, 0.6), 0.8, 0.08)
+	var glass := _photo_mat("civic_glass.jpg", Vector2(18, 36), 0.15, 0.4)
 	var white := _mat(Color(0.9, 0.9, 0.88), 0.1, 0.5)
-	var podium := BoxMesh.new(); podium.size = Vector3(90, 10, 60)
-	_prim(n, podium, Vector3(0, 5, 0), white)
-	for k in [-1, 1]:
-		var t := CylinderMesh.new(); t.top_radius = 15; t.bottom_radius = 15; t.height = 58; t.radial_segments = 32
-		_prim(n, t, Vector3(k * 18, 39, 0), glass)
-		var cap := CylinderMesh.new(); cap.top_radius = 15.5; cap.bottom_radius = 15.5; cap.height = 2; cap.radial_segments = 32
-		_prim(n, cap, Vector3(k * 18, 69, 0), white)
-	return 70.0
+	var podium := BoxMesh.new(); podium.size = Vector3(60, 8, 44)
+	_prim(n, podium, Vector3(0, 4, 0), white)
+	var tower := BoxMesh.new(); tower.size = Vector3(36, 72, 26)
+	_prim(n, tower, Vector3(0, 44, 0), glass)
+	var crown := BoxMesh.new(); crown.size = Vector3(14, 8, 10)
+	_prim(n, crown, Vector3(0, 84, 0), white)
+	var spire := CylinderMesh.new(); spire.top_radius = 0.3; spire.bottom_radius = 2.2; spire.height = 46; spire.radial_segments = 8
+	_prim(n, spire, Vector3(0, 111, 0), white)
+	return 134.0
 
 
 ## Eko Hotel & Suites: tall white slab with blue glazing + lower wings.
 func _lm_eko_hotel(n: Node3D) -> float:
 	var white := _mat(Color(0.93, 0.93, 0.9), 0.0, 0.6)
-	var blue := _mat(Color(0.18, 0.35, 0.55), 0.7, 0.1)
+	var facade := _photo_mat("eko_facade.jpg", Vector2(18, 24), 0.4)
 	var slab := BoxMesh.new(); slab.size = Vector3(70, 80, 18)
-	_prim(n, slab, Vector3(0, 40, 0), white)
-	for k in 20:
-		var strip := BoxMesh.new(); strip.size = Vector3(66, 1.6, 18.4)
-		_prim(n, strip, Vector3(0, 6 + k * 3.7, 0), blue)
+	_prim(n, slab, Vector3(0, 40, 0), facade)
 	var wing := BoxMesh.new(); wing.size = Vector3(50, 24, 30)
-	_prim(n, wing, Vector3(-70, 12, 10), white)
-	_prim(n, wing, Vector3(70, 12, 10), white)
+	_prim(n, wing, Vector3(-70, 12, 10), facade)
+	_prim(n, wing, Vector3(70, 12, 10), facade)
 	var lbl := Label3D.new(); lbl.text = "EKO"; lbl.font_size = 900; lbl.modulate = Color(0.2, 0.5, 0.9)
 	lbl.position = Vector3(0, 70, 9.5); n.add_child(lbl)
 	return 82.0
@@ -1134,13 +1152,12 @@ func _lm_link_bridge(n: Node3D) -> float:
 ## Lekki Toll Gate: canopy across the carriageway with booths and lights.
 func _lm_toll_gate(n: Node3D, hw: float) -> float:
 	var white := _mat(Color(0.92, 0.92, 0.9), 0.2, 0.4)
-	var red := _mat(Color(0.75, 0.1, 0.1), 0.1, 0.5)
 	var lamp := _mat(Color(1.0, 0.95, 0.8), 0.0, 0.3, 3.0)
 	var w := hw * 2.0 + 8.0
 	var canopy := BoxMesh.new(); canopy.size = Vector3(w, 1.6, 14)
 	_prim(n, canopy, Vector3(0, 7.5, 0), white)
-	var fascia := BoxMesh.new(); fascia.size = Vector3(w + 0.2, 1.0, 14.2)
-	_prim(n, fascia, Vector3(0, 6.6, 0), red)
+	var fascia := BoxMesh.new(); fascia.size = Vector3(w + 0.2, 2.4, 14.2)
+	_prim(n, fascia, Vector3(0, 6.2, 0), _photo_mat("toll_fascia.jpg", Vector2(40, 2.4), 0.5))
 	var strip := BoxMesh.new(); strip.size = Vector3(w - 2, 0.15, 0.6)
 	for zz in [-4.0, 0.0, 4.0]:
 		_prim(n, strip, Vector3(0, 6.55, zz), lamp)

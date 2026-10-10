@@ -77,3 +77,13 @@ rollershutter_door, utility_box_02 (high detail, lightly decimated).
 
 - engine/engine_0..5.wav — "Racing car engine sound loops", OpenGameArt, CC0.
 - horn.ogg, engine_start.ogg — "Car sound effects pack", OpenGameArt, CC0.
+
+## Landmark photo textures (assets/textures/landmarks/)
+
+Cropped from Wikimedia Commons photos (credit to the photographers; CC BY-SA licences —
+derived textures are shared under the same licence):
+- civic_glass.jpg — "Civic Centre Towers, Victoria Island, Lagos.jpg" (CC BY-SA 4.0)
+- eko_facade.jpg — "Eko Hotels 01.jpg" (CC BY-SA 4.0)
+- toll_fascia.jpg — "Lekki Toll Gate Lagos.jpg" (CC BY-SA 4.0)
+- makoko_wall.jpg, makoko_roof.jpg — "Makoko 3.jpg" (CC BY-SA 4.0)
+- theatre_facade.jpg — "National Arts Theatre, Iganmu - Lagos.jpg" (CC BY-SA 4.0)
