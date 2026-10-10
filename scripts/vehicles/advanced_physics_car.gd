@@ -146,6 +146,18 @@ func _ready() -> void:
 	# Solid-disc wheel inertia: I = ½·m·r²
 	wheel_inertia = 0.5 * wheel_mass * wheel_radius * wheel_radius
 
+	# Auto-wire the standard hierarchy (Wheels/FrontLeftRay/FrontLeftMesh ...)
+	# when nothing is assigned in the inspector.
+	var auto := {"FrontLeft": "fl", "FrontRight": "fr", "RearLeft": "rl", "RearRight": "rr"}
+	for prefix in auto:
+		var r := find_child(prefix + "Ray", true, false) as RayCast3D
+		if r == null:
+			continue
+		var m := r.find_child(prefix + "Mesh", true, false) as Node3D
+		if get("ray_" + auto[prefix]) == null:
+			set("ray_" + auto[prefix], r)
+		if get("mesh_" + auto[prefix]) == null and m:
+			set("mesh_" + auto[prefix], m)
 	var specs := [[ray_fl, mesh_fl, true, true], [ray_fr, mesh_fr, true, false],
 		[ray_rl, mesh_rl, false, true], [ray_rr, mesh_rr, false, false]]
 	for s in specs:
@@ -378,9 +390,14 @@ func _update_visuals(delta: float) -> void:
 		# Wheel centre sits (rest_length − compression) below the strut top.
 		var drop := (rest_length - w.compression) if w.grounded else (rest_length + max_travel)
 		var t := w.mesh_rest
-		t.origin = w.ray.position + Vector3(0.0, -drop, 0.0)
-		var steer := steer_angle if w.is_front else 0.0
-		t.basis = Basis(Vector3.UP, steer) * Basis(Vector3.RIGHT, -w.spin) * w.mesh_rest.basis
+		if w.mesh.get_parent() == w.ray:
+			# child of the ray: the ray already steers it; only drop + spin
+			t.origin = Vector3(0.0, -drop, 0.0)
+			t.basis = Basis(Vector3.RIGHT, -w.spin) * w.mesh_rest.basis
+		else:
+			t.origin = w.ray.position + Vector3(0.0, -drop, 0.0)
+			var steer := steer_angle if w.is_front else 0.0
+			t.basis = Basis(Vector3.UP, steer) * Basis(Vector3.RIGHT, -w.spin) * w.mesh_rest.basis
 		w.mesh.transform = t
 
 
