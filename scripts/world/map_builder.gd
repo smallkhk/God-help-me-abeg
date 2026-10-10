@@ -359,13 +359,68 @@ func _build_skyline(root: Node3D) -> void:
 
 ## Ground under real-world built-up areas (from the chunk's land grid), so the
 ## OSM buildings stand on land instead of in the lagoon.
+## Ground sits just under road level (land roads are at 2 m) so nothing floats.
+const GROUND_Y := 1.9
+const KEEP_RADIUS := 500.0   # buildings/land kept within this of the race road
+const BAND_RADIUS := 300.0   # continuous ground strip each side of land roads
+var _near_cache := {}
+var _land_cache := {}
+
+
+func _cell_of(x: float, z: float, cs: float) -> Vector2i:
+	return Vector2i(int(floor(x / cs)), int(floor(z / cs)))
+
+
+## Cells within KEEP_RADIUS of the route (anything else is never seen from the race).
+func _near_cells() -> Dictionary:
+	if not _near_cache.is_empty():
+		return _near_cache
+	var cs: float = chunk.get("land_cells", {}).get("cell_m", 50.0)
+	var samples: Array = chunk.get("road", {}).get("samples", [])
+	var r := int(ceil(KEEP_RADIUS / cs))
+	for i in range(0, samples.size(), 4):
+		var c := _cell_of(samples[i]["x"], samples[i]["z"], cs)
+		for dx in range(-r, r + 1):
+			for dz in range(-r, r + 1):
+				if dx * dx + dz * dz <= r * r:
+					_near_cache[c + Vector2i(dx, dz)] = true
+	return _near_cache
+
+
+## Land = real land cells near the route + a solid strip along every land road.
+func _land_cells() -> Dictionary:
+	if not _land_cache.is_empty():
+		return _land_cache
+	var lc: Dictionary = chunk.get("land_cells", {})
+	var cs: float = lc.get("cell_m", 50.0)
+	var near := _near_cells()
+	for c in lc.get("cells", []):
+		var k := Vector2i(int(c[0]), int(c[1]))
+		if near.has(k):
+			_land_cache[k] = true
+	var samples: Array = chunk.get("road", {}).get("samples", [])
+	var r := int(ceil(BAND_RADIUS / cs))
+	for i in range(0, samples.size(), 3):
+		if samples[i].get("on_bridge", false):
+			continue
+		var c := _cell_of(samples[i]["x"], samples[i]["z"], cs)
+		for dx in range(-r, r + 1):
+			for dz in range(-r, r + 1):
+				if dx * dx + dz * dz <= r * r:
+					_land_cache[c + Vector2i(dx, dz)] = true
+	return _land_cache
+
+
 func _build_land(root: Node3D) -> void:
 	var lc: Dictionary = chunk.get("land_cells", {})
-	var cells: Array = lc.get("cells", [])
+	var land := _land_cells()
+	var cells: Array = []
+	for k in land:
+		cells.append([k.x, k.y])
 	if cells.is_empty():
 		return
 	var s: float = lc.get("cell_m", 50.0)
-	var y := 0.25
+	var y := GROUND_Y
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PrimitiveType.PRIMITIVE_TRIANGLES)
 	st.set_normal(Vector3.UP)
@@ -377,6 +432,17 @@ func _build_land(root: Node3D) -> void:
 		var cc := Vector3(x0 + s, y, z0 + s); var d := Vector3(x0, y, z0 + s)
 		st.add_vertex(a); st.add_vertex(b); st.add_vertex(cc)
 		st.add_vertex(a); st.add_vertex(cc); st.add_vertex(d)
+		# shoreline walls down into the water so the ground isn't a floating sheet
+		var k := Vector2i(int(c[0]), int(c[1]))
+		var lo := -1.5
+		for e in [[Vector2i(0, -1), a, b], [Vector2i(1, 0), b, cc], [Vector2i(0, 1), cc, d], [Vector2i(-1, 0), d, a]]:
+			if not land.has(k + e[0]):
+				var p0: Vector3 = e[1]; var p1: Vector3 = e[2]
+				var q0 := Vector3(p0.x, lo, p0.z); var q1 := Vector3(p1.x, lo, p1.z)
+				st.set_color(Color(0.55, 0.47, 0.36))
+				st.add_vertex(p0); st.add_vertex(q1); st.add_vertex(p1)
+				st.add_vertex(p0); st.add_vertex(q0); st.add_vertex(q1)
+				st.set_color(Color(0.80, 0.70, 0.52))
 	var mi := MeshInstance3D.new()
 	mi.name = "Land"
 	mi.mesh = st.commit()
@@ -413,7 +479,9 @@ func _build_osm_buildings(root: Node3D) -> void:
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PrimitiveType.PRIMITIVE_TRIANGLES)
 	var rng := RandomNumberGenerator.new()
-	var base := 0.25
+	var base := GROUND_Y - 0.6   # sunk a little so walls always meet the ground
+	var near_set := _near_cells()
+	var near_cs: float = chunk.get("land_cells", {}).get("cell_m", 50.0)
 	for i in blds.size():
 		var b: Dictionary = blds[i]
 		rng.seed = i * 7919 + 13
@@ -423,6 +491,12 @@ func _build_osm_buildings(root: Node3D) -> void:
 		if poly.size() < 3:
 			continue
 		var h: float = b["h"]
+		var cen := Vector2.ZERO
+		for q in poly:
+			cen += q
+		cen /= poly.size()
+		if not near_set.has(_cell_of(cen.x, cen.y, near_cs)):
+			continue  # never visible from the race road
 		var near: bool = float(b.get("d", 9999.0)) < 160.0
 		var wc: Color = _WALLS[rng.randi() % _WALLS.size()]
 		var top := base + h
@@ -596,11 +670,9 @@ func _build_street_props(root: Node3D) -> void:
 	if frames.size() < 2:
 		return
 	var hw: float = chunk["road"]["half_width_m"]
-	var land := {}
+	var land := _land_cells()
 	var lc: Dictionary = chunk.get("land_cells", {})
 	var cs: float = lc.get("cell_m", 50.0)
-	for c in lc.get("cells", []):
-		land[Vector2i(int(c[0]), int(c[1]))] = true
 	var is_land := func(p: Vector3) -> bool:
 		return land.has(Vector2i(int(floor(p.x / cs)), int(floor(p.z / cs))))
 
@@ -634,7 +706,7 @@ func _build_street_props(root: Node3D) -> void:
 			next_pole = dist + 32.0
 			for side in [-1.0, 1.0]:
 				var base: Vector3 = c + p * side * (hw + 2.5)
-				base.y = 0.25 if is_land.call(base) else c.y
+				base.y = GROUND_Y if is_land.call(base) else c.y
 				var top: Vector3 = base + Vector3(0, 9.0, 0)
 				_obox(st, base + Vector3(0, 4.5, 0), Vector3(0.28, 9.0, 0.28), Basis(), Color(0.36, 0.26, 0.18))
 				_obox(st, top + Vector3(0, -0.6, 0), Vector3(1.8, 0.12, 0.12), Basis(Vector3.UP, atan2(p.x, p.z)), Color(0.3, 0.22, 0.15))
@@ -655,7 +727,7 @@ func _build_street_props(root: Node3D) -> void:
 				if rng.randf() < 0.45:
 					var pos: Vector3 = c + p * side * (hw + rng.randf_range(10.0, 220.0)) + fwd * rng.randf_range(-6.0, 6.0)
 					if is_land.call(pos):
-						pos.y = 0.25
+						pos.y = GROUND_Y
 						put.call(["island_tree_01", "island_tree_02", "island_tree_03"][rng.randi() % 3], pos, rng.randf() * TAU, rng.randf_range(0.8, 1.2))
 						if rng.randf() < 0.5:
 							var sp: Vector3 = pos + Vector3(rng.randf_range(-4, 4), 0, rng.randf_range(-4, 4))
@@ -667,7 +739,7 @@ func _build_street_props(root: Node3D) -> void:
 			var side: float = -1.0 if rng.randf() < 0.5 else 1.0
 			var pos: Vector3 = c + p * side * rng.randf_range(120.0, 450.0)
 			if is_land.call(pos):
-				pos.y = 0.25
+				pos.y = GROUND_Y
 				_mast(st, pos)
 
 		# billboards
@@ -676,7 +748,7 @@ func _build_street_props(root: Node3D) -> void:
 			var side: float = -1.0 if rng.randf() < 0.5 else 1.0
 			var pos: Vector3 = c + p * side * (hw + rng.randf_range(14.0, 30.0))
 			if is_land.call(pos):
-				pos.y = 0.25
+				pos.y = GROUND_Y
 				boards.append([pos, atan2(p.x, p.z) + (PI * 0.5 if side < 0 else -PI * 0.5)])
 
 		# bus shelters on the approaches
@@ -684,7 +756,7 @@ func _build_street_props(root: Node3D) -> void:
 			next_stop = dist + 280.0
 			var side: float = -1.0 if rng.randf() < 0.5 else 1.0
 			var pos: Vector3 = c + p * side * (hw + 4.0)
-			pos.y = 0.25 if is_land.call(pos) else c.y
+			pos.y = GROUND_Y if is_land.call(pos) else c.y
 			_bus_stop(st, pos, Basis(Vector3.UP, atan2(p.x, p.z)))
 
 		# roadside Lagos clutter: chairs, gens, crates, tyres, jerrycans, bins, AC units
@@ -693,7 +765,7 @@ func _build_street_props(root: Node3D) -> void:
 			var side: float = -1.0 if rng.randf() < 0.5 else 1.0
 			var base: Vector3 = c + p * side * (hw + rng.randf_range(3.0, 9.0)) + fwd * rng.randf_range(-4.0, 4.0)
 			if is_land.call(base):
-				base.y = 0.25
+				base.y = GROUND_Y
 				var junk := ["plastic_monobloc_chair_01", "portable_generator", "plastic_crate_01",
 					"old_tyre", "metal_jerrycan", "metal_trash_can", "propane_tank", "wooden_crate_01",
 					"utility_box_01", "exterior_aircon_unit", "utility_box_02", "fire_hydrant",
@@ -715,7 +787,7 @@ func _build_street_props(root: Node3D) -> void:
 			for side in [-1.0, 1.0]:
 				var lp: Vector3 = c + p * side * (hw + 1.2)
 				if is_land.call(lp):
-					lp.y = 0.25
+					lp.y = GROUND_Y
 					put.call("street_lamp_02", lp, atan2(p.x, p.z) + (PI if side > 0 else 0.0), 1.0)
 		if not on_bridge and rng.randf() < 0.01:
 			var bp2: Vector3 = c + p * (hw - 0.8) * (-1.0 if rng.randf() < 0.5 else 1.0)
@@ -1027,7 +1099,7 @@ func _build_landmarks(root: Node3D) -> void:
 			continue
 		var node := Node3D.new()
 		node.name = "Landmark_" + String(lm["name"]).replace(" ", "_").replace("-", "_")
-		node.position = Vector3(p.x, 0.25, p.z)
+		node.position = Vector3(p.x, 0.0 if lm["kind"] == "makoko" else GROUND_Y, p.z)
 		root.add_child(node)
 		var top := 40.0
 		# ground pad so landmarks never float where the map has no land cells

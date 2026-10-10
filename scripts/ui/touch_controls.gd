@@ -17,6 +17,8 @@ const BTN := [
 
 func _ready() -> void:
 	layer = 20
+	# whole layer (incl. labels) only on touch devices
+	visible = DisplayServer.is_touchscreen_available() or OS.has_feature("mobile")
 	var vp := get_viewport().get_visible_rect().size
 	for b in BTN:
 		var r: float = b[5]
