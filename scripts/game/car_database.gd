@@ -23,7 +23,6 @@ const ORDER: Array[StringName] = [
 	&"lexus_01",
 	&"gwagon_01",
 	&"family_01",
-	&"sport_01",
 	&"concept_01",
 	&"super_01",
 ]
