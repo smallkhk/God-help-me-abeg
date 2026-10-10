@@ -73,7 +73,7 @@ func set_rain(on: bool) -> void:
 
 
 func _unhandled_input(ev: InputEvent) -> void:
-	if ev is InputEventKey and ev.pressed and not ev.echo and ev.physical_keycode == KEY_Y:
+	if (ev is InputEventKey and ev.pressed and not ev.echo and ev.physical_keycode == KEY_Y) or (not ev is InputEventKey and InputMap.has_action("weather_toggle") and ev.is_action_pressed("weather_toggle")):
 		if _env:
 			_base_amb = _env.ambient_light_energy
 			_base_fog = _env.fog_density

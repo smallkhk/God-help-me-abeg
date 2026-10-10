@@ -43,6 +43,29 @@ func _ready() -> void:
 		lbl.size = Vector2(r * 2, r * 2)
 		tsb.add_child(lbl)
 		add_child(tsb)
+	# camera / day-sunset-night / rain buttons along the top
+	for a in [["time_next", KEY_N], ["weather_toggle", KEY_Y]]:
+		if not InputMap.has_action(a[0]):
+			InputMap.add_action(a[0])
+			var k := InputEventKey.new(); k.physical_keycode = a[1]
+			InputMap.action_add_event(a[0], k)
+	var top := [["camera_next", "CAM"], ["time_next", "DAY/NIGHT"], ["weather_toggle", "RAIN"]]
+	for t in top.size():
+		var tb := TouchScreenButton.new()
+		tb.action = top[t][0]
+		var sz := Vector2(150, 64)
+		tb.texture_normal = _rect(sz, Color(0, 0, 0, 0.35))
+		tb.texture_pressed = _rect(sz, Color(0.98, 0.76, 0.12, 0.6))
+		var rs := RectangleShape2D.new(); rs.size = sz
+		tb.shape = rs
+		tb.shape_centered = true
+		tb.visibility_mode = TouchScreenButton.VISIBILITY_TOUCHSCREEN_ONLY
+		tb.position = Vector2(vp.x * 0.5 - 250 + t * 170, 24)
+		var tl := Label.new(); tl.text = top[t][1]; tl.size = sz
+		tl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER; tl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		tl.add_theme_font_size_override("font_size", 22)
+		tb.add_child(tl)
+		add_child(tb)
 	# pause button top-right
 	var p := TouchScreenButton.new()
 	p.action = "pause"
@@ -54,6 +77,12 @@ func _ready() -> void:
 	pl.add_theme_font_size_override("font_size", 30)
 	p.add_child(pl)
 	add_child(p)
+
+
+static func _rect(sz: Vector2, col: Color) -> ImageTexture:
+	var img := Image.create(int(sz.x), int(sz.y), false, Image.FORMAT_RGBA8)
+	img.fill(col)
+	return ImageTexture.create_from_image(img)
 
 
 static func _circle(r: float, col: Color) -> ImageTexture:
