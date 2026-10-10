@@ -102,3 +102,4 @@ heights applied to footprints by tools/lagos_map_pipeline/apply_google_25d_heigh
 ## Kenney Nature Kit trees (k_tree_*) — CC0
 ## AI-generated assets (fal.ai, generated for this project)
 - assets/vehicles/danfo/danfo.glb — Tripo v2.5 text-to-3D (PBR), Lagos danfo.
+- assets/vehicles/keke/keke.glb — Tripo v2.5 text-to-3D (PBR), Keke Napep.

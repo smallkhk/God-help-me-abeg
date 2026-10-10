@@ -812,13 +812,23 @@ func _build_street_props(root: Node3D) -> void:
 			var cp: Vector3 = c + p * side2 * (hw + 2.6)
 			if is_land.call(cp):
 				cp.y = GROUND_Y
-				var kc := ["kenney/sedan", "kenney/taxi", "danfo/danfo", "kenney/suv", "danfo/danfo", "danfo/danfo"]
+				var kc := ["kenney/sedan", "kenney/taxi", "danfo/danfo", "kenney/suv", "danfo/danfo", "danfo/danfo", "keke/keke"]
 				var km: String = kc[rng.randi() % kc.size()]
 				var yaw := atan2(fwd.x, fwd.z) + (0.0 if rng.randf() < 0.5 else PI)
-				if km == "danfo/danfo":
-					put.call(km, cp + Vector3(0, 1.0, 0), yaw + PI * 0.5, 1.0)
+				if _AI_VEH.has(km):
+					put.call(km, cp + Vector3(0, _AI_VEH[km][0], 0), yaw + _AI_VEH[km][1], 1.0)
 				else:
 					put.call(km, cp, yaw, 1.75)
+
+		# keke ranks: 3-4 kekes lined up nose-to-tail on the roadside
+		if not on_bridge and i % 3 == 1 and rng.randf() < 0.12:
+			var sd: float = -1.0 if rng.randf() < 0.5 else 1.0
+			var kp0: Vector3 = c + p * sd * (hw + 3.2)
+			if is_land.call(kp0):
+				var kyaw := atan2(fwd.x, fwd.z)
+				for kk in rng.randi_range(3, 4):
+					var kp: Vector3 = kp0 + fwd * (kk * 3.0) + Vector3(0, GROUND_Y + _AI_VEH["keke/keke"][0] - kp0.y, 0)
+					put.call("keke/keke", kp, kyaw + _AI_VEH["keke/keke"][1], 1.0)
 
 		# roadside Lagos clutter: chairs, gens, crates, tyres, jerrycans, bins, AC units
 		if not on_bridge and dist >= next_junk:
@@ -879,6 +889,11 @@ func _build_street_props(root: Node3D) -> void:
 		_billboard(root, bd[0], bd[1], _BRANDS[rng.randi() % _BRANDS.size()], rng)
 
 	_build_median(root, frames)
+
+
+## AI-generated (fal/Tripo) vehicles are centred on their middle and lie along X:
+## [lift to put wheels on the ground, yaw offset to face along the road]
+const _AI_VEH := {"danfo/danfo": [1.0, PI * 0.5], "keke/keke": [0.9, -PI * 0.5]}
 
 
 ## One MultiMesh per mesh part of each glb model (cheap to draw thousands).
