@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cd176yabrm7ej"
-path="res://.godot/imported/lastma_Color_10cb576f-fa96-4d4f-989d-68a552ad5357.jpg-4dfc9a204e7306ec08f69dd713157d8c.ctex"
+path.s3tc="res://.godot/imported/lastma_Color_10cb576f-fa96-4d4f-989d-68a552ad5357.jpg-4dfc9a204e7306ec08f69dd713157d8c.s3tc.ctex"
+path.etc2="res://.godot/imported/lastma_Color_10cb576f-fa96-4d4f-989d-68a552ad5357.jpg-4dfc9a204e7306ec08f69dd713157d8c.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "bd2e6923a15bf66904bf00363dccfa20"
+"md5": "9607a88db14ff5d06871f6889df20743"
 }
 
 [deps]
 
 source_file="res://assets/models/lagos/lastma_Color_10cb576f-fa96-4d4f-989d-68a552ad5357.jpg"
-dest_files=["res://.godot/imported/lastma_Color_10cb576f-fa96-4d4f-989d-68a552ad5357.jpg-4dfc9a204e7306ec08f69dd713157d8c.ctex"]
+dest_files=["res://.godot/imported/lastma_Color_10cb576f-fa96-4d4f-989d-68a552ad5357.jpg-4dfc9a204e7306ec08f69dd713157d8c.s3tc.ctex", "res://.godot/imported/lastma_Color_10cb576f-fa96-4d4f-989d-68a552ad5357.jpg-4dfc9a204e7306ec08f69dd713157d8c.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

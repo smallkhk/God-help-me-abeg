@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dh0owpu2kdh83"
-path="res://.godot/imported/checkpoint_ORM_3bf63fe8-53f4-4426-bded-5c4d30a5808d.jpg-aff14d7b85a0d9c4d7e0a831e67ff707.ctex"
+path.s3tc="res://.godot/imported/checkpoint_ORM_3bf63fe8-53f4-4426-bded-5c4d30a5808d.jpg-aff14d7b85a0d9c4d7e0a831e67ff707.s3tc.ctex"
+path.etc2="res://.godot/imported/checkpoint_ORM_3bf63fe8-53f4-4426-bded-5c4d30a5808d.jpg-aff14d7b85a0d9c4d7e0a831e67ff707.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "c729a94a3d2ef1dabc18c68fe553187b"
+"md5": "f831ff285fcc3b5d41c8f55ea14f87ee"
 }
 
 [deps]
 
 source_file="res://assets/models/lagos/checkpoint_ORM_3bf63fe8-53f4-4426-bded-5c4d30a5808d.jpg"
-dest_files=["res://.godot/imported/checkpoint_ORM_3bf63fe8-53f4-4426-bded-5c4d30a5808d.jpg-aff14d7b85a0d9c4d7e0a831e67ff707.ctex"]
+dest_files=["res://.godot/imported/checkpoint_ORM_3bf63fe8-53f4-4426-bded-5c4d30a5808d.jpg-aff14d7b85a0d9c4d7e0a831e67ff707.s3tc.ctex", "res://.godot/imported/checkpoint_ORM_3bf63fe8-53f4-4426-bded-5c4d30a5808d.jpg-aff14d7b85a0d9c4d7e0a831e67ff707.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

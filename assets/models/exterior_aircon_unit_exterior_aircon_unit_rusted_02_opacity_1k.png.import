@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://4fjo3en4qm4x"
-path="res://.godot/imported/exterior_aircon_unit_exterior_aircon_unit_rusted_02_opacity_1k.png-41c58143de288ea2a59a3bec5dc579d1.ctex"
+path.s3tc="res://.godot/imported/exterior_aircon_unit_exterior_aircon_unit_rusted_02_opacity_1k.png-41c58143de288ea2a59a3bec5dc579d1.s3tc.ctex"
+path.etc2="res://.godot/imported/exterior_aircon_unit_exterior_aircon_unit_rusted_02_opacity_1k.png-41c58143de288ea2a59a3bec5dc579d1.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "dfdb6e69d0751d12e9921dc2d9ff3810"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/exterior_aircon_unit_exterior_aircon_unit_rusted_02_opacity_1k.png"
-dest_files=["res://.godot/imported/exterior_aircon_unit_exterior_aircon_unit_rusted_02_opacity_1k.png-41c58143de288ea2a59a3bec5dc579d1.ctex"]
+dest_files=["res://.godot/imported/exterior_aircon_unit_exterior_aircon_unit_rusted_02_opacity_1k.png-41c58143de288ea2a59a3bec5dc579d1.s3tc.ctex", "res://.godot/imported/exterior_aircon_unit_exterior_aircon_unit_rusted_02_opacity_1k.png-41c58143de288ea2a59a3bec5dc579d1.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

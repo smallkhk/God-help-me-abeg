@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dxba15qy28wf6"
-path="res://.godot/imported/villagekiosk_ORM_1be78d07-b40f-42fd-b1e1-1f1db0146fbe.jpg-c7d4e28a79bd7b5541be13431419775f.ctex"
+path.s3tc="res://.godot/imported/villagekiosk_ORM_1be78d07-b40f-42fd-b1e1-1f1db0146fbe.jpg-c7d4e28a79bd7b5541be13431419775f.s3tc.ctex"
+path.etc2="res://.godot/imported/villagekiosk_ORM_1be78d07-b40f-42fd-b1e1-1f1db0146fbe.jpg-c7d4e28a79bd7b5541be13431419775f.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "983023d4cae47a64d4c96cd750d45c22"
+"md5": "0505a3c5c04689badc2228e45ccce591"
 }
 
 [deps]
 
 source_file="res://assets/models/lagos/villagekiosk_ORM_1be78d07-b40f-42fd-b1e1-1f1db0146fbe.jpg"
-dest_files=["res://.godot/imported/villagekiosk_ORM_1be78d07-b40f-42fd-b1e1-1f1db0146fbe.jpg-c7d4e28a79bd7b5541be13431419775f.ctex"]
+dest_files=["res://.godot/imported/villagekiosk_ORM_1be78d07-b40f-42fd-b1e1-1f1db0146fbe.jpg-c7d4e28a79bd7b5541be13431419775f.s3tc.ctex", "res://.godot/imported/villagekiosk_ORM_1be78d07-b40f-42fd-b1e1-1f1db0146fbe.jpg-c7d4e28a79bd7b5541be13431419775f.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

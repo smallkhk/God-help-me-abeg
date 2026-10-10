@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dwsn1v85xcp7f"
-path="res://.godot/imported/wreck_ORM_1b298efb-ad02-42ea-9340-f791b65c3d16.jpg-ce61793605419604cb3d994da73ef930.ctex"
+path.s3tc="res://.godot/imported/wreck_ORM_1b298efb-ad02-42ea-9340-f791b65c3d16.jpg-ce61793605419604cb3d994da73ef930.s3tc.ctex"
+path.etc2="res://.godot/imported/wreck_ORM_1b298efb-ad02-42ea-9340-f791b65c3d16.jpg-ce61793605419604cb3d994da73ef930.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "ba259c14469f0f43d8725f65a69d6b99"
+"md5": "dbc1b1a59db7cb9e61440a9d8c5b5929"
 }
 
 [deps]
 
 source_file="res://assets/models/lagos/wreck_ORM_1b298efb-ad02-42ea-9340-f791b65c3d16.jpg"
-dest_files=["res://.godot/imported/wreck_ORM_1b298efb-ad02-42ea-9340-f791b65c3d16.jpg-ce61793605419604cb3d994da73ef930.ctex"]
+dest_files=["res://.godot/imported/wreck_ORM_1b298efb-ad02-42ea-9340-f791b65c3d16.jpg-ce61793605419604cb3d994da73ef930.s3tc.ctex", "res://.godot/imported/wreck_ORM_1b298efb-ad02-42ea-9340-f791b65c3d16.jpg-ce61793605419604cb3d994da73ef930.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

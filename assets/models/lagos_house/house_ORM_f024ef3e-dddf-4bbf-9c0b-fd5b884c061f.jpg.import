@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://blxk6efk8yvam"
-path="res://.godot/imported/house_ORM_f024ef3e-dddf-4bbf-9c0b-fd5b884c061f.jpg-77ae74c4a664353ef11a68ef2aff9da9.ctex"
+path.s3tc="res://.godot/imported/house_ORM_f024ef3e-dddf-4bbf-9c0b-fd5b884c061f.jpg-77ae74c4a664353ef11a68ef2aff9da9.s3tc.ctex"
+path.etc2="res://.godot/imported/house_ORM_f024ef3e-dddf-4bbf-9c0b-fd5b884c061f.jpg-77ae74c4a664353ef11a68ef2aff9da9.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "b3649983123107b23d8faa05dbbe5d2c"
+"md5": "4c190e172c2756a212d8d63164032be5"
 }
 
 [deps]
 
 source_file="res://assets/models/lagos_house/house_ORM_f024ef3e-dddf-4bbf-9c0b-fd5b884c061f.jpg"
-dest_files=["res://.godot/imported/house_ORM_f024ef3e-dddf-4bbf-9c0b-fd5b884c061f.jpg-77ae74c4a664353ef11a68ef2aff9da9.ctex"]
+dest_files=["res://.godot/imported/house_ORM_f024ef3e-dddf-4bbf-9c0b-fd5b884c061f.jpg-77ae74c4a664353ef11a68ef2aff9da9.s3tc.ctex", "res://.godot/imported/house_ORM_f024ef3e-dddf-4bbf-9c0b-fd5b884c061f.jpg-77ae74c4a664353ef11a68ef2aff9da9.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

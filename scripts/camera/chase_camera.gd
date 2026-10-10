@@ -36,6 +36,9 @@ func _ready() -> void:
 	if _target == null:
 		push_warning("chase_camera: no target vehicle set.")
 	fov = base_fov
+	# draw distance: the haze hides the cut-off; the race only needs ~1 km
+	var g := get_node_or_null("/root/Game")
+	far = 1100.0 if (g == null or g.get("high_graphics")) else 750.0
 	if _target:
 		_cam_pos = _target.global_position
 	top_level = true  # we set global transform ourselves

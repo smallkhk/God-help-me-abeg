@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://624ievjbxkk6"
-path="res://.godot/imported/mudhut_NormalGL_77ac8f9c-1097-493f-9f88-969c92b3df04.png-b4feca22ac1610429b931857da6a1e0b.ctex"
+path.s3tc="res://.godot/imported/mudhut_NormalGL_77ac8f9c-1097-493f-9f88-969c92b3df04.png-b4feca22ac1610429b931857da6a1e0b.s3tc.ctex"
+path.etc2="res://.godot/imported/mudhut_NormalGL_77ac8f9c-1097-493f-9f88-969c92b3df04.png-b4feca22ac1610429b931857da6a1e0b.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "cde44dfb4430fb77cb4764eedce6ae2c"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/lagos/mudhut_NormalGL_77ac8f9c-1097-493f-9f88-969c92b3df04.png"
-dest_files=["res://.godot/imported/mudhut_NormalGL_77ac8f9c-1097-493f-9f88-969c92b3df04.png-b4feca22ac1610429b931857da6a1e0b.ctex"]
+dest_files=["res://.godot/imported/mudhut_NormalGL_77ac8f9c-1097-493f-9f88-969c92b3df04.png-b4feca22ac1610429b931857da6a1e0b.s3tc.ctex", "res://.godot/imported/mudhut_NormalGL_77ac8f9c-1097-493f-9f88-969c92b3df04.png-b4feca22ac1610429b931857da6a1e0b.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

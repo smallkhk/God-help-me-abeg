@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dvyd3mt2o6atw"
-path="res://.godot/imported/mechanic_NormalGL_f51d0cea-055a-4696-8f5e-4b48f4f6836c.png-736b243b97f6e3d65c0bc8da381db566.ctex"
+path.s3tc="res://.godot/imported/mechanic_NormalGL_f51d0cea-055a-4696-8f5e-4b48f4f6836c.png-736b243b97f6e3d65c0bc8da381db566.s3tc.ctex"
+path.etc2="res://.godot/imported/mechanic_NormalGL_f51d0cea-055a-4696-8f5e-4b48f4f6836c.png-736b243b97f6e3d65c0bc8da381db566.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "f73c953bdc9520d0ea8aee2b8cb33a96"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/lagos/mechanic_NormalGL_f51d0cea-055a-4696-8f5e-4b48f4f6836c.png"
-dest_files=["res://.godot/imported/mechanic_NormalGL_f51d0cea-055a-4696-8f5e-4b48f4f6836c.png-736b243b97f6e3d65c0bc8da381db566.ctex"]
+dest_files=["res://.godot/imported/mechanic_NormalGL_f51d0cea-055a-4696-8f5e-4b48f4f6836c.png-736b243b97f6e3d65c0bc8da381db566.s3tc.ctex", "res://.godot/imported/mechanic_NormalGL_f51d0cea-055a-4696-8f5e-4b48f4f6836c.png-736b243b97f6e3d65c0bc8da381db566.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

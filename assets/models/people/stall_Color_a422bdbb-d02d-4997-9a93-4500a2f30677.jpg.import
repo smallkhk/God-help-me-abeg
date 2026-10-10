@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://0mu4abjlo5s2"
-path="res://.godot/imported/stall_Color_a422bdbb-d02d-4997-9a93-4500a2f30677.jpg-3828e79355d655973ca80d5ee8944185.ctex"
+path.s3tc="res://.godot/imported/stall_Color_a422bdbb-d02d-4997-9a93-4500a2f30677.jpg-3828e79355d655973ca80d5ee8944185.s3tc.ctex"
+path.etc2="res://.godot/imported/stall_Color_a422bdbb-d02d-4997-9a93-4500a2f30677.jpg-3828e79355d655973ca80d5ee8944185.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "fb575cbffe7c7d3b76a2ec3223980c4e"
+"md5": "e52eeb3e43c098a38cc62e65dd53c83b"
 }
 
 [deps]
 
 source_file="res://assets/models/people/stall_Color_a422bdbb-d02d-4997-9a93-4500a2f30677.jpg"
-dest_files=["res://.godot/imported/stall_Color_a422bdbb-d02d-4997-9a93-4500a2f30677.jpg-3828e79355d655973ca80d5ee8944185.ctex"]
+dest_files=["res://.godot/imported/stall_Color_a422bdbb-d02d-4997-9a93-4500a2f30677.jpg-3828e79355d655973ca80d5ee8944185.s3tc.ctex", "res://.godot/imported/stall_Color_a422bdbb-d02d-4997-9a93-4500a2f30677.jpg-3828e79355d655973ca80d5ee8944185.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

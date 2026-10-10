@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dk3q4qb1k3lxu"
-path="res://.godot/imported/termite_ORM_856dd780-5488-4bc2-8a41-cf663f8da945.jpg-06b1329144f9406469ead9c0ae2545e0.ctex"
+path.s3tc="res://.godot/imported/termite_ORM_856dd780-5488-4bc2-8a41-cf663f8da945.jpg-06b1329144f9406469ead9c0ae2545e0.s3tc.ctex"
+path.etc2="res://.godot/imported/termite_ORM_856dd780-5488-4bc2-8a41-cf663f8da945.jpg-06b1329144f9406469ead9c0ae2545e0.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "b71ae53d96cbc6b82a42dfeeece0c4af"
+"md5": "7499baa99c9df2ab7ea437fdcf27cbf4"
 }
 
 [deps]
 
 source_file="res://assets/models/lagos/termite_ORM_856dd780-5488-4bc2-8a41-cf663f8da945.jpg"
-dest_files=["res://.godot/imported/termite_ORM_856dd780-5488-4bc2-8a41-cf663f8da945.jpg-06b1329144f9406469ead9c0ae2545e0.ctex"]
+dest_files=["res://.godot/imported/termite_ORM_856dd780-5488-4bc2-8a41-cf663f8da945.jpg-06b1329144f9406469ead9c0ae2545e0.s3tc.ctex", "res://.godot/imported/termite_ORM_856dd780-5488-4bc2-8a41-cf663f8da945.jpg-06b1329144f9406469ead9c0ae2545e0.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c1ax7jlo8si45"
-path="res://.godot/imported/dutch_ship_medium_dutch_ship_medium_sails_arm_1k.jpg-b7e29d9e9666201d858639449acf635a.ctex"
+path.s3tc="res://.godot/imported/dutch_ship_medium_dutch_ship_medium_sails_arm_1k.jpg-b7e29d9e9666201d858639449acf635a.s3tc.ctex"
+path.etc2="res://.godot/imported/dutch_ship_medium_dutch_ship_medium_sails_arm_1k.jpg-b7e29d9e9666201d858639449acf635a.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "d080bcf60bc3d5ecff5ed3ced9d595cb"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/dutch_ship_medium_dutch_ship_medium_sails_arm_1k.jpg"
-dest_files=["res://.godot/imported/dutch_ship_medium_dutch_ship_medium_sails_arm_1k.jpg-b7e29d9e9666201d858639449acf635a.ctex"]
+dest_files=["res://.godot/imported/dutch_ship_medium_dutch_ship_medium_sails_arm_1k.jpg-b7e29d9e9666201d858639449acf635a.s3tc.ctex", "res://.godot/imported/dutch_ship_medium_dutch_ship_medium_sails_arm_1k.jpg-b7e29d9e9666201d858639449acf635a.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

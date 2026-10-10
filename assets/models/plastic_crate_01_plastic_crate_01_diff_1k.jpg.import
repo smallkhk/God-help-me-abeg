@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bk11uysdpm3mw"
-path="res://.godot/imported/plastic_crate_01_plastic_crate_01_diff_1k.jpg-b0d5d80e61e446cea91ad97f74441fc3.ctex"
+path.s3tc="res://.godot/imported/plastic_crate_01_plastic_crate_01_diff_1k.jpg-b0d5d80e61e446cea91ad97f74441fc3.s3tc.ctex"
+path.etc2="res://.godot/imported/plastic_crate_01_plastic_crate_01_diff_1k.jpg-b0d5d80e61e446cea91ad97f74441fc3.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "0234578b087c69b879835bfc0b64a43e"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/plastic_crate_01_plastic_crate_01_diff_1k.jpg"
-dest_files=["res://.godot/imported/plastic_crate_01_plastic_crate_01_diff_1k.jpg-b0d5d80e61e446cea91ad97f74441fc3.ctex"]
+dest_files=["res://.godot/imported/plastic_crate_01_plastic_crate_01_diff_1k.jpg-b0d5d80e61e446cea91ad97f74441fc3.s3tc.ctex", "res://.godot/imported/plastic_crate_01_plastic_crate_01_diff_1k.jpg-b0d5d80e61e446cea91ad97f74441fc3.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

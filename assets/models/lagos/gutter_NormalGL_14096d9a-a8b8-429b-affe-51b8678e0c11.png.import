@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dk6284qaecvi2"
-path="res://.godot/imported/gutter_NormalGL_14096d9a-a8b8-429b-affe-51b8678e0c11.png-f024fdef54d42a48f7d7eaa5f8068c72.ctex"
+path.s3tc="res://.godot/imported/gutter_NormalGL_14096d9a-a8b8-429b-affe-51b8678e0c11.png-f024fdef54d42a48f7d7eaa5f8068c72.s3tc.ctex"
+path.etc2="res://.godot/imported/gutter_NormalGL_14096d9a-a8b8-429b-affe-51b8678e0c11.png-f024fdef54d42a48f7d7eaa5f8068c72.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "4857894be900ae633284788e25d82b70"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/lagos/gutter_NormalGL_14096d9a-a8b8-429b-affe-51b8678e0c11.png"
-dest_files=["res://.godot/imported/gutter_NormalGL_14096d9a-a8b8-429b-affe-51b8678e0c11.png-f024fdef54d42a48f7d7eaa5f8068c72.ctex"]
+dest_files=["res://.godot/imported/gutter_NormalGL_14096d9a-a8b8-429b-affe-51b8678e0c11.png-f024fdef54d42a48f7d7eaa5f8068c72.s3tc.ctex", "res://.godot/imported/gutter_NormalGL_14096d9a-a8b8-429b-affe-51b8678e0c11.png-f024fdef54d42a48f7d7eaa5f8068c72.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

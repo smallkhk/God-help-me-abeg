@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dnmp6fkc3jn6q"
-path="res://.godot/imported/petrol_NormalGL_9ec48c6a-6075-43fb-85a3-b4711e4cca27.png-4c6eb92c46f93b01fb22f02561bbc882.ctex"
+path.s3tc="res://.godot/imported/petrol_NormalGL_9ec48c6a-6075-43fb-85a3-b4711e4cca27.png-4c6eb92c46f93b01fb22f02561bbc882.s3tc.ctex"
+path.etc2="res://.godot/imported/petrol_NormalGL_9ec48c6a-6075-43fb-85a3-b4711e4cca27.png-4c6eb92c46f93b01fb22f02561bbc882.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "1fa1ab4bad0c018c22b756419d3cf069"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/lagos/petrol_NormalGL_9ec48c6a-6075-43fb-85a3-b4711e4cca27.png"
-dest_files=["res://.godot/imported/petrol_NormalGL_9ec48c6a-6075-43fb-85a3-b4711e4cca27.png-4c6eb92c46f93b01fb22f02561bbc882.ctex"]
+dest_files=["res://.godot/imported/petrol_NormalGL_9ec48c6a-6075-43fb-85a3-b4711e4cca27.png-4c6eb92c46f93b01fb22f02561bbc882.s3tc.ctex", "res://.godot/imported/petrol_NormalGL_9ec48c6a-6075-43fb-85a3-b4711e4cca27.png-4c6eb92c46f93b01fb22f02561bbc882.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cj6r7mqi3qli7"
-path="res://.godot/imported/bank_NormalGL_bccdc1f5-5006-41fc-991d-d80cd02e60f7.png-734cb7b6830f9fc09ce137f8fceaa26b.ctex"
+path.s3tc="res://.godot/imported/bank_NormalGL_bccdc1f5-5006-41fc-991d-d80cd02e60f7.png-734cb7b6830f9fc09ce137f8fceaa26b.s3tc.ctex"
+path.etc2="res://.godot/imported/bank_NormalGL_bccdc1f5-5006-41fc-991d-d80cd02e60f7.png-734cb7b6830f9fc09ce137f8fceaa26b.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "be0f2819dcf8ee19641d59f0a16c38cd"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/lagos/bank_NormalGL_bccdc1f5-5006-41fc-991d-d80cd02e60f7.png"
-dest_files=["res://.godot/imported/bank_NormalGL_bccdc1f5-5006-41fc-991d-d80cd02e60f7.png-734cb7b6830f9fc09ce137f8fceaa26b.ctex"]
+dest_files=["res://.godot/imported/bank_NormalGL_bccdc1f5-5006-41fc-991d-d80cd02e60f7.png-734cb7b6830f9fc09ce137f8fceaa26b.s3tc.ctex", "res://.godot/imported/bank_NormalGL_bccdc1f5-5006-41fc-991d-d80cd02e60f7.png-734cb7b6830f9fc09ce137f8fceaa26b.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

@@ -993,6 +993,7 @@ func _build_street_props(root: Node3D) -> void:
 	_own(mi)
 
 	_spawn_model_instances(root, inst)
+	_roadside_grass(root, frames, hw, is_land)
 
 	var bb_xf: Array = []
 	for bd in boards:
@@ -1005,6 +1006,37 @@ func _build_street_props(root: Node3D) -> void:
 	if not bb_xf.is_empty():
 		_spawn_model_instances(root, {"billboard/billboard": bb_xf})
 	_build_median(root, frames)
+
+
+## Real 3D grass tufts (SimpleGrassTextured, GPU-instanced) on the verges of
+## city maps: thick by the kerb, thinning out away from the road.
+func _roadside_grass(root: Node3D, frames: Array, hw: float, is_land: Callable) -> void:
+	var gs := load("res://addons/simplegrasstextured/grass.gd") as GDScript
+	if gs == null:
+		return
+	var g := get_node_or_null("/root/Game")
+	var hi: bool = g == null or bool(g.get("high_graphics"))
+	var rng := RandomNumberGenerator.new(); rng.seed = 5150
+	var tfs: Array = []
+	var per := 7 if hi else 3
+	for i in range(0, frames.size(), 2):
+		if frames[i]["bridge"]:
+			continue
+		var c: Vector3 = frames[i]["c"]; var p: Vector3 = frames[i]["p"]
+		for k in per:
+			var side: float = -1.0 if rng.randf() < 0.5 else 1.0
+			var d := hw + 1.5 + pow(rng.randf(), 2.0) * 22.0
+			var pos: Vector3 = c + p * side * d + Vector3(-p.z, 0, p.x) * rng.randf_range(-6.0, 6.0)
+			if not is_land.call(pos):
+				continue
+			pos.y = GROUND_Y - 0.05
+			tfs.append(Transform3D(Basis(Vector3.UP, rng.randf() * TAU).scaled(Vector3.ONE * rng.randf_range(1.2, 2.2)), pos))
+	if tfs.is_empty():
+		return
+	var grass: Node3D = gs.new()
+	grass.name = "RoadsideGrass"
+	root.add_child(grass)
+	grass.call("add_grass_batch", tfs)
 
 
 ## AI-generated (fal/Tripo) vehicles are centred on their middle and lie along X:
@@ -1034,13 +1066,14 @@ func _spawn_model_instances(root: Node3D, inst: Dictionary) -> void:
 			continue
 		var scene := (load(path) as PackedScene).instantiate()
 		var xforms: Array = inst[model]
-		var far := 600.0 if (model.begins_with("island_tree") or model.begins_with("k_tree")) else 180.0
+		# race-track draw distance: nothing far from the road needs drawing
+		var far := 260.0 if (model.begins_with("island_tree") or model.begins_with("k_tree")) else 140.0
 		# draw distance by real size: people/props pop out early, buildings stay
 		if model.begins_with("people/") or model in ["lagos/generator", "lagos/bole", "lagos/purewater", "lagos/gutter", "lagos/brtbarrier", "lagos/barricade", "lagos/palmoil", "lagos/lastma"]:
-			far = 70.0
+			far = 60.0
 		elif model in ["lagos/church", "lagos/mosque", "lagos/tower", "lagos/bank", "lagos/petrol", "lagos/footbridge", "plaza/plaza", "lagos_house/house", "unfinished/unfinished", "billboard/billboard"]:
-			far = 650.0
-		var cell_m := 100.0 if far < 200.0 else 300.0
+			far = 420.0
+		var cell_m := 80.0 if far < 200.0 else 160.0
 		for m in scene.find_children("*", "MeshInstance3D", true, false):
 			var mesh_i := m as MeshInstance3D
 			var mn := String(mesh_i.name).to_upper()

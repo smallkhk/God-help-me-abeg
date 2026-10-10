@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cvavlf3v4wxxo"
-path="res://.godot/imported/metal_trash_can_metal_trash_can_diff_1k.jpg-54404869f59494832c8a753d9a00e3e7.ctex"
+path.s3tc="res://.godot/imported/metal_trash_can_metal_trash_can_diff_1k.jpg-54404869f59494832c8a753d9a00e3e7.s3tc.ctex"
+path.etc2="res://.godot/imported/metal_trash_can_metal_trash_can_diff_1k.jpg-54404869f59494832c8a753d9a00e3e7.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "fab9e70890bf5a6ca62ef2c0263dc015"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/metal_trash_can_metal_trash_can_diff_1k.jpg"
-dest_files=["res://.godot/imported/metal_trash_can_metal_trash_can_diff_1k.jpg-54404869f59494832c8a753d9a00e3e7.ctex"]
+dest_files=["res://.godot/imported/metal_trash_can_metal_trash_can_diff_1k.jpg-54404869f59494832c8a753d9a00e3e7.s3tc.ctex", "res://.godot/imported/metal_trash_can_metal_trash_can_diff_1k.jpg-54404869f59494832c8a753d9a00e3e7.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

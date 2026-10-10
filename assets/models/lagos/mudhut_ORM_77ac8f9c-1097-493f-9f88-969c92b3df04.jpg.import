@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://d0lvvsuek1026"
-path="res://.godot/imported/mudhut_ORM_77ac8f9c-1097-493f-9f88-969c92b3df04.jpg-b2fc438e6a1c519ed46c4948a02a4c6b.ctex"
+path.s3tc="res://.godot/imported/mudhut_ORM_77ac8f9c-1097-493f-9f88-969c92b3df04.jpg-b2fc438e6a1c519ed46c4948a02a4c6b.s3tc.ctex"
+path.etc2="res://.godot/imported/mudhut_ORM_77ac8f9c-1097-493f-9f88-969c92b3df04.jpg-b2fc438e6a1c519ed46c4948a02a4c6b.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "5aee9855345fd3a5c8437c905704130a"
+"md5": "c6a6b61e5cd523aebba7c7b660e1e247"
 }
 
 [deps]
 
 source_file="res://assets/models/lagos/mudhut_ORM_77ac8f9c-1097-493f-9f88-969c92b3df04.jpg"
-dest_files=["res://.godot/imported/mudhut_ORM_77ac8f9c-1097-493f-9f88-969c92b3df04.jpg-b2fc438e6a1c519ed46c4948a02a4c6b.ctex"]
+dest_files=["res://.godot/imported/mudhut_ORM_77ac8f9c-1097-493f-9f88-969c92b3df04.jpg-b2fc438e6a1c519ed46c4948a02a4c6b.s3tc.ctex", "res://.godot/imported/mudhut_ORM_77ac8f9c-1097-493f-9f88-969c92b3df04.jpg-b2fc438e6a1c519ed46c4948a02a4c6b.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bk1yyjrpk2tbe"
-path="res://.godot/imported/footbridge_ORM_de59cdc6-e828-4c87-a668-fa5cc9066daa.jpg-d97085c5acb8c1c2f188222919132782.ctex"
+path.s3tc="res://.godot/imported/footbridge_ORM_de59cdc6-e828-4c87-a668-fa5cc9066daa.jpg-d97085c5acb8c1c2f188222919132782.s3tc.ctex"
+path.etc2="res://.godot/imported/footbridge_ORM_de59cdc6-e828-4c87-a668-fa5cc9066daa.jpg-d97085c5acb8c1c2f188222919132782.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "e47c8399ff4ccfb6c4b939c4e2b8b669"
+"md5": "d1424a9738961889070c4e32c2b79817"
 }
 
 [deps]
 
 source_file="res://assets/models/lagos/footbridge_ORM_de59cdc6-e828-4c87-a668-fa5cc9066daa.jpg"
-dest_files=["res://.godot/imported/footbridge_ORM_de59cdc6-e828-4c87-a668-fa5cc9066daa.jpg-d97085c5acb8c1c2f188222919132782.ctex"]
+dest_files=["res://.godot/imported/footbridge_ORM_de59cdc6-e828-4c87-a668-fa5cc9066daa.jpg-d97085c5acb8c1c2f188222919132782.s3tc.ctex", "res://.godot/imported/footbridge_ORM_de59cdc6-e828-4c87-a668-fa5cc9066daa.jpg-d97085c5acb8c1c2f188222919132782.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

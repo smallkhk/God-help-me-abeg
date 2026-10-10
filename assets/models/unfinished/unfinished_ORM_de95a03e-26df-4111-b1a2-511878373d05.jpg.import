@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bikd8xitr0cjh"
-path="res://.godot/imported/unfinished_ORM_de95a03e-26df-4111-b1a2-511878373d05.jpg-cbe42caf3952c70d8365c1aca504a1e5.ctex"
+path.s3tc="res://.godot/imported/unfinished_ORM_de95a03e-26df-4111-b1a2-511878373d05.jpg-cbe42caf3952c70d8365c1aca504a1e5.s3tc.ctex"
+path.etc2="res://.godot/imported/unfinished_ORM_de95a03e-26df-4111-b1a2-511878373d05.jpg-cbe42caf3952c70d8365c1aca504a1e5.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "68e937309ee983e46cf4322ccaa6619e"
+"md5": "5fcd26793d23265dd4bb39124ad00efc"
 }
 
 [deps]
 
 source_file="res://assets/models/unfinished/unfinished_ORM_de95a03e-26df-4111-b1a2-511878373d05.jpg"
-dest_files=["res://.godot/imported/unfinished_ORM_de95a03e-26df-4111-b1a2-511878373d05.jpg-cbe42caf3952c70d8365c1aca504a1e5.ctex"]
+dest_files=["res://.godot/imported/unfinished_ORM_de95a03e-26df-4111-b1a2-511878373d05.jpg-cbe42caf3952c70d8365c1aca504a1e5.s3tc.ctex", "res://.godot/imported/unfinished_ORM_de95a03e-26df-4111-b1a2-511878373d05.jpg-cbe42caf3952c70d8365c1aca504a1e5.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

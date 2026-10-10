@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bm4g80psx6ssp"
-path="res://.godot/imported/rollershutter_door_rollershutter_door_diff_1k.jpg-b121383933f73226a091c79ba42d2f89.ctex"
+path.s3tc="res://.godot/imported/rollershutter_door_rollershutter_door_diff_1k.jpg-b121383933f73226a091c79ba42d2f89.s3tc.ctex"
+path.etc2="res://.godot/imported/rollershutter_door_rollershutter_door_diff_1k.jpg-b121383933f73226a091c79ba42d2f89.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "57fa5103d6bbfdfb888e43e8597a2dbc"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/rollershutter_door_rollershutter_door_diff_1k.jpg"
-dest_files=["res://.godot/imported/rollershutter_door_rollershutter_door_diff_1k.jpg-b121383933f73226a091c79ba42d2f89.ctex"]
+dest_files=["res://.godot/imported/rollershutter_door_rollershutter_door_diff_1k.jpg-b121383933f73226a091c79ba42d2f89.s3tc.ctex", "res://.godot/imported/rollershutter_door_rollershutter_door_diff_1k.jpg-b121383933f73226a091c79ba42d2f89.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

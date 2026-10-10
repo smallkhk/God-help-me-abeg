@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://d1h7dci4g5chg"
-path="res://.godot/imported/mechanic_ORM_f51d0cea-055a-4696-8f5e-4b48f4f6836c.jpg-c2c373a6a130f616dd1f289e17d6df96.ctex"
+path.s3tc="res://.godot/imported/mechanic_ORM_f51d0cea-055a-4696-8f5e-4b48f4f6836c.jpg-c2c373a6a130f616dd1f289e17d6df96.s3tc.ctex"
+path.etc2="res://.godot/imported/mechanic_ORM_f51d0cea-055a-4696-8f5e-4b48f4f6836c.jpg-c2c373a6a130f616dd1f289e17d6df96.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "c830539348e8cde807deca17d60eb578"
+"md5": "115e211a812f303aabf8926a1c793665"
 }
 
 [deps]
 
 source_file="res://assets/models/lagos/mechanic_ORM_f51d0cea-055a-4696-8f5e-4b48f4f6836c.jpg"
-dest_files=["res://.godot/imported/mechanic_ORM_f51d0cea-055a-4696-8f5e-4b48f4f6836c.jpg-c2c373a6a130f616dd1f289e17d6df96.ctex"]
+dest_files=["res://.godot/imported/mechanic_ORM_f51d0cea-055a-4696-8f5e-4b48f4f6836c.jpg-c2c373a6a130f616dd1f289e17d6df96.s3tc.ctex", "res://.godot/imported/mechanic_ORM_f51d0cea-055a-4696-8f5e-4b48f4f6836c.jpg-c2c373a6a130f616dd1f289e17d6df96.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

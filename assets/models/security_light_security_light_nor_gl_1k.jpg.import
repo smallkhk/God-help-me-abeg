@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bduv3xsd4m0t2"
-path="res://.godot/imported/security_light_security_light_nor_gl_1k.jpg-23f1064269f2129003fda711b2ca7041.ctex"
+path.s3tc="res://.godot/imported/security_light_security_light_nor_gl_1k.jpg-23f1064269f2129003fda711b2ca7041.s3tc.ctex"
+path.etc2="res://.godot/imported/security_light_security_light_nor_gl_1k.jpg-23f1064269f2129003fda711b2ca7041.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "e790fd56fb2d1db4f04bf7d79a17fe64"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/security_light_security_light_nor_gl_1k.jpg"
-dest_files=["res://.godot/imported/security_light_security_light_nor_gl_1k.jpg-23f1064269f2129003fda711b2ca7041.ctex"]
+dest_files=["res://.godot/imported/security_light_security_light_nor_gl_1k.jpg-23f1064269f2129003fda711b2ca7041.s3tc.ctex", "res://.godot/imported/security_light_security_light_nor_gl_1k.jpg-23f1064269f2129003fda711b2ca7041.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dqq5ibvvuh7xk"
-path="res://.godot/imported/barricade_ORM_92ccdd75-1b60-41c9-ba98-592e0ac487cb.jpg-e7c46d60668dbb1b3f86699d0b7f2ec8.ctex"
+path.s3tc="res://.godot/imported/barricade_ORM_92ccdd75-1b60-41c9-ba98-592e0ac487cb.jpg-e7c46d60668dbb1b3f86699d0b7f2ec8.s3tc.ctex"
+path.etc2="res://.godot/imported/barricade_ORM_92ccdd75-1b60-41c9-ba98-592e0ac487cb.jpg-e7c46d60668dbb1b3f86699d0b7f2ec8.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "408fbb8d2ca589b3cb229c103cf9585f"
+"md5": "f9079fbdf0c157ebcdce530bee70ec45"
 }
 
 [deps]
 
 source_file="res://assets/models/lagos/barricade_ORM_92ccdd75-1b60-41c9-ba98-592e0ac487cb.jpg"
-dest_files=["res://.godot/imported/barricade_ORM_92ccdd75-1b60-41c9-ba98-592e0ac487cb.jpg-e7c46d60668dbb1b3f86699d0b7f2ec8.ctex"]
+dest_files=["res://.godot/imported/barricade_ORM_92ccdd75-1b60-41c9-ba98-592e0ac487cb.jpg-e7c46d60668dbb1b3f86699d0b7f2ec8.s3tc.ctex", "res://.godot/imported/barricade_ORM_92ccdd75-1b60-41c9-ba98-592e0ac487cb.jpg-e7c46d60668dbb1b3f86699d0b7f2ec8.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

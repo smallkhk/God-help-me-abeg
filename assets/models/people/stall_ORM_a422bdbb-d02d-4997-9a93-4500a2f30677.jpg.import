@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bfdv81lqtamyx"
-path="res://.godot/imported/stall_ORM_a422bdbb-d02d-4997-9a93-4500a2f30677.jpg-f5a8469b39b61575b4c037689d3de583.ctex"
+path.s3tc="res://.godot/imported/stall_ORM_a422bdbb-d02d-4997-9a93-4500a2f30677.jpg-f5a8469b39b61575b4c037689d3de583.s3tc.ctex"
+path.etc2="res://.godot/imported/stall_ORM_a422bdbb-d02d-4997-9a93-4500a2f30677.jpg-f5a8469b39b61575b4c037689d3de583.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "bd5ebab4d4be559e980277f25984f69d"
+"md5": "60e7fa51618fb3595b8f89576f739072"
 }
 
 [deps]
 
 source_file="res://assets/models/people/stall_ORM_a422bdbb-d02d-4997-9a93-4500a2f30677.jpg"
-dest_files=["res://.godot/imported/stall_ORM_a422bdbb-d02d-4997-9a93-4500a2f30677.jpg-f5a8469b39b61575b4c037689d3de583.ctex"]
+dest_files=["res://.godot/imported/stall_ORM_a422bdbb-d02d-4997-9a93-4500a2f30677.jpg-f5a8469b39b61575b4c037689d3de583.s3tc.ctex", "res://.godot/imported/stall_ORM_a422bdbb-d02d-4997-9a93-4500a2f30677.jpg-f5a8469b39b61575b4c037689d3de583.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

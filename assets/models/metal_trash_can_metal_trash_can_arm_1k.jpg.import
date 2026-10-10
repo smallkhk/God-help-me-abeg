@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bio3ca65wujk6"
-path="res://.godot/imported/metal_trash_can_metal_trash_can_arm_1k.jpg-9ca2085ec8373ac229f43bb4ba1f062a.ctex"
+path.s3tc="res://.godot/imported/metal_trash_can_metal_trash_can_arm_1k.jpg-9ca2085ec8373ac229f43bb4ba1f062a.s3tc.ctex"
+path.etc2="res://.godot/imported/metal_trash_can_metal_trash_can_arm_1k.jpg-9ca2085ec8373ac229f43bb4ba1f062a.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "10ef8dada4df626b4cf971893bc5ab2c"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/metal_trash_can_metal_trash_can_arm_1k.jpg"
-dest_files=["res://.godot/imported/metal_trash_can_metal_trash_can_arm_1k.jpg-9ca2085ec8373ac229f43bb4ba1f062a.ctex"]
+dest_files=["res://.godot/imported/metal_trash_can_metal_trash_can_arm_1k.jpg-9ca2085ec8373ac229f43bb4ba1f062a.s3tc.ctex", "res://.godot/imported/metal_trash_can_metal_trash_can_arm_1k.jpg-9ca2085ec8373ac229f43bb4ba1f062a.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

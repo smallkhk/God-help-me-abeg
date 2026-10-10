@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c6876xdje8j8s"
-path="res://.godot/imported/mama_Color_8a799680-ed2c-46d2-8283-6165c54f9871.jpg-16b7528cf517e314b7bc46a43e1b85c7.ctex"
+path.s3tc="res://.godot/imported/mama_Color_8a799680-ed2c-46d2-8283-6165c54f9871.jpg-16b7528cf517e314b7bc46a43e1b85c7.s3tc.ctex"
+path.etc2="res://.godot/imported/mama_Color_8a799680-ed2c-46d2-8283-6165c54f9871.jpg-16b7528cf517e314b7bc46a43e1b85c7.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "14fb7f232ab0f8e30243208769e7feca"
+"md5": "597c6b748096b5391aedd85d775a3c05"
 }
 
 [deps]
 
 source_file="res://assets/models/people/mama_Color_8a799680-ed2c-46d2-8283-6165c54f9871.jpg"
-dest_files=["res://.godot/imported/mama_Color_8a799680-ed2c-46d2-8283-6165c54f9871.jpg-16b7528cf517e314b7bc46a43e1b85c7.ctex"]
+dest_files=["res://.godot/imported/mama_Color_8a799680-ed2c-46d2-8283-6165c54f9871.jpg-16b7528cf517e314b7bc46a43e1b85c7.s3tc.ctex", "res://.godot/imported/mama_Color_8a799680-ed2c-46d2-8283-6165c54f9871.jpg-16b7528cf517e314b7bc46a43e1b85c7.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

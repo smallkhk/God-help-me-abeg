@@ -21,19 +21,19 @@ const PRESETS := {
 		"sun_rot": Vector3(-50, 35, 0), "sun_col": Color(1.0, 0.95, 0.86), "sun_e": 1.35,
 		"top": Color(0.20, 0.46, 0.90), "hor": Color(0.66, 0.82, 0.96),
 		"amb": Color(0.86, 0.84, 0.80), "amb_e": 0.42, "fog": Color(0.78, 0.86, 0.95), "night": 0.0,
-		"fog_d": 0.0004, "hdri": "day", "sky_e": 1.0,
+		"fog_d": 0.0016, "hdri": "day", "sky_e": 1.0,
 	},
 	Preset.SUNSET: {
 		"sun_rot": Vector3(-12, -60, 0), "sun_col": Color(1.0, 0.70, 0.45), "sun_e": 1.2,
 		"top": Color(0.20, 0.30, 0.52), "hor": Color(0.98, 0.58, 0.32),
 		"amb": Color(0.75, 0.62, 0.60), "amb_e": 0.45, "fog": Color(0.92, 0.66, 0.48), "night": 0.25,
-		"fog_d": 0.0009, "hdri": "sunset", "sky_e": 0.9,
+		"fog_d": 0.0019, "hdri": "sunset", "sky_e": 0.9,
 	},
 	Preset.NIGHT: {
 		"sun_rot": Vector3(-40, 120, 0), "sun_col": Color(0.55, 0.62, 0.85), "sun_e": 0.12,
 		"top": Color(0.01, 0.02, 0.06), "hor": Color(0.07, 0.07, 0.14),
 		"amb": Color(0.25, 0.28, 0.40), "amb_e": 0.35, "fog": Color(0.05, 0.06, 0.10), "night": 1.0,
-		"fog_d": 0.0012, "hdri": "night", "sky_e": 0.6,
+		"fog_d": 0.0022, "hdri": "night", "sky_e": 0.6,
 	},
 }
 

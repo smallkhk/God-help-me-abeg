@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ds7cs1qy2lrr"
-path="res://.godot/imported/church_Color_f550b1b8-5b09-445e-9e50-7ab9eb49b2d0.jpg-b1a6f77527f85884de3e7fea4e607654.ctex"
+path.s3tc="res://.godot/imported/church_Color_f550b1b8-5b09-445e-9e50-7ab9eb49b2d0.jpg-b1a6f77527f85884de3e7fea4e607654.s3tc.ctex"
+path.etc2="res://.godot/imported/church_Color_f550b1b8-5b09-445e-9e50-7ab9eb49b2d0.jpg-b1a6f77527f85884de3e7fea4e607654.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "de5bd3503ba433036b25feb7c904ed34"
+"md5": "ee12a7ed11bdc8fa992dcc38f2dac1c0"
 }
 
 [deps]
 
 source_file="res://assets/models/lagos/church_Color_f550b1b8-5b09-445e-9e50-7ab9eb49b2d0.jpg"
-dest_files=["res://.godot/imported/church_Color_f550b1b8-5b09-445e-9e50-7ab9eb49b2d0.jpg-b1a6f77527f85884de3e7fea4e607654.ctex"]
+dest_files=["res://.godot/imported/church_Color_f550b1b8-5b09-445e-9e50-7ab9eb49b2d0.jpg-b1a6f77527f85884de3e7fea4e607654.s3tc.ctex", "res://.godot/imported/church_Color_f550b1b8-5b09-445e-9e50-7ab9eb49b2d0.jpg-b1a6f77527f85884de3e7fea4e607654.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

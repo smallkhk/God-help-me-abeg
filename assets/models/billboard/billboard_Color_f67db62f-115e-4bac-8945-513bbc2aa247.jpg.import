@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bbgfscrw4w1ot"
-path="res://.godot/imported/billboard_Color_f67db62f-115e-4bac-8945-513bbc2aa247.jpg-943a9c8197b70d2cd2b093fe3d00cf58.ctex"
+path.s3tc="res://.godot/imported/billboard_Color_f67db62f-115e-4bac-8945-513bbc2aa247.jpg-943a9c8197b70d2cd2b093fe3d00cf58.s3tc.ctex"
+path.etc2="res://.godot/imported/billboard_Color_f67db62f-115e-4bac-8945-513bbc2aa247.jpg-943a9c8197b70d2cd2b093fe3d00cf58.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "687052d52abca909ff151c2399536c6c"
+"md5": "7cf0a29e3045b8b6d3a285036a6d914d"
 }
 
 [deps]
 
 source_file="res://assets/models/billboard/billboard_Color_f67db62f-115e-4bac-8945-513bbc2aa247.jpg"
-dest_files=["res://.godot/imported/billboard_Color_f67db62f-115e-4bac-8945-513bbc2aa247.jpg-943a9c8197b70d2cd2b093fe3d00cf58.ctex"]
+dest_files=["res://.godot/imported/billboard_Color_f67db62f-115e-4bac-8945-513bbc2aa247.jpg-943a9c8197b70d2cd2b093fe3d00cf58.s3tc.ctex", "res://.godot/imported/billboard_Color_f67db62f-115e-4bac-8945-513bbc2aa247.jpg-943a9c8197b70d2cd2b093fe3d00cf58.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

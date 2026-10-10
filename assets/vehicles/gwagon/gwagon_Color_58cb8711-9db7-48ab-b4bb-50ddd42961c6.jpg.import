@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cw58vlfpcid2g"
-path="res://.godot/imported/gwagon_Color_58cb8711-9db7-48ab-b4bb-50ddd42961c6.jpg-bb125f9ecfe8b5d8a324faac475d6174.ctex"
+path.s3tc="res://.godot/imported/gwagon_Color_58cb8711-9db7-48ab-b4bb-50ddd42961c6.jpg-bb125f9ecfe8b5d8a324faac475d6174.s3tc.ctex"
+path.etc2="res://.godot/imported/gwagon_Color_58cb8711-9db7-48ab-b4bb-50ddd42961c6.jpg-bb125f9ecfe8b5d8a324faac475d6174.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "322d42115265428b085c20599fb78790"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/vehicles/gwagon/gwagon_Color_58cb8711-9db7-48ab-b4bb-50ddd42961c6.jpg"
-dest_files=["res://.godot/imported/gwagon_Color_58cb8711-9db7-48ab-b4bb-50ddd42961c6.jpg-bb125f9ecfe8b5d8a324faac475d6174.ctex"]
+dest_files=["res://.godot/imported/gwagon_Color_58cb8711-9db7-48ab-b4bb-50ddd42961c6.jpg-bb125f9ecfe8b5d8a324faac475d6174.s3tc.ctex", "res://.godot/imported/gwagon_Color_58cb8711-9db7-48ab-b4bb-50ddd42961c6.jpg-bb125f9ecfe8b5d8a324faac475d6174.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

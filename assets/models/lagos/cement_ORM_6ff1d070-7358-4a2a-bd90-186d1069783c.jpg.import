@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ffejhpr41kfx"
-path="res://.godot/imported/cement_ORM_6ff1d070-7358-4a2a-bd90-186d1069783c.jpg-ba75d3b2669bb62308c5bba54e72d1ab.ctex"
+path.s3tc="res://.godot/imported/cement_ORM_6ff1d070-7358-4a2a-bd90-186d1069783c.jpg-ba75d3b2669bb62308c5bba54e72d1ab.s3tc.ctex"
+path.etc2="res://.godot/imported/cement_ORM_6ff1d070-7358-4a2a-bd90-186d1069783c.jpg-ba75d3b2669bb62308c5bba54e72d1ab.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "733f7f43663576d6aa44721c065945a1"
+"md5": "3c5d8a4af30b5963f26b3da72d04184b"
 }
 
 [deps]
 
 source_file="res://assets/models/lagos/cement_ORM_6ff1d070-7358-4a2a-bd90-186d1069783c.jpg"
-dest_files=["res://.godot/imported/cement_ORM_6ff1d070-7358-4a2a-bd90-186d1069783c.jpg-ba75d3b2669bb62308c5bba54e72d1ab.ctex"]
+dest_files=["res://.godot/imported/cement_ORM_6ff1d070-7358-4a2a-bd90-186d1069783c.jpg-ba75d3b2669bb62308c5bba54e72d1ab.s3tc.ctex", "res://.godot/imported/cement_ORM_6ff1d070-7358-4a2a-bd90-186d1069783c.jpg-ba75d3b2669bb62308c5bba54e72d1ab.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://0rdo4yxe6kj4"
-path="res://.godot/imported/brtbarrier_ORM_2f1098ba-2e30-4780-b10c-601585fa4304.jpg-5ba5e71677b0071e9c601f6c3f2685cc.ctex"
+path.s3tc="res://.godot/imported/brtbarrier_ORM_2f1098ba-2e30-4780-b10c-601585fa4304.jpg-5ba5e71677b0071e9c601f6c3f2685cc.s3tc.ctex"
+path.etc2="res://.godot/imported/brtbarrier_ORM_2f1098ba-2e30-4780-b10c-601585fa4304.jpg-5ba5e71677b0071e9c601f6c3f2685cc.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "9ddde9a0a8b0d5fbdd21331c1eadc979"
+"md5": "12a7e38826a80b5afe663c86427aeceb"
 }
 
 [deps]
 
 source_file="res://assets/models/lagos/brtbarrier_ORM_2f1098ba-2e30-4780-b10c-601585fa4304.jpg"
-dest_files=["res://.godot/imported/brtbarrier_ORM_2f1098ba-2e30-4780-b10c-601585fa4304.jpg-5ba5e71677b0071e9c601f6c3f2685cc.ctex"]
+dest_files=["res://.godot/imported/brtbarrier_ORM_2f1098ba-2e30-4780-b10c-601585fa4304.jpg-5ba5e71677b0071e9c601f6c3f2685cc.s3tc.ctex", "res://.godot/imported/brtbarrier_ORM_2f1098ba-2e30-4780-b10c-601585fa4304.jpg-5ba5e71677b0071e9c601f6c3f2685cc.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

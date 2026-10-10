@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cv0ke7g353gu3"
-path="res://.godot/imported/villagekiosk_NormalGL_1be78d07-b40f-42fd-b1e1-1f1db0146fbe.png-abaec0da54843c1d209bad25bed8a101.ctex"
+path.s3tc="res://.godot/imported/villagekiosk_NormalGL_1be78d07-b40f-42fd-b1e1-1f1db0146fbe.png-abaec0da54843c1d209bad25bed8a101.s3tc.ctex"
+path.etc2="res://.godot/imported/villagekiosk_NormalGL_1be78d07-b40f-42fd-b1e1-1f1db0146fbe.png-abaec0da54843c1d209bad25bed8a101.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "48da99ccd4ec5a20f4de1f09658abd4c"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/lagos/villagekiosk_NormalGL_1be78d07-b40f-42fd-b1e1-1f1db0146fbe.png"
-dest_files=["res://.godot/imported/villagekiosk_NormalGL_1be78d07-b40f-42fd-b1e1-1f1db0146fbe.png-abaec0da54843c1d209bad25bed8a101.ctex"]
+dest_files=["res://.godot/imported/villagekiosk_NormalGL_1be78d07-b40f-42fd-b1e1-1f1db0146fbe.png-abaec0da54843c1d209bad25bed8a101.s3tc.ctex", "res://.godot/imported/villagekiosk_NormalGL_1be78d07-b40f-42fd-b1e1-1f1db0146fbe.png-abaec0da54843c1d209bad25bed8a101.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dj5joyni3nrl0"
-path="res://.godot/imported/covered_car_covered_car_arm_1k.jpg-8c6cf15ed8bc43b7fd0771be45d28eba.ctex"
+path.s3tc="res://.godot/imported/covered_car_covered_car_arm_1k.jpg-8c6cf15ed8bc43b7fd0771be45d28eba.s3tc.ctex"
+path.etc2="res://.godot/imported/covered_car_covered_car_arm_1k.jpg-8c6cf15ed8bc43b7fd0771be45d28eba.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "93c13e8997bf70255109f93c517340d2"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/covered_car_covered_car_arm_1k.jpg"
-dest_files=["res://.godot/imported/covered_car_covered_car_arm_1k.jpg-8c6cf15ed8bc43b7fd0771be45d28eba.ctex"]
+dest_files=["res://.godot/imported/covered_car_covered_car_arm_1k.jpg-8c6cf15ed8bc43b7fd0771be45d28eba.s3tc.ctex", "res://.godot/imported/covered_car_covered_car_arm_1k.jpg-8c6cf15ed8bc43b7fd0771be45d28eba.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b116k6t04wmxj"
-path="res://.godot/imported/molue_ORM_cd6cb44d-da67-4da5-a3d4-2945149f499e.jpg-b33ce184f5d3c1fe7f105581893d8066.ctex"
+path.s3tc="res://.godot/imported/molue_ORM_cd6cb44d-da67-4da5-a3d4-2945149f499e.jpg-b33ce184f5d3c1fe7f105581893d8066.s3tc.ctex"
+path.etc2="res://.godot/imported/molue_ORM_cd6cb44d-da67-4da5-a3d4-2945149f499e.jpg-b33ce184f5d3c1fe7f105581893d8066.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "b3f2415b143e0b8e4fd04ca14e9e21d7"
+"md5": "33591d5d8550f0b6b2edbfa59c9e5f42"
 }
 
 [deps]
 
 source_file="res://assets/models/lagos/molue_ORM_cd6cb44d-da67-4da5-a3d4-2945149f499e.jpg"
-dest_files=["res://.godot/imported/molue_ORM_cd6cb44d-da67-4da5-a3d4-2945149f499e.jpg-b33ce184f5d3c1fe7f105581893d8066.ctex"]
+dest_files=["res://.godot/imported/molue_ORM_cd6cb44d-da67-4da5-a3d4-2945149f499e.jpg-b33ce184f5d3c1fe7f105581893d8066.s3tc.ctex", "res://.godot/imported/molue_ORM_cd6cb44d-da67-4da5-a3d4-2945149f499e.jpg-b33ce184f5d3c1fe7f105581893d8066.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

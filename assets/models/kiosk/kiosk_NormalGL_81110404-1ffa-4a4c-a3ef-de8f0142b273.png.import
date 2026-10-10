@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bjxx3hkrc0h4h"
-path="res://.godot/imported/kiosk_NormalGL_81110404-1ffa-4a4c-a3ef-de8f0142b273.png-6c0b3df47bc55002b375154d04f62623.ctex"
+path.s3tc="res://.godot/imported/kiosk_NormalGL_81110404-1ffa-4a4c-a3ef-de8f0142b273.png-6c0b3df47bc55002b375154d04f62623.s3tc.ctex"
+path.etc2="res://.godot/imported/kiosk_NormalGL_81110404-1ffa-4a4c-a3ef-de8f0142b273.png-6c0b3df47bc55002b375154d04f62623.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "7ca7ec62eea4f131cad7045f0168b112"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/kiosk/kiosk_NormalGL_81110404-1ffa-4a4c-a3ef-de8f0142b273.png"
-dest_files=["res://.godot/imported/kiosk_NormalGL_81110404-1ffa-4a4c-a3ef-de8f0142b273.png-6c0b3df47bc55002b375154d04f62623.ctex"]
+dest_files=["res://.godot/imported/kiosk_NormalGL_81110404-1ffa-4a4c-a3ef-de8f0142b273.png-6c0b3df47bc55002b375154d04f62623.s3tc.ctex", "res://.godot/imported/kiosk_NormalGL_81110404-1ffa-4a4c-a3ef-de8f0142b273.png-6c0b3df47bc55002b375154d04f62623.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

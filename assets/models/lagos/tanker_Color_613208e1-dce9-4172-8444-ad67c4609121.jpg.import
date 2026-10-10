@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dwwp6nem63wqy"
-path="res://.godot/imported/tanker_Color_613208e1-dce9-4172-8444-ad67c4609121.jpg-61a5aaf26d6f6c6fa3a524842c1f3b0e.ctex"
+path.s3tc="res://.godot/imported/tanker_Color_613208e1-dce9-4172-8444-ad67c4609121.jpg-61a5aaf26d6f6c6fa3a524842c1f3b0e.s3tc.ctex"
+path.etc2="res://.godot/imported/tanker_Color_613208e1-dce9-4172-8444-ad67c4609121.jpg-61a5aaf26d6f6c6fa3a524842c1f3b0e.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "20bd85cc9d0d15ce6ae1f1fce6444675"
+"md5": "e4afd490a2b3785f06b1a964070a29a4"
 }
 
 [deps]
 
 source_file="res://assets/models/lagos/tanker_Color_613208e1-dce9-4172-8444-ad67c4609121.jpg"
-dest_files=["res://.godot/imported/tanker_Color_613208e1-dce9-4172-8444-ad67c4609121.jpg-61a5aaf26d6f6c6fa3a524842c1f3b0e.ctex"]
+dest_files=["res://.godot/imported/tanker_Color_613208e1-dce9-4172-8444-ad67c4609121.jpg-61a5aaf26d6f6c6fa3a524842c1f3b0e.s3tc.ctex", "res://.godot/imported/tanker_Color_613208e1-dce9-4172-8444-ad67c4609121.jpg-61a5aaf26d6f6c6fa3a524842c1f3b0e.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

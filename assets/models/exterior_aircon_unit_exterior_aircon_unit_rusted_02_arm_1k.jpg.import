@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://brn0ivpjg82s8"
-path="res://.godot/imported/exterior_aircon_unit_exterior_aircon_unit_rusted_02_arm_1k.jpg-a0653d2446ad7088f30d42808c5946fb.ctex"
+path.s3tc="res://.godot/imported/exterior_aircon_unit_exterior_aircon_unit_rusted_02_arm_1k.jpg-a0653d2446ad7088f30d42808c5946fb.s3tc.ctex"
+path.etc2="res://.godot/imported/exterior_aircon_unit_exterior_aircon_unit_rusted_02_arm_1k.jpg-a0653d2446ad7088f30d42808c5946fb.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "89497427d7e3b9a1d8d4ebe3e458ba33"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/exterior_aircon_unit_exterior_aircon_unit_rusted_02_arm_1k.jpg"
-dest_files=["res://.godot/imported/exterior_aircon_unit_exterior_aircon_unit_rusted_02_arm_1k.jpg-a0653d2446ad7088f30d42808c5946fb.ctex"]
+dest_files=["res://.godot/imported/exterior_aircon_unit_exterior_aircon_unit_rusted_02_arm_1k.jpg-a0653d2446ad7088f30d42808c5946fb.s3tc.ctex", "res://.godot/imported/exterior_aircon_unit_exterior_aircon_unit_rusted_02_arm_1k.jpg-a0653d2446ad7088f30d42808c5946fb.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

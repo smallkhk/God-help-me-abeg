@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bh0iyepvnyq6q"
-path="res://.godot/imported/lexus_NormalGL_79c64119-74c3-428a-9a76-08e052ff04e1.png-a0876b63438bc35906ba2a1be7d4e40b.ctex"
+path.s3tc="res://.godot/imported/lexus_NormalGL_79c64119-74c3-428a-9a76-08e052ff04e1.png-a0876b63438bc35906ba2a1be7d4e40b.s3tc.ctex"
+path.etc2="res://.godot/imported/lexus_NormalGL_79c64119-74c3-428a-9a76-08e052ff04e1.png-a0876b63438bc35906ba2a1be7d4e40b.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "279955ec3220c8233e227838040b934c"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/vehicles/lexus/lexus_NormalGL_79c64119-74c3-428a-9a76-08e052ff04e1.png"
-dest_files=["res://.godot/imported/lexus_NormalGL_79c64119-74c3-428a-9a76-08e052ff04e1.png-a0876b63438bc35906ba2a1be7d4e40b.ctex"]
+dest_files=["res://.godot/imported/lexus_NormalGL_79c64119-74c3-428a-9a76-08e052ff04e1.png-a0876b63438bc35906ba2a1be7d4e40b.s3tc.ctex", "res://.godot/imported/lexus_NormalGL_79c64119-74c3-428a-9a76-08e052ff04e1.png-a0876b63438bc35906ba2a1be7d4e40b.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

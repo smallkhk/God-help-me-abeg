@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dlhqltv7fv43y"
-path="res://.godot/imported/unfinished_Color_de95a03e-26df-4111-b1a2-511878373d05.jpg-07f18179cb9a6361961c34207083f7c3.ctex"
+path.s3tc="res://.godot/imported/unfinished_Color_de95a03e-26df-4111-b1a2-511878373d05.jpg-07f18179cb9a6361961c34207083f7c3.s3tc.ctex"
+path.etc2="res://.godot/imported/unfinished_Color_de95a03e-26df-4111-b1a2-511878373d05.jpg-07f18179cb9a6361961c34207083f7c3.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "33082f90bd90b822a95c5ef97db3750f"
+"md5": "011f492085d05771bc8e298a6fbe012a"
 }
 
 [deps]
 
 source_file="res://assets/models/unfinished/unfinished_Color_de95a03e-26df-4111-b1a2-511878373d05.jpg"
-dest_files=["res://.godot/imported/unfinished_Color_de95a03e-26df-4111-b1a2-511878373d05.jpg-07f18179cb9a6361961c34207083f7c3.ctex"]
+dest_files=["res://.godot/imported/unfinished_Color_de95a03e-26df-4111-b1a2-511878373d05.jpg-07f18179cb9a6361961c34207083f7c3.s3tc.ctex", "res://.godot/imported/unfinished_Color_de95a03e-26df-4111-b1a2-511878373d05.jpg-07f18179cb9a6361961c34207083f7c3.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

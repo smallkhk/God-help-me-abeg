@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bldnxocu7pvvq"
-path="res://.godot/imported/wreck_Color_1b298efb-ad02-42ea-9340-f791b65c3d16.jpg-fa9ae5782eaaf7a8b8605e8b41cc74ae.ctex"
+path.s3tc="res://.godot/imported/wreck_Color_1b298efb-ad02-42ea-9340-f791b65c3d16.jpg-fa9ae5782eaaf7a8b8605e8b41cc74ae.s3tc.ctex"
+path.etc2="res://.godot/imported/wreck_Color_1b298efb-ad02-42ea-9340-f791b65c3d16.jpg-fa9ae5782eaaf7a8b8605e8b41cc74ae.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "124b5f227269c4540b262157c2a025c1"
+"md5": "acd49bce4134911673ea033486afa335"
 }
 
 [deps]
 
 source_file="res://assets/models/lagos/wreck_Color_1b298efb-ad02-42ea-9340-f791b65c3d16.jpg"
-dest_files=["res://.godot/imported/wreck_Color_1b298efb-ad02-42ea-9340-f791b65c3d16.jpg-fa9ae5782eaaf7a8b8605e8b41cc74ae.ctex"]
+dest_files=["res://.godot/imported/wreck_Color_1b298efb-ad02-42ea-9340-f791b65c3d16.jpg-fa9ae5782eaaf7a8b8605e8b41cc74ae.s3tc.ctex", "res://.godot/imported/wreck_Color_1b298efb-ad02-42ea-9340-f791b65c3d16.jpg-fa9ae5782eaaf7a8b8605e8b41cc74ae.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

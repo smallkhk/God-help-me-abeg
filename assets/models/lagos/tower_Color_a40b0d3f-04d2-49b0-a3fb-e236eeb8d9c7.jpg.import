@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c3cv25jy5h3sh"
-path="res://.godot/imported/tower_Color_a40b0d3f-04d2-49b0-a3fb-e236eeb8d9c7.jpg-73c9db501ce3b8fbbde01459e3bacddf.ctex"
+path.s3tc="res://.godot/imported/tower_Color_a40b0d3f-04d2-49b0-a3fb-e236eeb8d9c7.jpg-73c9db501ce3b8fbbde01459e3bacddf.s3tc.ctex"
+path.etc2="res://.godot/imported/tower_Color_a40b0d3f-04d2-49b0-a3fb-e236eeb8d9c7.jpg-73c9db501ce3b8fbbde01459e3bacddf.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "f93d67aef3a82afb942d3bb79d57521e"
+"md5": "ae0e213f04471a34009b1b5439a286cd"
 }
 
 [deps]
 
 source_file="res://assets/models/lagos/tower_Color_a40b0d3f-04d2-49b0-a3fb-e236eeb8d9c7.jpg"
-dest_files=["res://.godot/imported/tower_Color_a40b0d3f-04d2-49b0-a3fb-e236eeb8d9c7.jpg-73c9db501ce3b8fbbde01459e3bacddf.ctex"]
+dest_files=["res://.godot/imported/tower_Color_a40b0d3f-04d2-49b0-a3fb-e236eeb8d9c7.jpg-73c9db501ce3b8fbbde01459e3bacddf.s3tc.ctex", "res://.godot/imported/tower_Color_a40b0d3f-04d2-49b0-a3fb-e236eeb8d9c7.jpg-73c9db501ce3b8fbbde01459e3bacddf.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

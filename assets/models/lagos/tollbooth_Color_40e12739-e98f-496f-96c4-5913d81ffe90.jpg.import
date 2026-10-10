@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cufw2sxmltbbm"
-path="res://.godot/imported/tollbooth_Color_40e12739-e98f-496f-96c4-5913d81ffe90.jpg-4eab0b9abb99686914ab78520ed99387.ctex"
+path.s3tc="res://.godot/imported/tollbooth_Color_40e12739-e98f-496f-96c4-5913d81ffe90.jpg-4eab0b9abb99686914ab78520ed99387.s3tc.ctex"
+path.etc2="res://.godot/imported/tollbooth_Color_40e12739-e98f-496f-96c4-5913d81ffe90.jpg-4eab0b9abb99686914ab78520ed99387.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "c8872d8e1ae4f3a6fa23f3bdfd9ebc51"
+"md5": "acce95355fe66b9f59d7d63bb526fc96"
 }
 
 [deps]
 
 source_file="res://assets/models/lagos/tollbooth_Color_40e12739-e98f-496f-96c4-5913d81ffe90.jpg"
-dest_files=["res://.godot/imported/tollbooth_Color_40e12739-e98f-496f-96c4-5913d81ffe90.jpg-4eab0b9abb99686914ab78520ed99387.ctex"]
+dest_files=["res://.godot/imported/tollbooth_Color_40e12739-e98f-496f-96c4-5913d81ffe90.jpg-4eab0b9abb99686914ab78520ed99387.s3tc.ctex", "res://.godot/imported/tollbooth_Color_40e12739-e98f-496f-96c4-5913d81ffe90.jpg-4eab0b9abb99686914ab78520ed99387.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

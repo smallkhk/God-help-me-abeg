@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://yqq2rk38vj17"
-path="res://.godot/imported/billboard_NormalGL_f67db62f-115e-4bac-8945-513bbc2aa247.png-745e1cd6b5af4dae4e4570d4900c5cf6.ctex"
+path.s3tc="res://.godot/imported/billboard_NormalGL_f67db62f-115e-4bac-8945-513bbc2aa247.png-745e1cd6b5af4dae4e4570d4900c5cf6.s3tc.ctex"
+path.etc2="res://.godot/imported/billboard_NormalGL_f67db62f-115e-4bac-8945-513bbc2aa247.png-745e1cd6b5af4dae4e4570d4900c5cf6.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "0ca8ff83e4cc5454a6ff827e1f00a5be"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/billboard/billboard_NormalGL_f67db62f-115e-4bac-8945-513bbc2aa247.png"
-dest_files=["res://.godot/imported/billboard_NormalGL_f67db62f-115e-4bac-8945-513bbc2aa247.png-745e1cd6b5af4dae4e4570d4900c5cf6.ctex"]
+dest_files=["res://.godot/imported/billboard_NormalGL_f67db62f-115e-4bac-8945-513bbc2aa247.png-745e1cd6b5af4dae4e4570d4900c5cf6.s3tc.ctex", "res://.godot/imported/billboard_NormalGL_f67db62f-115e-4bac-8945-513bbc2aa247.png-745e1cd6b5af4dae4e4570d4900c5cf6.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

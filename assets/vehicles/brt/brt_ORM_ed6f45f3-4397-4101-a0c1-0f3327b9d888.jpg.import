@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b1b8d70ipxr73"
-path="res://.godot/imported/brt_ORM_ed6f45f3-4397-4101-a0c1-0f3327b9d888.jpg-462724b68667b3680e0dc00084a34b59.ctex"
+path.s3tc="res://.godot/imported/brt_ORM_ed6f45f3-4397-4101-a0c1-0f3327b9d888.jpg-462724b68667b3680e0dc00084a34b59.s3tc.ctex"
+path.etc2="res://.godot/imported/brt_ORM_ed6f45f3-4397-4101-a0c1-0f3327b9d888.jpg-462724b68667b3680e0dc00084a34b59.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "0da856f9e16105484144615b69a0faf2"
+"md5": "e1902b217c03efbfc86295d37696f2c3"
 }
 
 [deps]
 
 source_file="res://assets/vehicles/brt/brt_ORM_ed6f45f3-4397-4101-a0c1-0f3327b9d888.jpg"
-dest_files=["res://.godot/imported/brt_ORM_ed6f45f3-4397-4101-a0c1-0f3327b9d888.jpg-462724b68667b3680e0dc00084a34b59.ctex"]
+dest_files=["res://.godot/imported/brt_ORM_ed6f45f3-4397-4101-a0c1-0f3327b9d888.jpg-462724b68667b3680e0dc00084a34b59.s3tc.ctex", "res://.godot/imported/brt_ORM_ed6f45f3-4397-4101-a0c1-0f3327b9d888.jpg-462724b68667b3680e0dc00084a34b59.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

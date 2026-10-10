@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://pq7fpdv00beb"
-path="res://.godot/imported/danfo_Color_66dc55c9-4686-4364-9ec2-4a27413dc8a8.jpg-1e93524924c6e600c912db5a6c4c84b7.ctex"
+path.s3tc="res://.godot/imported/danfo_Color_66dc55c9-4686-4364-9ec2-4a27413dc8a8.jpg-1e93524924c6e600c912db5a6c4c84b7.s3tc.ctex"
+path.etc2="res://.godot/imported/danfo_Color_66dc55c9-4686-4364-9ec2-4a27413dc8a8.jpg-1e93524924c6e600c912db5a6c4c84b7.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "964e19ee0598459009df512b0fa0d6c5"
+"md5": "09f4c6ba1ebbf1e1c8f466dcb9fc7aa1"
 }
 
 [deps]
 
 source_file="res://assets/vehicles/danfo/danfo_Color_66dc55c9-4686-4364-9ec2-4a27413dc8a8.jpg"
-dest_files=["res://.godot/imported/danfo_Color_66dc55c9-4686-4364-9ec2-4a27413dc8a8.jpg-1e93524924c6e600c912db5a6c4c84b7.ctex"]
+dest_files=["res://.godot/imported/danfo_Color_66dc55c9-4686-4364-9ec2-4a27413dc8a8.jpg-1e93524924c6e600c912db5a6c4c84b7.s3tc.ctex", "res://.godot/imported/danfo_Color_66dc55c9-4686-4364-9ec2-4a27413dc8a8.jpg-1e93524924c6e600c912db5a6c4c84b7.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

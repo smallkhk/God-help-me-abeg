@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c04omm8qap8rw"
-path="res://.godot/imported/vulcaniser_Color_41029fd0-cc78-4a9b-afdd-b82e2ebb6d98.jpg-84db7bd9da74962166555ea6ef2213a2.ctex"
+path.s3tc="res://.godot/imported/vulcaniser_Color_41029fd0-cc78-4a9b-afdd-b82e2ebb6d98.jpg-84db7bd9da74962166555ea6ef2213a2.s3tc.ctex"
+path.etc2="res://.godot/imported/vulcaniser_Color_41029fd0-cc78-4a9b-afdd-b82e2ebb6d98.jpg-84db7bd9da74962166555ea6ef2213a2.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "f6ba5841d34ef6d59ffab3c0833aee22"
+"md5": "ba8dd82204ad7adac891f82426667e25"
 }
 
 [deps]
 
 source_file="res://assets/models/lagos/vulcaniser_Color_41029fd0-cc78-4a9b-afdd-b82e2ebb6d98.jpg"
-dest_files=["res://.godot/imported/vulcaniser_Color_41029fd0-cc78-4a9b-afdd-b82e2ebb6d98.jpg-84db7bd9da74962166555ea6ef2213a2.ctex"]
+dest_files=["res://.godot/imported/vulcaniser_Color_41029fd0-cc78-4a9b-afdd-b82e2ebb6d98.jpg-84db7bd9da74962166555ea6ef2213a2.s3tc.ctex", "res://.godot/imported/vulcaniser_Color_41029fd0-cc78-4a9b-afdd-b82e2ebb6d98.jpg-84db7bd9da74962166555ea6ef2213a2.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

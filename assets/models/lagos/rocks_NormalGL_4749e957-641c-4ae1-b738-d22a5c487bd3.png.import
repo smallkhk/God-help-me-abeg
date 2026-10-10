@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://o05fl2ah3dct"
-path="res://.godot/imported/rocks_NormalGL_4749e957-641c-4ae1-b738-d22a5c487bd3.png-fb79aca4af0b005e23d583c2acb73679.ctex"
+path.s3tc="res://.godot/imported/rocks_NormalGL_4749e957-641c-4ae1-b738-d22a5c487bd3.png-fb79aca4af0b005e23d583c2acb73679.s3tc.ctex"
+path.etc2="res://.godot/imported/rocks_NormalGL_4749e957-641c-4ae1-b738-d22a5c487bd3.png-fb79aca4af0b005e23d583c2acb73679.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "aa70bc82a6ff4cf9e41423384c6a2e7b"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/lagos/rocks_NormalGL_4749e957-641c-4ae1-b738-d22a5c487bd3.png"
-dest_files=["res://.godot/imported/rocks_NormalGL_4749e957-641c-4ae1-b738-d22a5c487bd3.png-fb79aca4af0b005e23d583c2acb73679.ctex"]
+dest_files=["res://.godot/imported/rocks_NormalGL_4749e957-641c-4ae1-b738-d22a5c487bd3.png-fb79aca4af0b005e23d583c2acb73679.s3tc.ctex", "res://.godot/imported/rocks_NormalGL_4749e957-641c-4ae1-b738-d22a5c487bd3.png-fb79aca4af0b005e23d583c2acb73679.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

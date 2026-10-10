@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cumay8xkn3il4"
-path="res://.godot/imported/plaza_Color_9d0ca0c7-243c-44c5-95f8-4a38157d2795.jpg-8dcc663677d11ecee353568524b612d6.ctex"
+path.s3tc="res://.godot/imported/plaza_Color_9d0ca0c7-243c-44c5-95f8-4a38157d2795.jpg-8dcc663677d11ecee353568524b612d6.s3tc.ctex"
+path.etc2="res://.godot/imported/plaza_Color_9d0ca0c7-243c-44c5-95f8-4a38157d2795.jpg-8dcc663677d11ecee353568524b612d6.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "84c2610a0e993f56e687e854b19f9a28"
+"md5": "a28b36c2417ac4eec6eaea3ad16158cf"
 }
 
 [deps]
 
 source_file="res://assets/models/plaza/plaza_Color_9d0ca0c7-243c-44c5-95f8-4a38157d2795.jpg"
-dest_files=["res://.godot/imported/plaza_Color_9d0ca0c7-243c-44c5-95f8-4a38157d2795.jpg-8dcc663677d11ecee353568524b612d6.ctex"]
+dest_files=["res://.godot/imported/plaza_Color_9d0ca0c7-243c-44c5-95f8-4a38157d2795.jpg-8dcc663677d11ecee353568524b612d6.s3tc.ctex", "res://.godot/imported/plaza_Color_9d0ca0c7-243c-44c5-95f8-4a38157d2795.jpg-8dcc663677d11ecee353568524b612d6.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

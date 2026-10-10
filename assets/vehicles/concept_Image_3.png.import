@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cbbrieecqowh5"
-path="res://.godot/imported/concept_Image_3.png-c178c1b86a8ae5213bcc10ed9ee96e35.ctex"
+path.s3tc="res://.godot/imported/concept_Image_3.png-c178c1b86a8ae5213bcc10ed9ee96e35.s3tc.ctex"
+path.etc2="res://.godot/imported/concept_Image_3.png-c178c1b86a8ae5213bcc10ed9ee96e35.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "7cf1203a4ab1143ef3adf588437c70f9"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/vehicles/concept_Image_3.png"
-dest_files=["res://.godot/imported/concept_Image_3.png-c178c1b86a8ae5213bcc10ed9ee96e35.ctex"]
+dest_files=["res://.godot/imported/concept_Image_3.png-c178c1b86a8ae5213bcc10ed9ee96e35.s3tc.ctex", "res://.godot/imported/concept_Image_3.png-c178c1b86a8ae5213bcc10ed9ee96e35.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

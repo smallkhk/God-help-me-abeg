@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ca2eknmawkvl6"
-path="res://.godot/imported/plastic_monobloc_chair_01_plastic_monobloc_chair_01_nor_gl_1k.jpg-bcda3ab4033956c0e47016c0f455fbf1.ctex"
+path.s3tc="res://.godot/imported/plastic_monobloc_chair_01_plastic_monobloc_chair_01_nor_gl_1k.jpg-bcda3ab4033956c0e47016c0f455fbf1.s3tc.ctex"
+path.etc2="res://.godot/imported/plastic_monobloc_chair_01_plastic_monobloc_chair_01_nor_gl_1k.jpg-bcda3ab4033956c0e47016c0f455fbf1.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "77bc639df33285e7035510ad684ccbeb"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/plastic_monobloc_chair_01_plastic_monobloc_chair_01_nor_gl_1k.jpg"
-dest_files=["res://.godot/imported/plastic_monobloc_chair_01_plastic_monobloc_chair_01_nor_gl_1k.jpg-bcda3ab4033956c0e47016c0f455fbf1.ctex"]
+dest_files=["res://.godot/imported/plastic_monobloc_chair_01_plastic_monobloc_chair_01_nor_gl_1k.jpg-bcda3ab4033956c0e47016c0f455fbf1.s3tc.ctex", "res://.godot/imported/plastic_monobloc_chair_01_plastic_monobloc_chair_01_nor_gl_1k.jpg-bcda3ab4033956c0e47016c0f455fbf1.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

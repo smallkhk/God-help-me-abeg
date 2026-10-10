@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://6fh3w8qh1xin"
-path="res://.godot/imported/metal_jerrycan_metal_jerrycan_diff_1k.jpg-91997948c00cc1769770c2700f091a81.ctex"
+path.s3tc="res://.godot/imported/metal_jerrycan_metal_jerrycan_diff_1k.jpg-91997948c00cc1769770c2700f091a81.s3tc.ctex"
+path.etc2="res://.godot/imported/metal_jerrycan_metal_jerrycan_diff_1k.jpg-91997948c00cc1769770c2700f091a81.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "91e1ee50ef6846948e9be82b8a645972"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/metal_jerrycan_metal_jerrycan_diff_1k.jpg"
-dest_files=["res://.godot/imported/metal_jerrycan_metal_jerrycan_diff_1k.jpg-91997948c00cc1769770c2700f091a81.ctex"]
+dest_files=["res://.godot/imported/metal_jerrycan_metal_jerrycan_diff_1k.jpg-91997948c00cc1769770c2700f091a81.s3tc.ctex", "res://.godot/imported/metal_jerrycan_metal_jerrycan_diff_1k.jpg-91997948c00cc1769770c2700f091a81.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

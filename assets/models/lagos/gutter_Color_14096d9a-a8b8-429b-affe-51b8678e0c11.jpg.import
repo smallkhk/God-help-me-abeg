@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b2bk3d5wad5eu"
-path="res://.godot/imported/gutter_Color_14096d9a-a8b8-429b-affe-51b8678e0c11.jpg-0f75a1fe561830dee5d38a47a6179c51.ctex"
+path.s3tc="res://.godot/imported/gutter_Color_14096d9a-a8b8-429b-affe-51b8678e0c11.jpg-0f75a1fe561830dee5d38a47a6179c51.s3tc.ctex"
+path.etc2="res://.godot/imported/gutter_Color_14096d9a-a8b8-429b-affe-51b8678e0c11.jpg-0f75a1fe561830dee5d38a47a6179c51.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "0077d42611d91fb973677edb61723401"
+"md5": "35a73b5ac9b25a4fa4f401d36c9c0f39"
 }
 
 [deps]
 
 source_file="res://assets/models/lagos/gutter_Color_14096d9a-a8b8-429b-affe-51b8678e0c11.jpg"
-dest_files=["res://.godot/imported/gutter_Color_14096d9a-a8b8-429b-affe-51b8678e0c11.jpg-0f75a1fe561830dee5d38a47a6179c51.ctex"]
+dest_files=["res://.godot/imported/gutter_Color_14096d9a-a8b8-429b-affe-51b8678e0c11.jpg-0f75a1fe561830dee5d38a47a6179c51.s3tc.ctex", "res://.godot/imported/gutter_Color_14096d9a-a8b8-429b-affe-51b8678e0c11.jpg-0f75a1fe561830dee5d38a47a6179c51.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

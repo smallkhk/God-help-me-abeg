@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://drl1hq65tdjlb"
-path="res://.godot/imported/walker_NormalGL_fed6d17f-5d75-4079-a53a-12c799fcbb81.png-e1c56d94b30b786f022497dad94e2187.ctex"
+path.s3tc="res://.godot/imported/walker_NormalGL_fed6d17f-5d75-4079-a53a-12c799fcbb81.png-e1c56d94b30b786f022497dad94e2187.s3tc.ctex"
+path.etc2="res://.godot/imported/walker_NormalGL_fed6d17f-5d75-4079-a53a-12c799fcbb81.png-e1c56d94b30b786f022497dad94e2187.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "cf35a18368448fc0c678e2466cb9b98c"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/people/walker_NormalGL_fed6d17f-5d75-4079-a53a-12c799fcbb81.png"
-dest_files=["res://.godot/imported/walker_NormalGL_fed6d17f-5d75-4079-a53a-12c799fcbb81.png-e1c56d94b30b786f022497dad94e2187.ctex"]
+dest_files=["res://.godot/imported/walker_NormalGL_fed6d17f-5d75-4079-a53a-12c799fcbb81.png-e1c56d94b30b786f022497dad94e2187.s3tc.ctex", "res://.godot/imported/walker_NormalGL_fed6d17f-5d75-4079-a53a-12c799fcbb81.png-e1c56d94b30b786f022497dad94e2187.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

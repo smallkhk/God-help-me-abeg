@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dq7yrm77g6qbo"
-path="res://.godot/imported/church_ORM_f550b1b8-5b09-445e-9e50-7ab9eb49b2d0.jpg-43bc8ae209348b5eef1abed53d6871a3.ctex"
+path.s3tc="res://.godot/imported/church_ORM_f550b1b8-5b09-445e-9e50-7ab9eb49b2d0.jpg-43bc8ae209348b5eef1abed53d6871a3.s3tc.ctex"
+path.etc2="res://.godot/imported/church_ORM_f550b1b8-5b09-445e-9e50-7ab9eb49b2d0.jpg-43bc8ae209348b5eef1abed53d6871a3.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "ed6962802f35a9d8b8c3ba66fc58bd77"
+"md5": "4a6c29c53d9370408b137f332824785a"
 }
 
 [deps]
 
 source_file="res://assets/models/lagos/church_ORM_f550b1b8-5b09-445e-9e50-7ab9eb49b2d0.jpg"
-dest_files=["res://.godot/imported/church_ORM_f550b1b8-5b09-445e-9e50-7ab9eb49b2d0.jpg-43bc8ae209348b5eef1abed53d6871a3.ctex"]
+dest_files=["res://.godot/imported/church_ORM_f550b1b8-5b09-445e-9e50-7ab9eb49b2d0.jpg-43bc8ae209348b5eef1abed53d6871a3.s3tc.ctex", "res://.godot/imported/church_ORM_f550b1b8-5b09-445e-9e50-7ab9eb49b2d0.jpg-43bc8ae209348b5eef1abed53d6871a3.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

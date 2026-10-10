@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://k58futhuuo8m"
-path="res://.godot/imported/lastma_ORM_10cb576f-fa96-4d4f-989d-68a552ad5357.jpg-b6cf5892e897b1d8c5dc071f4b70c5cb.ctex"
+path.s3tc="res://.godot/imported/lastma_ORM_10cb576f-fa96-4d4f-989d-68a552ad5357.jpg-b6cf5892e897b1d8c5dc071f4b70c5cb.s3tc.ctex"
+path.etc2="res://.godot/imported/lastma_ORM_10cb576f-fa96-4d4f-989d-68a552ad5357.jpg-b6cf5892e897b1d8c5dc071f4b70c5cb.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "dfb878f7f46ac6b6fc81c8a108377dbf"
+"md5": "0596ae6ccb1ade1094dd81e0d8b4be1d"
 }
 
 [deps]
 
 source_file="res://assets/models/lagos/lastma_ORM_10cb576f-fa96-4d4f-989d-68a552ad5357.jpg"
-dest_files=["res://.godot/imported/lastma_ORM_10cb576f-fa96-4d4f-989d-68a552ad5357.jpg-b6cf5892e897b1d8c5dc071f4b70c5cb.ctex"]
+dest_files=["res://.godot/imported/lastma_ORM_10cb576f-fa96-4d4f-989d-68a552ad5357.jpg-b6cf5892e897b1d8c5dc071f4b70c5cb.s3tc.ctex", "res://.godot/imported/lastma_ORM_10cb576f-fa96-4d4f-989d-68a552ad5357.jpg-b6cf5892e897b1d8c5dc071f4b70c5cb.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

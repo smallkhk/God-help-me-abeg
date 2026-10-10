@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dpomal1b1xyop"
-path="res://.godot/imported/okada_NormalGL_673023b2-4736-4dbb-abc2-fb0d90a375d6.png-004dfe28b276556c36ac7cd965854844.ctex"
+path.s3tc="res://.godot/imported/okada_NormalGL_673023b2-4736-4dbb-abc2-fb0d90a375d6.png-004dfe28b276556c36ac7cd965854844.s3tc.ctex"
+path.etc2="res://.godot/imported/okada_NormalGL_673023b2-4736-4dbb-abc2-fb0d90a375d6.png-004dfe28b276556c36ac7cd965854844.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "85182165d2f4093b8e748119011f4e4b"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/vehicles/okada/okada_NormalGL_673023b2-4736-4dbb-abc2-fb0d90a375d6.png"
-dest_files=["res://.godot/imported/okada_NormalGL_673023b2-4736-4dbb-abc2-fb0d90a375d6.png-004dfe28b276556c36ac7cd965854844.ctex"]
+dest_files=["res://.godot/imported/okada_NormalGL_673023b2-4736-4dbb-abc2-fb0d90a375d6.png-004dfe28b276556c36ac7cd965854844.s3tc.ctex", "res://.godot/imported/okada_NormalGL_673023b2-4736-4dbb-abc2-fb0d90a375d6.png-004dfe28b276556c36ac7cd965854844.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

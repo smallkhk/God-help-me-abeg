@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dduj1c0vlm8vi"
-path="res://.godot/imported/concrete_road_barrier_02_concrete_road_barrier_02_diff_1k.jpg-2032e0a7cd3590f331d6b4b0d8d8d076.ctex"
+path.s3tc="res://.godot/imported/concrete_road_barrier_02_concrete_road_barrier_02_diff_1k.jpg-2032e0a7cd3590f331d6b4b0d8d8d076.s3tc.ctex"
+path.etc2="res://.godot/imported/concrete_road_barrier_02_concrete_road_barrier_02_diff_1k.jpg-2032e0a7cd3590f331d6b4b0d8d8d076.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "daf2de82c94824a36623c7dcdcd7ccd0"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/concrete_road_barrier_02_concrete_road_barrier_02_diff_1k.jpg"
-dest_files=["res://.godot/imported/concrete_road_barrier_02_concrete_road_barrier_02_diff_1k.jpg-2032e0a7cd3590f331d6b4b0d8d8d076.ctex"]
+dest_files=["res://.godot/imported/concrete_road_barrier_02_concrete_road_barrier_02_diff_1k.jpg-2032e0a7cd3590f331d6b4b0d8d8d076.s3tc.ctex", "res://.godot/imported/concrete_road_barrier_02_concrete_road_barrier_02_diff_1k.jpg-2032e0a7cd3590f331d6b4b0d8d8d076.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dxamao4cacq2h"
-path="res://.godot/imported/plaza_NormalGL_9d0ca0c7-243c-44c5-95f8-4a38157d2795.png-5b77bf4cd889488aa74303098d710b5c.ctex"
+path.s3tc="res://.godot/imported/plaza_NormalGL_9d0ca0c7-243c-44c5-95f8-4a38157d2795.png-5b77bf4cd889488aa74303098d710b5c.s3tc.ctex"
+path.etc2="res://.godot/imported/plaza_NormalGL_9d0ca0c7-243c-44c5-95f8-4a38157d2795.png-5b77bf4cd889488aa74303098d710b5c.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "e719c317073219959f2520f936de07e6"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/plaza/plaza_NormalGL_9d0ca0c7-243c-44c5-95f8-4a38157d2795.png"
-dest_files=["res://.godot/imported/plaza_NormalGL_9d0ca0c7-243c-44c5-95f8-4a38157d2795.png-5b77bf4cd889488aa74303098d710b5c.ctex"]
+dest_files=["res://.godot/imported/plaza_NormalGL_9d0ca0c7-243c-44c5-95f8-4a38157d2795.png-5b77bf4cd889488aa74303098d710b5c.s3tc.ctex", "res://.godot/imported/plaza_NormalGL_9d0ca0c7-243c-44c5-95f8-4a38157d2795.png-5b77bf4cd889488aa74303098d710b5c.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

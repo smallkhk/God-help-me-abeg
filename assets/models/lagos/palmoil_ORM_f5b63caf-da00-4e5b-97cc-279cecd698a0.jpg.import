@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dgut4hgc8y6is"
-path="res://.godot/imported/palmoil_ORM_f5b63caf-da00-4e5b-97cc-279cecd698a0.jpg-0da47fada85b0a26aa2260cb828dcafc.ctex"
+path.s3tc="res://.godot/imported/palmoil_ORM_f5b63caf-da00-4e5b-97cc-279cecd698a0.jpg-0da47fada85b0a26aa2260cb828dcafc.s3tc.ctex"
+path.etc2="res://.godot/imported/palmoil_ORM_f5b63caf-da00-4e5b-97cc-279cecd698a0.jpg-0da47fada85b0a26aa2260cb828dcafc.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "1e8dd9302bfcb20140fc77491878a22a"
+"md5": "f351aa78be3121e20e6fb83f908c5063"
 }
 
 [deps]
 
 source_file="res://assets/models/lagos/palmoil_ORM_f5b63caf-da00-4e5b-97cc-279cecd698a0.jpg"
-dest_files=["res://.godot/imported/palmoil_ORM_f5b63caf-da00-4e5b-97cc-279cecd698a0.jpg-0da47fada85b0a26aa2260cb828dcafc.ctex"]
+dest_files=["res://.godot/imported/palmoil_ORM_f5b63caf-da00-4e5b-97cc-279cecd698a0.jpg-0da47fada85b0a26aa2260cb828dcafc.s3tc.ctex", "res://.godot/imported/palmoil_ORM_f5b63caf-da00-4e5b-97cc-279cecd698a0.jpg-0da47fada85b0a26aa2260cb828dcafc.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

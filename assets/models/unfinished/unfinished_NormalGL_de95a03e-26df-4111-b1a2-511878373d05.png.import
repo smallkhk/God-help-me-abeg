@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cygj7alenfnql"
-path="res://.godot/imported/unfinished_NormalGL_de95a03e-26df-4111-b1a2-511878373d05.png-fb25794915fe99babdbc3cfec98e4dc4.ctex"
+path.s3tc="res://.godot/imported/unfinished_NormalGL_de95a03e-26df-4111-b1a2-511878373d05.png-fb25794915fe99babdbc3cfec98e4dc4.s3tc.ctex"
+path.etc2="res://.godot/imported/unfinished_NormalGL_de95a03e-26df-4111-b1a2-511878373d05.png-fb25794915fe99babdbc3cfec98e4dc4.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "a211a73589df3fe62d454ef72787e79e"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/unfinished/unfinished_NormalGL_de95a03e-26df-4111-b1a2-511878373d05.png"
-dest_files=["res://.godot/imported/unfinished_NormalGL_de95a03e-26df-4111-b1a2-511878373d05.png-fb25794915fe99babdbc3cfec98e4dc4.ctex"]
+dest_files=["res://.godot/imported/unfinished_NormalGL_de95a03e-26df-4111-b1a2-511878373d05.png-fb25794915fe99babdbc3cfec98e4dc4.s3tc.ctex", "res://.godot/imported/unfinished_NormalGL_de95a03e-26df-4111-b1a2-511878373d05.png-fb25794915fe99babdbc3cfec98e4dc4.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

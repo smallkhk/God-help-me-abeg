@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cdqte8kqq5rsy"
-path="res://.godot/imported/barricade_Color_92ccdd75-1b60-41c9-ba98-592e0ac487cb.jpg-78a2ea596a07ddedb8332e4f513f44b0.ctex"
+path.s3tc="res://.godot/imported/barricade_Color_92ccdd75-1b60-41c9-ba98-592e0ac487cb.jpg-78a2ea596a07ddedb8332e4f513f44b0.s3tc.ctex"
+path.etc2="res://.godot/imported/barricade_Color_92ccdd75-1b60-41c9-ba98-592e0ac487cb.jpg-78a2ea596a07ddedb8332e4f513f44b0.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "9b6e2697e73f65578b4206dae08c1625"
+"md5": "76be86d87f8b3cbedddbc60bb6de2d04"
 }
 
 [deps]
 
 source_file="res://assets/models/lagos/barricade_Color_92ccdd75-1b60-41c9-ba98-592e0ac487cb.jpg"
-dest_files=["res://.godot/imported/barricade_Color_92ccdd75-1b60-41c9-ba98-592e0ac487cb.jpg-78a2ea596a07ddedb8332e4f513f44b0.ctex"]
+dest_files=["res://.godot/imported/barricade_Color_92ccdd75-1b60-41c9-ba98-592e0ac487cb.jpg-78a2ea596a07ddedb8332e4f513f44b0.s3tc.ctex", "res://.godot/imported/barricade_Color_92ccdd75-1b60-41c9-ba98-592e0ac487cb.jpg-78a2ea596a07ddedb8332e4f513f44b0.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

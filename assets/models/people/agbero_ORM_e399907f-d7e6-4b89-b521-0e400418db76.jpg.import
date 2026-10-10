@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cb2afw4gpts7d"
-path="res://.godot/imported/agbero_ORM_e399907f-d7e6-4b89-b521-0e400418db76.jpg-17831d9d0331041aab0b45bc47960e17.ctex"
+path.s3tc="res://.godot/imported/agbero_ORM_e399907f-d7e6-4b89-b521-0e400418db76.jpg-17831d9d0331041aab0b45bc47960e17.s3tc.ctex"
+path.etc2="res://.godot/imported/agbero_ORM_e399907f-d7e6-4b89-b521-0e400418db76.jpg-17831d9d0331041aab0b45bc47960e17.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "99059b329e0af5c9b0a7609f1091c16b"
+"md5": "6bfe564509ceac98de192fa13ebecf7c"
 }
 
 [deps]
 
 source_file="res://assets/models/people/agbero_ORM_e399907f-d7e6-4b89-b521-0e400418db76.jpg"
-dest_files=["res://.godot/imported/agbero_ORM_e399907f-d7e6-4b89-b521-0e400418db76.jpg-17831d9d0331041aab0b45bc47960e17.ctex"]
+dest_files=["res://.godot/imported/agbero_ORM_e399907f-d7e6-4b89-b521-0e400418db76.jpg-17831d9d0331041aab0b45bc47960e17.s3tc.ctex", "res://.godot/imported/agbero_ORM_e399907f-d7e6-4b89-b521-0e400418db76.jpg-17831d9d0331041aab0b45bc47960e17.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

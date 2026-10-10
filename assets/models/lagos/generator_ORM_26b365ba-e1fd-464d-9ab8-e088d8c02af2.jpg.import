@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bvjimbnyfuner"
-path="res://.godot/imported/generator_ORM_26b365ba-e1fd-464d-9ab8-e088d8c02af2.jpg-d37121c2ea28d8f4b91474ccfc2aed52.ctex"
+path.s3tc="res://.godot/imported/generator_ORM_26b365ba-e1fd-464d-9ab8-e088d8c02af2.jpg-d37121c2ea28d8f4b91474ccfc2aed52.s3tc.ctex"
+path.etc2="res://.godot/imported/generator_ORM_26b365ba-e1fd-464d-9ab8-e088d8c02af2.jpg-d37121c2ea28d8f4b91474ccfc2aed52.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "58ccef60507101862e34fc55ecea288a"
+"md5": "0c298376871e78a0764e06176be10da1"
 }
 
 [deps]
 
 source_file="res://assets/models/lagos/generator_ORM_26b365ba-e1fd-464d-9ab8-e088d8c02af2.jpg"
-dest_files=["res://.godot/imported/generator_ORM_26b365ba-e1fd-464d-9ab8-e088d8c02af2.jpg-d37121c2ea28d8f4b91474ccfc2aed52.ctex"]
+dest_files=["res://.godot/imported/generator_ORM_26b365ba-e1fd-464d-9ab8-e088d8c02af2.jpg-d37121c2ea28d8f4b91474ccfc2aed52.s3tc.ctex", "res://.godot/imported/generator_ORM_26b365ba-e1fd-464d-9ab8-e088d8c02af2.jpg-d37121c2ea28d8f4b91474ccfc2aed52.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

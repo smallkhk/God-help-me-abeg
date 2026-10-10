@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ttxxsuqx8x2o"
-path="res://.godot/imported/palmoil_NormalGL_f5b63caf-da00-4e5b-97cc-279cecd698a0.png-a6e019f1ea6cc4b0895ed5980057d117.ctex"
+path.s3tc="res://.godot/imported/palmoil_NormalGL_f5b63caf-da00-4e5b-97cc-279cecd698a0.png-a6e019f1ea6cc4b0895ed5980057d117.s3tc.ctex"
+path.etc2="res://.godot/imported/palmoil_NormalGL_f5b63caf-da00-4e5b-97cc-279cecd698a0.png-a6e019f1ea6cc4b0895ed5980057d117.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "3a2ffa16c0ac16fc4fc91021d3d96aea"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/lagos/palmoil_NormalGL_f5b63caf-da00-4e5b-97cc-279cecd698a0.png"
-dest_files=["res://.godot/imported/palmoil_NormalGL_f5b63caf-da00-4e5b-97cc-279cecd698a0.png-a6e019f1ea6cc4b0895ed5980057d117.ctex"]
+dest_files=["res://.godot/imported/palmoil_NormalGL_f5b63caf-da00-4e5b-97cc-279cecd698a0.png-a6e019f1ea6cc4b0895ed5980057d117.s3tc.ctex", "res://.godot/imported/palmoil_NormalGL_f5b63caf-da00-4e5b-97cc-279cecd698a0.png-a6e019f1ea6cc4b0895ed5980057d117.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

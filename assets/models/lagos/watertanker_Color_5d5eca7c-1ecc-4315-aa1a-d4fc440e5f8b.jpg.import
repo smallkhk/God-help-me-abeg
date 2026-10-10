@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cu87du6r5jlp6"
-path="res://.godot/imported/watertanker_Color_5d5eca7c-1ecc-4315-aa1a-d4fc440e5f8b.jpg-eda758f0f064374fd89da2c7c32b3ce4.ctex"
+path.s3tc="res://.godot/imported/watertanker_Color_5d5eca7c-1ecc-4315-aa1a-d4fc440e5f8b.jpg-eda758f0f064374fd89da2c7c32b3ce4.s3tc.ctex"
+path.etc2="res://.godot/imported/watertanker_Color_5d5eca7c-1ecc-4315-aa1a-d4fc440e5f8b.jpg-eda758f0f064374fd89da2c7c32b3ce4.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "ec3f1791449fed83f1cf7e5ef89dcd79"
+"md5": "c344eb1a36be01d03c92e174d2cd9097"
 }
 
 [deps]
 
 source_file="res://assets/models/lagos/watertanker_Color_5d5eca7c-1ecc-4315-aa1a-d4fc440e5f8b.jpg"
-dest_files=["res://.godot/imported/watertanker_Color_5d5eca7c-1ecc-4315-aa1a-d4fc440e5f8b.jpg-eda758f0f064374fd89da2c7c32b3ce4.ctex"]
+dest_files=["res://.godot/imported/watertanker_Color_5d5eca7c-1ecc-4315-aa1a-d4fc440e5f8b.jpg-eda758f0f064374fd89da2c7c32b3ce4.s3tc.ctex", "res://.godot/imported/watertanker_Color_5d5eca7c-1ecc-4315-aa1a-d4fc440e5f8b.jpg-eda758f0f064374fd89da2c7c32b3ce4.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

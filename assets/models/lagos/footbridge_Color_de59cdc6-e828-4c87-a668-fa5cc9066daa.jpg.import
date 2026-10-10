@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b2ik2f2733q8g"
-path="res://.godot/imported/footbridge_Color_de59cdc6-e828-4c87-a668-fa5cc9066daa.jpg-289985a001d3fe19726c94b23c4e22ef.ctex"
+path.s3tc="res://.godot/imported/footbridge_Color_de59cdc6-e828-4c87-a668-fa5cc9066daa.jpg-289985a001d3fe19726c94b23c4e22ef.s3tc.ctex"
+path.etc2="res://.godot/imported/footbridge_Color_de59cdc6-e828-4c87-a668-fa5cc9066daa.jpg-289985a001d3fe19726c94b23c4e22ef.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "db40e2768d32584c531d41439a560647"
+"md5": "8069aebe52c58f33a244f1abdf3090b8"
 }
 
 [deps]
 
 source_file="res://assets/models/lagos/footbridge_Color_de59cdc6-e828-4c87-a668-fa5cc9066daa.jpg"
-dest_files=["res://.godot/imported/footbridge_Color_de59cdc6-e828-4c87-a668-fa5cc9066daa.jpg-289985a001d3fe19726c94b23c4e22ef.ctex"]
+dest_files=["res://.godot/imported/footbridge_Color_de59cdc6-e828-4c87-a668-fa5cc9066daa.jpg-289985a001d3fe19726c94b23c4e22ef.s3tc.ctex", "res://.godot/imported/footbridge_Color_de59cdc6-e828-4c87-a668-fa5cc9066daa.jpg-289985a001d3fe19726c94b23c4e22ef.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ru7vrdn3rrfb"
-path="res://.godot/imported/agbero_Color_e399907f-d7e6-4b89-b521-0e400418db76.jpg-618a2fd386885e4472e5d45e329e062d.ctex"
+path.s3tc="res://.godot/imported/agbero_Color_e399907f-d7e6-4b89-b521-0e400418db76.jpg-618a2fd386885e4472e5d45e329e062d.s3tc.ctex"
+path.etc2="res://.godot/imported/agbero_Color_e399907f-d7e6-4b89-b521-0e400418db76.jpg-618a2fd386885e4472e5d45e329e062d.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "5bd1ea8b3979de481d45dccb643b93a1"
+"md5": "b993eabfae0f86e90ed7cbad902a36f6"
 }
 
 [deps]
 
 source_file="res://assets/models/people/agbero_Color_e399907f-d7e6-4b89-b521-0e400418db76.jpg"
-dest_files=["res://.godot/imported/agbero_Color_e399907f-d7e6-4b89-b521-0e400418db76.jpg-618a2fd386885e4472e5d45e329e062d.ctex"]
+dest_files=["res://.godot/imported/agbero_Color_e399907f-d7e6-4b89-b521-0e400418db76.jpg-618a2fd386885e4472e5d45e329e062d.s3tc.ctex", "res://.godot/imported/agbero_Color_e399907f-d7e6-4b89-b521-0e400418db76.jpg-618a2fd386885e4472e5d45e329e062d.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

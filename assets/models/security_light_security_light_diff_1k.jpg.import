@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cbgs0o1s2d1eg"
-path="res://.godot/imported/security_light_security_light_diff_1k.jpg-ce29381dc529e3719f75e163af42fcb4.ctex"
+path.s3tc="res://.godot/imported/security_light_security_light_diff_1k.jpg-ce29381dc529e3719f75e163af42fcb4.s3tc.ctex"
+path.etc2="res://.godot/imported/security_light_security_light_diff_1k.jpg-ce29381dc529e3719f75e163af42fcb4.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "efb04c1bc4a653b92fd22b423ab70d5c"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/security_light_security_light_diff_1k.jpg"
-dest_files=["res://.godot/imported/security_light_security_light_diff_1k.jpg-ce29381dc529e3719f75e163af42fcb4.ctex"]
+dest_files=["res://.godot/imported/security_light_security_light_diff_1k.jpg-ce29381dc529e3719f75e163af42fcb4.s3tc.ctex", "res://.godot/imported/security_light_security_light_diff_1k.jpg-ce29381dc529e3719f75e163af42fcb4.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

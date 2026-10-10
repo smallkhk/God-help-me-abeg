@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b7eu3fcjsxowx"
-path="res://.godot/imported/island_tree_01_island_tree_01_diff_1k.jpg-346db7634fe5f628a5ccf8aa2ef7513a.ctex"
+path.s3tc="res://.godot/imported/island_tree_01_island_tree_01_diff_1k.jpg-346db7634fe5f628a5ccf8aa2ef7513a.s3tc.ctex"
+path.etc2="res://.godot/imported/island_tree_01_island_tree_01_diff_1k.jpg-346db7634fe5f628a5ccf8aa2ef7513a.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "c49e635ff2ee469b2265fccf654ac6c3"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/island_tree_01_island_tree_01_diff_1k.jpg"
-dest_files=["res://.godot/imported/island_tree_01_island_tree_01_diff_1k.jpg-346db7634fe5f628a5ccf8aa2ef7513a.ctex"]
+dest_files=["res://.godot/imported/island_tree_01_island_tree_01_diff_1k.jpg-346db7634fe5f628a5ccf8aa2ef7513a.s3tc.ctex", "res://.godot/imported/island_tree_01_island_tree_01_diff_1k.jpg-346db7634fe5f628a5ccf8aa2ef7513a.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dhdowj581bl5j"
-path="res://.godot/imported/portable_generator_portable_generator_arm_1k.jpg-75f67c47326c9cfcb528556004697448.ctex"
+path.s3tc="res://.godot/imported/portable_generator_portable_generator_arm_1k.jpg-75f67c47326c9cfcb528556004697448.s3tc.ctex"
+path.etc2="res://.godot/imported/portable_generator_portable_generator_arm_1k.jpg-75f67c47326c9cfcb528556004697448.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "b6fac2d8837cac39befb9b353fb7db28"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/portable_generator_portable_generator_arm_1k.jpg"
-dest_files=["res://.godot/imported/portable_generator_portable_generator_arm_1k.jpg-75f67c47326c9cfcb528556004697448.ctex"]
+dest_files=["res://.godot/imported/portable_generator_portable_generator_arm_1k.jpg-75f67c47326c9cfcb528556004697448.s3tc.ctex", "res://.godot/imported/portable_generator_portable_generator_arm_1k.jpg-75f67c47326c9cfcb528556004697448.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

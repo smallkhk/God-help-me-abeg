@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bq3fn8kuobfk3"
-path="res://.godot/imported/generator_Color_26b365ba-e1fd-464d-9ab8-e088d8c02af2.jpg-4e65413e4843b1366d2e944a0f20cbdb.ctex"
+path.s3tc="res://.godot/imported/generator_Color_26b365ba-e1fd-464d-9ab8-e088d8c02af2.jpg-4e65413e4843b1366d2e944a0f20cbdb.s3tc.ctex"
+path.etc2="res://.godot/imported/generator_Color_26b365ba-e1fd-464d-9ab8-e088d8c02af2.jpg-4e65413e4843b1366d2e944a0f20cbdb.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "bf01d01ac8f401255b9836ea0706b0cd"
+"md5": "15b3e3c704fca82362353c4c4e758b45"
 }
 
 [deps]
 
 source_file="res://assets/models/lagos/generator_Color_26b365ba-e1fd-464d-9ab8-e088d8c02af2.jpg"
-dest_files=["res://.godot/imported/generator_Color_26b365ba-e1fd-464d-9ab8-e088d8c02af2.jpg-4e65413e4843b1366d2e944a0f20cbdb.ctex"]
+dest_files=["res://.godot/imported/generator_Color_26b365ba-e1fd-464d-9ab8-e088d8c02af2.jpg-4e65413e4843b1366d2e944a0f20cbdb.s3tc.ctex", "res://.godot/imported/generator_Color_26b365ba-e1fd-464d-9ab8-e088d8c02af2.jpg-4e65413e4843b1366d2e944a0f20cbdb.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

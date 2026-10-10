@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b5gpbfhgevlli"
-path="res://.godot/imported/fallentree_NormalGL_3eb6d562-72b9-4a1b-a026-56bd4d494c33.png-917399383f9f6496690481471ffbd3d4.ctex"
+path.s3tc="res://.godot/imported/fallentree_NormalGL_3eb6d562-72b9-4a1b-a026-56bd4d494c33.png-917399383f9f6496690481471ffbd3d4.s3tc.ctex"
+path.etc2="res://.godot/imported/fallentree_NormalGL_3eb6d562-72b9-4a1b-a026-56bd4d494c33.png-917399383f9f6496690481471ffbd3d4.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "10dc86a7324c54135db684bd503d8160"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/lagos/fallentree_NormalGL_3eb6d562-72b9-4a1b-a026-56bd4d494c33.png"
-dest_files=["res://.godot/imported/fallentree_NormalGL_3eb6d562-72b9-4a1b-a026-56bd4d494c33.png-917399383f9f6496690481471ffbd3d4.ctex"]
+dest_files=["res://.godot/imported/fallentree_NormalGL_3eb6d562-72b9-4a1b-a026-56bd4d494c33.png-917399383f9f6496690481471ffbd3d4.s3tc.ctex", "res://.godot/imported/fallentree_NormalGL_3eb6d562-72b9-4a1b-a026-56bd4d494c33.png-917399383f9f6496690481471ffbd3d4.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

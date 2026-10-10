@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dgs8b3odv35ix"
-path="res://.godot/imported/tower_ORM_a40b0d3f-04d2-49b0-a3fb-e236eeb8d9c7.jpg-3ffb4495cf05ffaf8ebbbde528800f67.ctex"
+path.s3tc="res://.godot/imported/tower_ORM_a40b0d3f-04d2-49b0-a3fb-e236eeb8d9c7.jpg-3ffb4495cf05ffaf8ebbbde528800f67.s3tc.ctex"
+path.etc2="res://.godot/imported/tower_ORM_a40b0d3f-04d2-49b0-a3fb-e236eeb8d9c7.jpg-3ffb4495cf05ffaf8ebbbde528800f67.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "e4d4e6e781367e9c54c099574d885ef4"
+"md5": "107b435abbfd4ada579abb4ce5a71678"
 }
 
 [deps]
 
 source_file="res://assets/models/lagos/tower_ORM_a40b0d3f-04d2-49b0-a3fb-e236eeb8d9c7.jpg"
-dest_files=["res://.godot/imported/tower_ORM_a40b0d3f-04d2-49b0-a3fb-e236eeb8d9c7.jpg-3ffb4495cf05ffaf8ebbbde528800f67.ctex"]
+dest_files=["res://.godot/imported/tower_ORM_a40b0d3f-04d2-49b0-a3fb-e236eeb8d9c7.jpg-3ffb4495cf05ffaf8ebbbde528800f67.s3tc.ctex", "res://.godot/imported/tower_ORM_a40b0d3f-04d2-49b0-a3fb-e236eeb8d9c7.jpg-3ffb4495cf05ffaf8ebbbde528800f67.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

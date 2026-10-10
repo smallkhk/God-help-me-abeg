@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://w5k7x4qqok4f"
-path="res://.godot/imported/tower_NormalGL_a40b0d3f-04d2-49b0-a3fb-e236eeb8d9c7.png-9fb48119e11f309ef34065b4180aacf3.ctex"
+path.s3tc="res://.godot/imported/tower_NormalGL_a40b0d3f-04d2-49b0-a3fb-e236eeb8d9c7.png-9fb48119e11f309ef34065b4180aacf3.s3tc.ctex"
+path.etc2="res://.godot/imported/tower_NormalGL_a40b0d3f-04d2-49b0-a3fb-e236eeb8d9c7.png-9fb48119e11f309ef34065b4180aacf3.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "ee30da4503fd8b9ca0b42f8afee225a2"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/lagos/tower_NormalGL_a40b0d3f-04d2-49b0-a3fb-e236eeb8d9c7.png"
-dest_files=["res://.godot/imported/tower_NormalGL_a40b0d3f-04d2-49b0-a3fb-e236eeb8d9c7.png-9fb48119e11f309ef34065b4180aacf3.ctex"]
+dest_files=["res://.godot/imported/tower_NormalGL_a40b0d3f-04d2-49b0-a3fb-e236eeb8d9c7.png-9fb48119e11f309ef34065b4180aacf3.s3tc.ctex", "res://.godot/imported/tower_NormalGL_a40b0d3f-04d2-49b0-a3fb-e236eeb8d9c7.png-9fb48119e11f309ef34065b4180aacf3.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

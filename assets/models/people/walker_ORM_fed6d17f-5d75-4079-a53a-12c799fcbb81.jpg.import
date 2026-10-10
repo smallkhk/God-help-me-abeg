@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://7wck70geoehx"
-path="res://.godot/imported/walker_ORM_fed6d17f-5d75-4079-a53a-12c799fcbb81.jpg-071e04cf34b7b8bb72d9bac9746df791.ctex"
+path.s3tc="res://.godot/imported/walker_ORM_fed6d17f-5d75-4079-a53a-12c799fcbb81.jpg-071e04cf34b7b8bb72d9bac9746df791.s3tc.ctex"
+path.etc2="res://.godot/imported/walker_ORM_fed6d17f-5d75-4079-a53a-12c799fcbb81.jpg-071e04cf34b7b8bb72d9bac9746df791.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "a89dd3b90bc6ad4ac22a87ac6263ffc3"
+"md5": "79fcac39c032dfef08af11a14320b5e1"
 }
 
 [deps]
 
 source_file="res://assets/models/people/walker_ORM_fed6d17f-5d75-4079-a53a-12c799fcbb81.jpg"
-dest_files=["res://.godot/imported/walker_ORM_fed6d17f-5d75-4079-a53a-12c799fcbb81.jpg-071e04cf34b7b8bb72d9bac9746df791.ctex"]
+dest_files=["res://.godot/imported/walker_ORM_fed6d17f-5d75-4079-a53a-12c799fcbb81.jpg-071e04cf34b7b8bb72d9bac9746df791.s3tc.ctex", "res://.godot/imported/walker_ORM_fed6d17f-5d75-4079-a53a-12c799fcbb81.jpg-071e04cf34b7b8bb72d9bac9746df791.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

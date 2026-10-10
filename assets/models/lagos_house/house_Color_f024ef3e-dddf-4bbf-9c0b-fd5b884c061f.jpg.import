@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://27ibw63f70t3"
-path="res://.godot/imported/house_Color_f024ef3e-dddf-4bbf-9c0b-fd5b884c061f.jpg-a9346abdfc27aab22e3e7d11715edf0d.ctex"
+path.s3tc="res://.godot/imported/house_Color_f024ef3e-dddf-4bbf-9c0b-fd5b884c061f.jpg-a9346abdfc27aab22e3e7d11715edf0d.s3tc.ctex"
+path.etc2="res://.godot/imported/house_Color_f024ef3e-dddf-4bbf-9c0b-fd5b884c061f.jpg-a9346abdfc27aab22e3e7d11715edf0d.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "31ffd67b930e2d44503737c0a24c36f6"
+"md5": "8d080d9f2d5ae99add48f162af1da3ed"
 }
 
 [deps]
 
 source_file="res://assets/models/lagos_house/house_Color_f024ef3e-dddf-4bbf-9c0b-fd5b884c061f.jpg"
-dest_files=["res://.godot/imported/house_Color_f024ef3e-dddf-4bbf-9c0b-fd5b884c061f.jpg-a9346abdfc27aab22e3e7d11715edf0d.ctex"]
+dest_files=["res://.godot/imported/house_Color_f024ef3e-dddf-4bbf-9c0b-fd5b884c061f.jpg-a9346abdfc27aab22e3e7d11715edf0d.s3tc.ctex", "res://.godot/imported/house_Color_f024ef3e-dddf-4bbf-9c0b-fd5b884c061f.jpg-a9346abdfc27aab22e3e7d11715edf0d.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

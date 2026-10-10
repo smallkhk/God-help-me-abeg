@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://7cs8v7xxl1mp"
-path="res://.godot/imported/vulcaniser_NormalGL_41029fd0-cc78-4a9b-afdd-b82e2ebb6d98.png-ebe86c28ac2f7985c35c2db34001aac5.ctex"
+path.s3tc="res://.godot/imported/vulcaniser_NormalGL_41029fd0-cc78-4a9b-afdd-b82e2ebb6d98.png-ebe86c28ac2f7985c35c2db34001aac5.s3tc.ctex"
+path.etc2="res://.godot/imported/vulcaniser_NormalGL_41029fd0-cc78-4a9b-afdd-b82e2ebb6d98.png-ebe86c28ac2f7985c35c2db34001aac5.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "9ac21c5a939c9962d09c960ee9a020a3"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/lagos/vulcaniser_NormalGL_41029fd0-cc78-4a9b-afdd-b82e2ebb6d98.png"
-dest_files=["res://.godot/imported/vulcaniser_NormalGL_41029fd0-cc78-4a9b-afdd-b82e2ebb6d98.png-ebe86c28ac2f7985c35c2db34001aac5.ctex"]
+dest_files=["res://.godot/imported/vulcaniser_NormalGL_41029fd0-cc78-4a9b-afdd-b82e2ebb6d98.png-ebe86c28ac2f7985c35c2db34001aac5.s3tc.ctex", "res://.godot/imported/vulcaniser_NormalGL_41029fd0-cc78-4a9b-afdd-b82e2ebb6d98.png-ebe86c28ac2f7985c35c2db34001aac5.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

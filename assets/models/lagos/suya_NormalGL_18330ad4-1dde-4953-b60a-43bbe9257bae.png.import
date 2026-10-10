@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://22y6sxllucu0"
-path="res://.godot/imported/suya_NormalGL_18330ad4-1dde-4953-b60a-43bbe9257bae.png-a575d5e28c1d54fc6d8b33a40416ad8d.ctex"
+path.s3tc="res://.godot/imported/suya_NormalGL_18330ad4-1dde-4953-b60a-43bbe9257bae.png-a575d5e28c1d54fc6d8b33a40416ad8d.s3tc.ctex"
+path.etc2="res://.godot/imported/suya_NormalGL_18330ad4-1dde-4953-b60a-43bbe9257bae.png-a575d5e28c1d54fc6d8b33a40416ad8d.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "2cd55f0dfe209aae8c4ac4a085c93646"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/lagos/suya_NormalGL_18330ad4-1dde-4953-b60a-43bbe9257bae.png"
-dest_files=["res://.godot/imported/suya_NormalGL_18330ad4-1dde-4953-b60a-43bbe9257bae.png-a575d5e28c1d54fc6d8b33a40416ad8d.ctex"]
+dest_files=["res://.godot/imported/suya_NormalGL_18330ad4-1dde-4953-b60a-43bbe9257bae.png-a575d5e28c1d54fc6d8b33a40416ad8d.s3tc.ctex", "res://.godot/imported/suya_NormalGL_18330ad4-1dde-4953-b60a-43bbe9257bae.png-a575d5e28c1d54fc6d8b33a40416ad8d.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

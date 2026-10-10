@@ -3,19 +3,21 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://58cuno3ee3lu"
-path="res://.godot/imported/colormap.png-f6a60a2688e92611f47e1afa6c4acbef.ctex"
+path.s3tc="res://.godot/imported/colormap.png-f6a60a2688e92611f47e1afa6c4acbef.s3tc.ctex"
+path.etc2="res://.godot/imported/colormap.png-f6a60a2688e92611f47e1afa6c4acbef.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/vehicles/kenney/Textures/colormap.png"
-dest_files=["res://.godot/imported/colormap.png-f6a60a2688e92611f47e1afa6c4acbef.ctex"]
+dest_files=["res://.godot/imported/colormap.png-f6a60a2688e92611f47e1afa6c4acbef.s3tc.ctex", "res://.godot/imported/colormap.png-f6a60a2688e92611f47e1afa6c4acbef.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

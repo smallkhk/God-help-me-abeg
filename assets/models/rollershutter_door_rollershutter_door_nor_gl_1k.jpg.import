@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://wam18pqc7bxg"
-path="res://.godot/imported/rollershutter_door_rollershutter_door_nor_gl_1k.jpg-f0cc5a0388d804abd1f561e286bed2ad.ctex"
+path.s3tc="res://.godot/imported/rollershutter_door_rollershutter_door_nor_gl_1k.jpg-f0cc5a0388d804abd1f561e286bed2ad.s3tc.ctex"
+path.etc2="res://.godot/imported/rollershutter_door_rollershutter_door_nor_gl_1k.jpg-f0cc5a0388d804abd1f561e286bed2ad.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "b5295011cf41621e4a8a0943cef9dc17"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/rollershutter_door_rollershutter_door_nor_gl_1k.jpg"
-dest_files=["res://.godot/imported/rollershutter_door_rollershutter_door_nor_gl_1k.jpg-f0cc5a0388d804abd1f561e286bed2ad.ctex"]
+dest_files=["res://.godot/imported/rollershutter_door_rollershutter_door_nor_gl_1k.jpg-f0cc5a0388d804abd1f561e286bed2ad.s3tc.ctex", "res://.godot/imported/rollershutter_door_rollershutter_door_nor_gl_1k.jpg-f0cc5a0388d804abd1f561e286bed2ad.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cpdg7vkgp3si6"
-path="res://.godot/imported/landcruiser_ORM_0857f719-b007-4196-984b-6366bd6c8a6c.jpg-de6572218478ffcd0f8a399c91966b75.ctex"
+path.s3tc="res://.godot/imported/landcruiser_ORM_0857f719-b007-4196-984b-6366bd6c8a6c.jpg-de6572218478ffcd0f8a399c91966b75.s3tc.ctex"
+path.etc2="res://.godot/imported/landcruiser_ORM_0857f719-b007-4196-984b-6366bd6c8a6c.jpg-de6572218478ffcd0f8a399c91966b75.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "50442a3b189b3b28594d8365e5cccfe7"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/vehicles/landcruiser/landcruiser_ORM_0857f719-b007-4196-984b-6366bd6c8a6c.jpg"
-dest_files=["res://.godot/imported/landcruiser_ORM_0857f719-b007-4196-984b-6366bd6c8a6c.jpg-de6572218478ffcd0f8a399c91966b75.ctex"]
+dest_files=["res://.godot/imported/landcruiser_ORM_0857f719-b007-4196-984b-6366bd6c8a6c.jpg-de6572218478ffcd0f8a399c91966b75.s3tc.ctex", "res://.godot/imported/landcruiser_ORM_0857f719-b007-4196-984b-6366bd6c8a6c.jpg-de6572218478ffcd0f8a399c91966b75.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

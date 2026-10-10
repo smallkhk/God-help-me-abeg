@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cvhmb7jvqc6el"
-path="res://.godot/imported/tanker_ORM_613208e1-dce9-4172-8444-ad67c4609121.jpg-50c7199cdb7bd9d51eca0fe5aa3214ce.ctex"
+path.s3tc="res://.godot/imported/tanker_ORM_613208e1-dce9-4172-8444-ad67c4609121.jpg-50c7199cdb7bd9d51eca0fe5aa3214ce.s3tc.ctex"
+path.etc2="res://.godot/imported/tanker_ORM_613208e1-dce9-4172-8444-ad67c4609121.jpg-50c7199cdb7bd9d51eca0fe5aa3214ce.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "60db9e5017792f8966db9d2652385b6a"
+"md5": "7f11ef0664a8ec8926ce08e87b239d97"
 }
 
 [deps]
 
 source_file="res://assets/models/lagos/tanker_ORM_613208e1-dce9-4172-8444-ad67c4609121.jpg"
-dest_files=["res://.godot/imported/tanker_ORM_613208e1-dce9-4172-8444-ad67c4609121.jpg-50c7199cdb7bd9d51eca0fe5aa3214ce.ctex"]
+dest_files=["res://.godot/imported/tanker_ORM_613208e1-dce9-4172-8444-ad67c4609121.jpg-50c7199cdb7bd9d51eca0fe5aa3214ce.s3tc.ctex", "res://.godot/imported/tanker_ORM_613208e1-dce9-4172-8444-ad67c4609121.jpg-50c7199cdb7bd9d51eca0fe5aa3214ce.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

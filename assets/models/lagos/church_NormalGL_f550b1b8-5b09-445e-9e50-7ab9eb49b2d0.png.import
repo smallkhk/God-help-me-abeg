@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bxkdgo75mtmy3"
-path="res://.godot/imported/church_NormalGL_f550b1b8-5b09-445e-9e50-7ab9eb49b2d0.png-daee4d6723577927156fb1ccd3128045.ctex"
+path.s3tc="res://.godot/imported/church_NormalGL_f550b1b8-5b09-445e-9e50-7ab9eb49b2d0.png-daee4d6723577927156fb1ccd3128045.s3tc.ctex"
+path.etc2="res://.godot/imported/church_NormalGL_f550b1b8-5b09-445e-9e50-7ab9eb49b2d0.png-daee4d6723577927156fb1ccd3128045.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "4165cc6ae5283f84231c3a47b75b39f4"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/lagos/church_NormalGL_f550b1b8-5b09-445e-9e50-7ab9eb49b2d0.png"
-dest_files=["res://.godot/imported/church_NormalGL_f550b1b8-5b09-445e-9e50-7ab9eb49b2d0.png-daee4d6723577927156fb1ccd3128045.ctex"]
+dest_files=["res://.godot/imported/church_NormalGL_f550b1b8-5b09-445e-9e50-7ab9eb49b2d0.png-daee4d6723577927156fb1ccd3128045.s3tc.ctex", "res://.godot/imported/church_NormalGL_f550b1b8-5b09-445e-9e50-7ab9eb49b2d0.png-daee4d6723577927156fb1ccd3128045.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

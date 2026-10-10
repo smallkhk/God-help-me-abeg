@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cpiekw3gx4ph5"
-path="res://.godot/imported/dutch_ship_medium_dutch_ship_medium_rigging_diff_1k.jpg-03fe18989fc097a18c3a633db0fe90cf.ctex"
+path.s3tc="res://.godot/imported/dutch_ship_medium_dutch_ship_medium_rigging_diff_1k.jpg-03fe18989fc097a18c3a633db0fe90cf.s3tc.ctex"
+path.etc2="res://.godot/imported/dutch_ship_medium_dutch_ship_medium_rigging_diff_1k.jpg-03fe18989fc097a18c3a633db0fe90cf.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "759d9ec266b6d1c3f679489ab35a8824"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/dutch_ship_medium_dutch_ship_medium_rigging_diff_1k.jpg"
-dest_files=["res://.godot/imported/dutch_ship_medium_dutch_ship_medium_rigging_diff_1k.jpg-03fe18989fc097a18c3a633db0fe90cf.ctex"]
+dest_files=["res://.godot/imported/dutch_ship_medium_dutch_ship_medium_rigging_diff_1k.jpg-03fe18989fc097a18c3a633db0fe90cf.s3tc.ctex", "res://.godot/imported/dutch_ship_medium_dutch_ship_medium_rigging_diff_1k.jpg-03fe18989fc097a18c3a633db0fe90cf.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

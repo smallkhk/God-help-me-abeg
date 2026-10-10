@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b3tkq4s00rdns"
-path="res://.godot/imported/mamaput_Color_4f2997b7-2078-4ab3-a692-e4fd5f81ac01.jpg-f1fe3562ae1f70d7a89cc4bbd9eb505e.ctex"
+path.s3tc="res://.godot/imported/mamaput_Color_4f2997b7-2078-4ab3-a692-e4fd5f81ac01.jpg-f1fe3562ae1f70d7a89cc4bbd9eb505e.s3tc.ctex"
+path.etc2="res://.godot/imported/mamaput_Color_4f2997b7-2078-4ab3-a692-e4fd5f81ac01.jpg-f1fe3562ae1f70d7a89cc4bbd9eb505e.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "d7394de6db17eef70fb1daf9d4100c1d"
+"md5": "9929f0f45518347bf67887e42e03d34e"
 }
 
 [deps]
 
 source_file="res://assets/models/lagos/mamaput_Color_4f2997b7-2078-4ab3-a692-e4fd5f81ac01.jpg"
-dest_files=["res://.godot/imported/mamaput_Color_4f2997b7-2078-4ab3-a692-e4fd5f81ac01.jpg-f1fe3562ae1f70d7a89cc4bbd9eb505e.ctex"]
+dest_files=["res://.godot/imported/mamaput_Color_4f2997b7-2078-4ab3-a692-e4fd5f81ac01.jpg-f1fe3562ae1f70d7a89cc4bbd9eb505e.s3tc.ctex", "res://.godot/imported/mamaput_Color_4f2997b7-2078-4ab3-a692-e4fd5f81ac01.jpg-f1fe3562ae1f70d7a89cc4bbd9eb505e.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

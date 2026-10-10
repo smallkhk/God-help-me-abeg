@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bsihejiwm8pma"
-path="res://.godot/imported/billboard_ORM_f67db62f-115e-4bac-8945-513bbc2aa247.jpg-2bb3a1c7b2d1ec008b45653dd2026fb9.ctex"
+path.s3tc="res://.godot/imported/billboard_ORM_f67db62f-115e-4bac-8945-513bbc2aa247.jpg-2bb3a1c7b2d1ec008b45653dd2026fb9.s3tc.ctex"
+path.etc2="res://.godot/imported/billboard_ORM_f67db62f-115e-4bac-8945-513bbc2aa247.jpg-2bb3a1c7b2d1ec008b45653dd2026fb9.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "735a0502ac785500e33348a71c0e61bd"
+"md5": "70f37cae74550f1f7eb3b3743bbef79e"
 }
 
 [deps]
 
 source_file="res://assets/models/billboard/billboard_ORM_f67db62f-115e-4bac-8945-513bbc2aa247.jpg"
-dest_files=["res://.godot/imported/billboard_ORM_f67db62f-115e-4bac-8945-513bbc2aa247.jpg-2bb3a1c7b2d1ec008b45653dd2026fb9.ctex"]
+dest_files=["res://.godot/imported/billboard_ORM_f67db62f-115e-4bac-8945-513bbc2aa247.jpg-2bb3a1c7b2d1ec008b45653dd2026fb9.s3tc.ctex", "res://.godot/imported/billboard_ORM_f67db62f-115e-4bac-8945-513bbc2aa247.jpg-2bb3a1c7b2d1ec008b45653dd2026fb9.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

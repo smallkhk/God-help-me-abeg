@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://d0u3w2paigraa"
-path="res://.godot/imported/security_light_security_light_arm_1k.jpg-b793d58d3844870bb43f1d5d0965d5f9.ctex"
+path.s3tc="res://.godot/imported/security_light_security_light_arm_1k.jpg-b793d58d3844870bb43f1d5d0965d5f9.s3tc.ctex"
+path.etc2="res://.godot/imported/security_light_security_light_arm_1k.jpg-b793d58d3844870bb43f1d5d0965d5f9.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "992f24e3e8a6f3b3f5387b8d4a37c79e"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/security_light_security_light_arm_1k.jpg"
-dest_files=["res://.godot/imported/security_light_security_light_arm_1k.jpg-b793d58d3844870bb43f1d5d0965d5f9.ctex"]
+dest_files=["res://.godot/imported/security_light_security_light_arm_1k.jpg-b793d58d3844870bb43f1d5d0965d5f9.s3tc.ctex", "res://.godot/imported/security_light_security_light_arm_1k.jpg-b793d58d3844870bb43f1d5d0965d5f9.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

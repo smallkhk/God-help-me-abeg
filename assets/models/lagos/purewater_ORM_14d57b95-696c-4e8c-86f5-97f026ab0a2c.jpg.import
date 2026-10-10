@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cwwib0f5e2tc6"
-path="res://.godot/imported/purewater_ORM_14d57b95-696c-4e8c-86f5-97f026ab0a2c.jpg-44fd511b1d51516d35cfb3da7d3dcb10.ctex"
+path.s3tc="res://.godot/imported/purewater_ORM_14d57b95-696c-4e8c-86f5-97f026ab0a2c.jpg-44fd511b1d51516d35cfb3da7d3dcb10.s3tc.ctex"
+path.etc2="res://.godot/imported/purewater_ORM_14d57b95-696c-4e8c-86f5-97f026ab0a2c.jpg-44fd511b1d51516d35cfb3da7d3dcb10.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "bc7ae65f76ee88f1e3dcd09a3ac15b6e"
+"md5": "a9f7a3c08ac7551e1b29178ce755455e"
 }
 
 [deps]
 
 source_file="res://assets/models/lagos/purewater_ORM_14d57b95-696c-4e8c-86f5-97f026ab0a2c.jpg"
-dest_files=["res://.godot/imported/purewater_ORM_14d57b95-696c-4e8c-86f5-97f026ab0a2c.jpg-44fd511b1d51516d35cfb3da7d3dcb10.ctex"]
+dest_files=["res://.godot/imported/purewater_ORM_14d57b95-696c-4e8c-86f5-97f026ab0a2c.jpg-44fd511b1d51516d35cfb3da7d3dcb10.s3tc.ctex", "res://.godot/imported/purewater_ORM_14d57b95-696c-4e8c-86f5-97f026ab0a2c.jpg-44fd511b1d51516d35cfb3da7d3dcb10.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

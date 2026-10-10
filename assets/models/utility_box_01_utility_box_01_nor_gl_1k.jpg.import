@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://d3imex530fhcm"
-path="res://.godot/imported/utility_box_01_utility_box_01_nor_gl_1k.jpg-1656e7f49c56b958b3504852af1f6e0e.ctex"
+path.s3tc="res://.godot/imported/utility_box_01_utility_box_01_nor_gl_1k.jpg-1656e7f49c56b958b3504852af1f6e0e.s3tc.ctex"
+path.etc2="res://.godot/imported/utility_box_01_utility_box_01_nor_gl_1k.jpg-1656e7f49c56b958b3504852af1f6e0e.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "f1c7552a14b1c8f4e3fc37b8b274d08e"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/utility_box_01_utility_box_01_nor_gl_1k.jpg"
-dest_files=["res://.godot/imported/utility_box_01_utility_box_01_nor_gl_1k.jpg-1656e7f49c56b958b3504852af1f6e0e.ctex"]
+dest_files=["res://.godot/imported/utility_box_01_utility_box_01_nor_gl_1k.jpg-1656e7f49c56b958b3504852af1f6e0e.s3tc.ctex", "res://.godot/imported/utility_box_01_utility_box_01_nor_gl_1k.jpg-1656e7f49c56b958b3504852af1f6e0e.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://yvbhil177o18"
-path="res://.godot/imported/molue_NormalGL_cd6cb44d-da67-4da5-a3d4-2945149f499e.png-643b9d2bf9b0c03d5fd41f73b85a208f.ctex"
+path.s3tc="res://.godot/imported/molue_NormalGL_cd6cb44d-da67-4da5-a3d4-2945149f499e.png-643b9d2bf9b0c03d5fd41f73b85a208f.s3tc.ctex"
+path.etc2="res://.godot/imported/molue_NormalGL_cd6cb44d-da67-4da5-a3d4-2945149f499e.png-643b9d2bf9b0c03d5fd41f73b85a208f.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "b77d58a2e69b1c3b44983500d6732eba"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/lagos/molue_NormalGL_cd6cb44d-da67-4da5-a3d4-2945149f499e.png"
-dest_files=["res://.godot/imported/molue_NormalGL_cd6cb44d-da67-4da5-a3d4-2945149f499e.png-643b9d2bf9b0c03d5fd41f73b85a208f.ctex"]
+dest_files=["res://.godot/imported/molue_NormalGL_cd6cb44d-da67-4da5-a3d4-2945149f499e.png-643b9d2bf9b0c03d5fd41f73b85a208f.s3tc.ctex", "res://.godot/imported/molue_NormalGL_cd6cb44d-da67-4da5-a3d4-2945149f499e.png-643b9d2bf9b0c03d5fd41f73b85a208f.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

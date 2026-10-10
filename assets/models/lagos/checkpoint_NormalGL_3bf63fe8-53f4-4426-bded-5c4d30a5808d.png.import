@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ctgmhxltjliti"
-path="res://.godot/imported/checkpoint_NormalGL_3bf63fe8-53f4-4426-bded-5c4d30a5808d.png-0da49afe8bd3e7af63681c0416175d03.ctex"
+path.s3tc="res://.godot/imported/checkpoint_NormalGL_3bf63fe8-53f4-4426-bded-5c4d30a5808d.png-0da49afe8bd3e7af63681c0416175d03.s3tc.ctex"
+path.etc2="res://.godot/imported/checkpoint_NormalGL_3bf63fe8-53f4-4426-bded-5c4d30a5808d.png-0da49afe8bd3e7af63681c0416175d03.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "cbac900017c707edb9e94f0340ba7f88"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/lagos/checkpoint_NormalGL_3bf63fe8-53f4-4426-bded-5c4d30a5808d.png"
-dest_files=["res://.godot/imported/checkpoint_NormalGL_3bf63fe8-53f4-4426-bded-5c4d30a5808d.png-0da49afe8bd3e7af63681c0416175d03.ctex"]
+dest_files=["res://.godot/imported/checkpoint_NormalGL_3bf63fe8-53f4-4426-bded-5c4d30a5808d.png-0da49afe8bd3e7af63681c0416175d03.s3tc.ctex", "res://.godot/imported/checkpoint_NormalGL_3bf63fe8-53f4-4426-bded-5c4d30a5808d.png-0da49afe8bd3e7af63681c0416175d03.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

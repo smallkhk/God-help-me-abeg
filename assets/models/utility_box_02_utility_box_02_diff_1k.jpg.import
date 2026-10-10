@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://jsbhlmtngt4n"
-path="res://.godot/imported/utility_box_02_utility_box_02_diff_1k.jpg-9f0bbffe04a720535ac7c0cd42fe92e4.ctex"
+path.s3tc="res://.godot/imported/utility_box_02_utility_box_02_diff_1k.jpg-9f0bbffe04a720535ac7c0cd42fe92e4.s3tc.ctex"
+path.etc2="res://.godot/imported/utility_box_02_utility_box_02_diff_1k.jpg-9f0bbffe04a720535ac7c0cd42fe92e4.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "ec2a67e540fb19e3908376f6c28cf5d5"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/utility_box_02_utility_box_02_diff_1k.jpg"
-dest_files=["res://.godot/imported/utility_box_02_utility_box_02_diff_1k.jpg-9f0bbffe04a720535ac7c0cd42fe92e4.ctex"]
+dest_files=["res://.godot/imported/utility_box_02_utility_box_02_diff_1k.jpg-9f0bbffe04a720535ac7c0cd42fe92e4.s3tc.ctex", "res://.godot/imported/utility_box_02_utility_box_02_diff_1k.jpg-9f0bbffe04a720535ac7c0cd42fe92e4.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

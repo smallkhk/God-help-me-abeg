@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c0tt2qwkm5fs1"
-path="res://.godot/imported/metal_trash_can_metal_trash_can_rust_nor_gl_1k.jpg-df36d8d9e61be1be77f2c6782e324b60.ctex"
+path.s3tc="res://.godot/imported/metal_trash_can_metal_trash_can_rust_nor_gl_1k.jpg-df36d8d9e61be1be77f2c6782e324b60.s3tc.ctex"
+path.etc2="res://.godot/imported/metal_trash_can_metal_trash_can_rust_nor_gl_1k.jpg-df36d8d9e61be1be77f2c6782e324b60.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "d5d64e5b16078da2bc47c9c5bc14b0a0"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/metal_trash_can_metal_trash_can_rust_nor_gl_1k.jpg"
-dest_files=["res://.godot/imported/metal_trash_can_metal_trash_can_rust_nor_gl_1k.jpg-df36d8d9e61be1be77f2c6782e324b60.ctex"]
+dest_files=["res://.godot/imported/metal_trash_can_metal_trash_can_rust_nor_gl_1k.jpg-df36d8d9e61be1be77f2c6782e324b60.s3tc.ctex", "res://.godot/imported/metal_trash_can_metal_trash_can_rust_nor_gl_1k.jpg-df36d8d9e61be1be77f2c6782e324b60.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

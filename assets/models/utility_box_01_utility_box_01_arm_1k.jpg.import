@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dg1neyls0ecap"
-path="res://.godot/imported/utility_box_01_utility_box_01_arm_1k.jpg-d0d02c3b5e75ce58d144f8d071eda013.ctex"
+path.s3tc="res://.godot/imported/utility_box_01_utility_box_01_arm_1k.jpg-d0d02c3b5e75ce58d144f8d071eda013.s3tc.ctex"
+path.etc2="res://.godot/imported/utility_box_01_utility_box_01_arm_1k.jpg-d0d02c3b5e75ce58d144f8d071eda013.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "f7498aa4b4af9ce0dfc5da78c2652314"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/utility_box_01_utility_box_01_arm_1k.jpg"
-dest_files=["res://.godot/imported/utility_box_01_utility_box_01_arm_1k.jpg-d0d02c3b5e75ce58d144f8d071eda013.ctex"]
+dest_files=["res://.godot/imported/utility_box_01_utility_box_01_arm_1k.jpg-d0d02c3b5e75ce58d144f8d071eda013.s3tc.ctex", "res://.godot/imported/utility_box_01_utility_box_01_arm_1k.jpg-d0d02c3b5e75ce58d144f8d071eda013.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

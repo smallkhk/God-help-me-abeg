@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bhutqtfp2tbnh"
-path="res://.godot/imported/molue_Color_cd6cb44d-da67-4da5-a3d4-2945149f499e.jpg-6cf55c44bfb578d8021e5c22727db6e6.ctex"
+path.s3tc="res://.godot/imported/molue_Color_cd6cb44d-da67-4da5-a3d4-2945149f499e.jpg-6cf55c44bfb578d8021e5c22727db6e6.s3tc.ctex"
+path.etc2="res://.godot/imported/molue_Color_cd6cb44d-da67-4da5-a3d4-2945149f499e.jpg-6cf55c44bfb578d8021e5c22727db6e6.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "afe0941cd8d01b174f162c6c6a6b110f"
+"md5": "b0dba1ccea3421f6f638745e9a585749"
 }
 
 [deps]
 
 source_file="res://assets/models/lagos/molue_Color_cd6cb44d-da67-4da5-a3d4-2945149f499e.jpg"
-dest_files=["res://.godot/imported/molue_Color_cd6cb44d-da67-4da5-a3d4-2945149f499e.jpg-6cf55c44bfb578d8021e5c22727db6e6.ctex"]
+dest_files=["res://.godot/imported/molue_Color_cd6cb44d-da67-4da5-a3d4-2945149f499e.jpg-6cf55c44bfb578d8021e5c22727db6e6.s3tc.ctex", "res://.godot/imported/molue_Color_cd6cb44d-da67-4da5-a3d4-2945149f499e.jpg-6cf55c44bfb578d8021e5c22727db6e6.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

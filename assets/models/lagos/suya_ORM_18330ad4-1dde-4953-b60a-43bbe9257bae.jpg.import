@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bbqi8s4patgfn"
-path="res://.godot/imported/suya_ORM_18330ad4-1dde-4953-b60a-43bbe9257bae.jpg-2192c143cc4ba32ee32f3f01397b9c86.ctex"
+path.s3tc="res://.godot/imported/suya_ORM_18330ad4-1dde-4953-b60a-43bbe9257bae.jpg-2192c143cc4ba32ee32f3f01397b9c86.s3tc.ctex"
+path.etc2="res://.godot/imported/suya_ORM_18330ad4-1dde-4953-b60a-43bbe9257bae.jpg-2192c143cc4ba32ee32f3f01397b9c86.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "a6905f8a9090940c305ecc6723864d5a"
+"md5": "9d262a0c99fa0c24b4e92ea4740e0a08"
 }
 
 [deps]
 
 source_file="res://assets/models/lagos/suya_ORM_18330ad4-1dde-4953-b60a-43bbe9257bae.jpg"
-dest_files=["res://.godot/imported/suya_ORM_18330ad4-1dde-4953-b60a-43bbe9257bae.jpg-2192c143cc4ba32ee32f3f01397b9c86.ctex"]
+dest_files=["res://.godot/imported/suya_ORM_18330ad4-1dde-4953-b60a-43bbe9257bae.jpg-2192c143cc4ba32ee32f3f01397b9c86.s3tc.ctex", "res://.godot/imported/suya_ORM_18330ad4-1dde-4953-b60a-43bbe9257bae.jpg-2192c143cc4ba32ee32f3f01397b9c86.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

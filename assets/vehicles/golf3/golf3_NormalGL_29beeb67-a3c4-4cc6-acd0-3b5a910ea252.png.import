@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dgdvrt4t8r45m"
-path="res://.godot/imported/golf3_NormalGL_29beeb67-a3c4-4cc6-acd0-3b5a910ea252.png-10d4600406c084819a4830e92e0a0048.ctex"
+path.s3tc="res://.godot/imported/golf3_NormalGL_29beeb67-a3c4-4cc6-acd0-3b5a910ea252.png-10d4600406c084819a4830e92e0a0048.s3tc.ctex"
+path.etc2="res://.godot/imported/golf3_NormalGL_29beeb67-a3c4-4cc6-acd0-3b5a910ea252.png-10d4600406c084819a4830e92e0a0048.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "ac7f1bc58d0b826887a249662fe52d10"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/vehicles/golf3/golf3_NormalGL_29beeb67-a3c4-4cc6-acd0-3b5a910ea252.png"
-dest_files=["res://.godot/imported/golf3_NormalGL_29beeb67-a3c4-4cc6-acd0-3b5a910ea252.png-10d4600406c084819a4830e92e0a0048.ctex"]
+dest_files=["res://.godot/imported/golf3_NormalGL_29beeb67-a3c4-4cc6-acd0-3b5a910ea252.png-10d4600406c084819a4830e92e0a0048.s3tc.ctex", "res://.godot/imported/golf3_NormalGL_29beeb67-a3c4-4cc6-acd0-3b5a910ea252.png-10d4600406c084819a4830e92e0a0048.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

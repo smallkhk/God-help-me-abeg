@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cgo5y7m66no4b"
-path="res://.godot/imported/bole_ORM_a280c920-9315-43e8-a4ab-48a62e37d32e.jpg-e0e974bb1534bdf7dff5e9656fc8c369.ctex"
+path.s3tc="res://.godot/imported/bole_ORM_a280c920-9315-43e8-a4ab-48a62e37d32e.jpg-e0e974bb1534bdf7dff5e9656fc8c369.s3tc.ctex"
+path.etc2="res://.godot/imported/bole_ORM_a280c920-9315-43e8-a4ab-48a62e37d32e.jpg-e0e974bb1534bdf7dff5e9656fc8c369.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "bb17d18fc5e4c8f601d3691883ac91c4"
+"md5": "dc3383bda7de72f7e5131b06e1f3ab71"
 }
 
 [deps]
 
 source_file="res://assets/models/lagos/bole_ORM_a280c920-9315-43e8-a4ab-48a62e37d32e.jpg"
-dest_files=["res://.godot/imported/bole_ORM_a280c920-9315-43e8-a4ab-48a62e37d32e.jpg-e0e974bb1534bdf7dff5e9656fc8c369.ctex"]
+dest_files=["res://.godot/imported/bole_ORM_a280c920-9315-43e8-a4ab-48a62e37d32e.jpg-e0e974bb1534bdf7dff5e9656fc8c369.s3tc.ctex", "res://.godot/imported/bole_ORM_a280c920-9315-43e8-a4ab-48a62e37d32e.jpg-e0e974bb1534bdf7dff5e9656fc8c369.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

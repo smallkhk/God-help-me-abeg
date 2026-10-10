@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bi7plodhcvo33"
-path="res://.godot/imported/fallentree_ORM_3eb6d562-72b9-4a1b-a026-56bd4d494c33.jpg-026c23edf85ea4bba1b399251875aaa3.ctex"
+path.s3tc="res://.godot/imported/fallentree_ORM_3eb6d562-72b9-4a1b-a026-56bd4d494c33.jpg-026c23edf85ea4bba1b399251875aaa3.s3tc.ctex"
+path.etc2="res://.godot/imported/fallentree_ORM_3eb6d562-72b9-4a1b-a026-56bd4d494c33.jpg-026c23edf85ea4bba1b399251875aaa3.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "85cf7770f12fe3a0707b0ee05e4489e8"
+"md5": "96f48c44e042a230f4b019c8b8e41c9b"
 }
 
 [deps]
 
 source_file="res://assets/models/lagos/fallentree_ORM_3eb6d562-72b9-4a1b-a026-56bd4d494c33.jpg"
-dest_files=["res://.godot/imported/fallentree_ORM_3eb6d562-72b9-4a1b-a026-56bd4d494c33.jpg-026c23edf85ea4bba1b399251875aaa3.ctex"]
+dest_files=["res://.godot/imported/fallentree_ORM_3eb6d562-72b9-4a1b-a026-56bd4d494c33.jpg-026c23edf85ea4bba1b399251875aaa3.s3tc.ctex", "res://.godot/imported/fallentree_ORM_3eb6d562-72b9-4a1b-a026-56bd4d494c33.jpg-026c23edf85ea4bba1b399251875aaa3.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://636h8pluttrd"
-path="res://.godot/imported/mama_ORM_8a799680-ed2c-46d2-8283-6165c54f9871.jpg-4c8de520058f99b8c4fd7672ac6c9e77.ctex"
+path.s3tc="res://.godot/imported/mama_ORM_8a799680-ed2c-46d2-8283-6165c54f9871.jpg-4c8de520058f99b8c4fd7672ac6c9e77.s3tc.ctex"
+path.etc2="res://.godot/imported/mama_ORM_8a799680-ed2c-46d2-8283-6165c54f9871.jpg-4c8de520058f99b8c4fd7672ac6c9e77.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "6d2034ebaa0c3171ffc880ee1c825d8b"
+"md5": "4775e9c1669e7959893061845d14cb88"
 }
 
 [deps]
 
 source_file="res://assets/models/people/mama_ORM_8a799680-ed2c-46d2-8283-6165c54f9871.jpg"
-dest_files=["res://.godot/imported/mama_ORM_8a799680-ed2c-46d2-8283-6165c54f9871.jpg-4c8de520058f99b8c4fd7672ac6c9e77.ctex"]
+dest_files=["res://.godot/imported/mama_ORM_8a799680-ed2c-46d2-8283-6165c54f9871.jpg-4c8de520058f99b8c4fd7672ac6c9e77.s3tc.ctex", "res://.godot/imported/mama_ORM_8a799680-ed2c-46d2-8283-6165c54f9871.jpg-4c8de520058f99b8c4fd7672ac6c9e77.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

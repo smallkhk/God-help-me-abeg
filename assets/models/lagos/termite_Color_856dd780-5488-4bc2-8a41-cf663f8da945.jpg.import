@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bfoqf834dyl4t"
-path="res://.godot/imported/termite_Color_856dd780-5488-4bc2-8a41-cf663f8da945.jpg-570a02e875672f7ac8f30eddb622c728.ctex"
+path.s3tc="res://.godot/imported/termite_Color_856dd780-5488-4bc2-8a41-cf663f8da945.jpg-570a02e875672f7ac8f30eddb622c728.s3tc.ctex"
+path.etc2="res://.godot/imported/termite_Color_856dd780-5488-4bc2-8a41-cf663f8da945.jpg-570a02e875672f7ac8f30eddb622c728.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "95374302ebf10b03cca0ddc2ddae8970"
+"md5": "208070d69876d2e85a77ba3ecbcd8606"
 }
 
 [deps]
 
 source_file="res://assets/models/lagos/termite_Color_856dd780-5488-4bc2-8a41-cf663f8da945.jpg"
-dest_files=["res://.godot/imported/termite_Color_856dd780-5488-4bc2-8a41-cf663f8da945.jpg-570a02e875672f7ac8f30eddb622c728.ctex"]
+dest_files=["res://.godot/imported/termite_Color_856dd780-5488-4bc2-8a41-cf663f8da945.jpg-570a02e875672f7ac8f30eddb622c728.s3tc.ctex", "res://.godot/imported/termite_Color_856dd780-5488-4bc2-8a41-cf663f8da945.jpg-570a02e875672f7ac8f30eddb622c728.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

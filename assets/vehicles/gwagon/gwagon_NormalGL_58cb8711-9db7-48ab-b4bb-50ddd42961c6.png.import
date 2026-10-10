@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c15y5gu7vxq1f"
-path="res://.godot/imported/gwagon_NormalGL_58cb8711-9db7-48ab-b4bb-50ddd42961c6.png-64619ed73f60ebe086c4c5ec746d9b1d.ctex"
+path.s3tc="res://.godot/imported/gwagon_NormalGL_58cb8711-9db7-48ab-b4bb-50ddd42961c6.png-64619ed73f60ebe086c4c5ec746d9b1d.s3tc.ctex"
+path.etc2="res://.godot/imported/gwagon_NormalGL_58cb8711-9db7-48ab-b4bb-50ddd42961c6.png-64619ed73f60ebe086c4c5ec746d9b1d.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "c722169cb34a9980d738feba3245a4a4"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/vehicles/gwagon/gwagon_NormalGL_58cb8711-9db7-48ab-b4bb-50ddd42961c6.png"
-dest_files=["res://.godot/imported/gwagon_NormalGL_58cb8711-9db7-48ab-b4bb-50ddd42961c6.png-64619ed73f60ebe086c4c5ec746d9b1d.ctex"]
+dest_files=["res://.godot/imported/gwagon_NormalGL_58cb8711-9db7-48ab-b4bb-50ddd42961c6.png-64619ed73f60ebe086c4c5ec746d9b1d.s3tc.ctex", "res://.godot/imported/gwagon_NormalGL_58cb8711-9db7-48ab-b4bb-50ddd42961c6.png-64619ed73f60ebe086c4c5ec746d9b1d.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

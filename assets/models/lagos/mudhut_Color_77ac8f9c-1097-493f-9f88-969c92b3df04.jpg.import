@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://csnh0lbmq5s77"
-path="res://.godot/imported/mudhut_Color_77ac8f9c-1097-493f-9f88-969c92b3df04.jpg-361cf45cc3dd2990407b99f07cbbefb7.ctex"
+path.s3tc="res://.godot/imported/mudhut_Color_77ac8f9c-1097-493f-9f88-969c92b3df04.jpg-361cf45cc3dd2990407b99f07cbbefb7.s3tc.ctex"
+path.etc2="res://.godot/imported/mudhut_Color_77ac8f9c-1097-493f-9f88-969c92b3df04.jpg-361cf45cc3dd2990407b99f07cbbefb7.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "5cb51df86bd5b4b7c23de38ef1ab7ec0"
+"md5": "1e143620878aa771aba7d2d4c6d518e0"
 }
 
 [deps]
 
 source_file="res://assets/models/lagos/mudhut_Color_77ac8f9c-1097-493f-9f88-969c92b3df04.jpg"
-dest_files=["res://.godot/imported/mudhut_Color_77ac8f9c-1097-493f-9f88-969c92b3df04.jpg-361cf45cc3dd2990407b99f07cbbefb7.ctex"]
+dest_files=["res://.godot/imported/mudhut_Color_77ac8f9c-1097-493f-9f88-969c92b3df04.jpg-361cf45cc3dd2990407b99f07cbbefb7.s3tc.ctex", "res://.godot/imported/mudhut_Color_77ac8f9c-1097-493f-9f88-969c92b3df04.jpg-361cf45cc3dd2990407b99f07cbbefb7.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

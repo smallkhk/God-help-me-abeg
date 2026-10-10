@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c5jsmtfhpehpu"
-path="res://.godot/imported/mosque_ORM_bc50b514-8e0b-489a-9504-cd9d0e636de2.jpg-ace2dfc35170534b8302898c870a21ed.ctex"
+path.s3tc="res://.godot/imported/mosque_ORM_bc50b514-8e0b-489a-9504-cd9d0e636de2.jpg-ace2dfc35170534b8302898c870a21ed.s3tc.ctex"
+path.etc2="res://.godot/imported/mosque_ORM_bc50b514-8e0b-489a-9504-cd9d0e636de2.jpg-ace2dfc35170534b8302898c870a21ed.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "21ad5cf175dbfba7f6115bd16f84d2f4"
+"md5": "160f00ee347a4d03adb6bb448bc14f9c"
 }
 
 [deps]
 
 source_file="res://assets/models/lagos/mosque_ORM_bc50b514-8e0b-489a-9504-cd9d0e636de2.jpg"
-dest_files=["res://.godot/imported/mosque_ORM_bc50b514-8e0b-489a-9504-cd9d0e636de2.jpg-ace2dfc35170534b8302898c870a21ed.ctex"]
+dest_files=["res://.godot/imported/mosque_ORM_bc50b514-8e0b-489a-9504-cd9d0e636de2.jpg-ace2dfc35170534b8302898c870a21ed.s3tc.ctex", "res://.godot/imported/mosque_ORM_bc50b514-8e0b-489a-9504-cd9d0e636de2.jpg-ace2dfc35170534b8302898c870a21ed.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

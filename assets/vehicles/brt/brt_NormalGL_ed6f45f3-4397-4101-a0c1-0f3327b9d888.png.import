@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cur17in5xt7af"
-path="res://.godot/imported/brt_NormalGL_ed6f45f3-4397-4101-a0c1-0f3327b9d888.png-9ffbb58e81c516001f7f95b8c97e2e86.ctex"
+path.s3tc="res://.godot/imported/brt_NormalGL_ed6f45f3-4397-4101-a0c1-0f3327b9d888.png-9ffbb58e81c516001f7f95b8c97e2e86.s3tc.ctex"
+path.etc2="res://.godot/imported/brt_NormalGL_ed6f45f3-4397-4101-a0c1-0f3327b9d888.png-9ffbb58e81c516001f7f95b8c97e2e86.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "e978324269d654fc47364141b51e0a60"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/vehicles/brt/brt_NormalGL_ed6f45f3-4397-4101-a0c1-0f3327b9d888.png"
-dest_files=["res://.godot/imported/brt_NormalGL_ed6f45f3-4397-4101-a0c1-0f3327b9d888.png-9ffbb58e81c516001f7f95b8c97e2e86.ctex"]
+dest_files=["res://.godot/imported/brt_NormalGL_ed6f45f3-4397-4101-a0c1-0f3327b9d888.png-9ffbb58e81c516001f7f95b8c97e2e86.s3tc.ctex", "res://.godot/imported/brt_NormalGL_ed6f45f3-4397-4101-a0c1-0f3327b9d888.png-9ffbb58e81c516001f7f95b8c97e2e86.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

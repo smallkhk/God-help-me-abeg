@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://djfe3pb517shd"
-path="res://.godot/imported/tollbooth_NormalGL_40e12739-e98f-496f-96c4-5913d81ffe90.png-d7942a38992ab915b4914349ac58af93.ctex"
+path.s3tc="res://.godot/imported/tollbooth_NormalGL_40e12739-e98f-496f-96c4-5913d81ffe90.png-d7942a38992ab915b4914349ac58af93.s3tc.ctex"
+path.etc2="res://.godot/imported/tollbooth_NormalGL_40e12739-e98f-496f-96c4-5913d81ffe90.png-d7942a38992ab915b4914349ac58af93.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "6cb5574b92c51ca06b64b6390b325b41"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/lagos/tollbooth_NormalGL_40e12739-e98f-496f-96c4-5913d81ffe90.png"
-dest_files=["res://.godot/imported/tollbooth_NormalGL_40e12739-e98f-496f-96c4-5913d81ffe90.png-d7942a38992ab915b4914349ac58af93.ctex"]
+dest_files=["res://.godot/imported/tollbooth_NormalGL_40e12739-e98f-496f-96c4-5913d81ffe90.png-d7942a38992ab915b4914349ac58af93.s3tc.ctex", "res://.godot/imported/tollbooth_NormalGL_40e12739-e98f-496f-96c4-5913d81ffe90.png-d7942a38992ab915b4914349ac58af93.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

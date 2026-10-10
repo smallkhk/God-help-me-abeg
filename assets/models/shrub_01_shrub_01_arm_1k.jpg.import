@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ba8sas0l2blqp"
-path="res://.godot/imported/shrub_01_shrub_01_arm_1k.jpg-bddc777ada3ac7da1aa790c5f23d7dd2.ctex"
+path.s3tc="res://.godot/imported/shrub_01_shrub_01_arm_1k.jpg-bddc777ada3ac7da1aa790c5f23d7dd2.s3tc.ctex"
+path.etc2="res://.godot/imported/shrub_01_shrub_01_arm_1k.jpg-bddc777ada3ac7da1aa790c5f23d7dd2.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "459fd9b8208868e796dd09a84ad19f87"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/shrub_01_shrub_01_arm_1k.jpg"
-dest_files=["res://.godot/imported/shrub_01_shrub_01_arm_1k.jpg-bddc777ada3ac7da1aa790c5f23d7dd2.ctex"]
+dest_files=["res://.godot/imported/shrub_01_shrub_01_arm_1k.jpg-bddc777ada3ac7da1aa790c5f23d7dd2.s3tc.ctex", "res://.godot/imported/shrub_01_shrub_01_arm_1k.jpg-bddc777ada3ac7da1aa790c5f23d7dd2.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

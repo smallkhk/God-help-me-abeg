@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://8k64b6jy2413"
-path="res://.godot/imported/mechanic_Color_f51d0cea-055a-4696-8f5e-4b48f4f6836c.jpg-6bfb697a4716716ad1bb1e71dbc62ae6.ctex"
+path.s3tc="res://.godot/imported/mechanic_Color_f51d0cea-055a-4696-8f5e-4b48f4f6836c.jpg-6bfb697a4716716ad1bb1e71dbc62ae6.s3tc.ctex"
+path.etc2="res://.godot/imported/mechanic_Color_f51d0cea-055a-4696-8f5e-4b48f4f6836c.jpg-6bfb697a4716716ad1bb1e71dbc62ae6.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "706ec524920b43fd896417042d4d8201"
+"md5": "595818d22f3ce7d2555d10d30d4ed96c"
 }
 
 [deps]
 
 source_file="res://assets/models/lagos/mechanic_Color_f51d0cea-055a-4696-8f5e-4b48f4f6836c.jpg"
-dest_files=["res://.godot/imported/mechanic_Color_f51d0cea-055a-4696-8f5e-4b48f4f6836c.jpg-6bfb697a4716716ad1bb1e71dbc62ae6.ctex"]
+dest_files=["res://.godot/imported/mechanic_Color_f51d0cea-055a-4696-8f5e-4b48f4f6836c.jpg-6bfb697a4716716ad1bb1e71dbc62ae6.s3tc.ctex", "res://.godot/imported/mechanic_Color_f51d0cea-055a-4696-8f5e-4b48f4f6836c.jpg-6bfb697a4716716ad1bb1e71dbc62ae6.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

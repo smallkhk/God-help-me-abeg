@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://j3kd26k8c8x5"
-path="res://.godot/imported/bole_Color_a280c920-9315-43e8-a4ab-48a62e37d32e.jpg-4e5e4dae564c47b39549b0285c43ece4.ctex"
+path.s3tc="res://.godot/imported/bole_Color_a280c920-9315-43e8-a4ab-48a62e37d32e.jpg-4e5e4dae564c47b39549b0285c43ece4.s3tc.ctex"
+path.etc2="res://.godot/imported/bole_Color_a280c920-9315-43e8-a4ab-48a62e37d32e.jpg-4e5e4dae564c47b39549b0285c43ece4.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "ea419040c0d76f53dc81a7f7e7bf4e80"
+"md5": "f61a13d7b0b40f534c27ee0d6fe8a3ba"
 }
 
 [deps]
 
 source_file="res://assets/models/lagos/bole_Color_a280c920-9315-43e8-a4ab-48a62e37d32e.jpg"
-dest_files=["res://.godot/imported/bole_Color_a280c920-9315-43e8-a4ab-48a62e37d32e.jpg-4e5e4dae564c47b39549b0285c43ece4.ctex"]
+dest_files=["res://.godot/imported/bole_Color_a280c920-9315-43e8-a4ab-48a62e37d32e.jpg-4e5e4dae564c47b39549b0285c43ece4.s3tc.ctex", "res://.godot/imported/bole_Color_a280c920-9315-43e8-a4ab-48a62e37d32e.jpg-4e5e4dae564c47b39549b0285c43ece4.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

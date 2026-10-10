@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dp4sdubo4340v"
-path="res://.godot/imported/brt_Color_ed6f45f3-4397-4101-a0c1-0f3327b9d888.jpg-7aca639d7cf29a553e764b26412cf58a.ctex"
+path.s3tc="res://.godot/imported/brt_Color_ed6f45f3-4397-4101-a0c1-0f3327b9d888.jpg-7aca639d7cf29a553e764b26412cf58a.s3tc.ctex"
+path.etc2="res://.godot/imported/brt_Color_ed6f45f3-4397-4101-a0c1-0f3327b9d888.jpg-7aca639d7cf29a553e764b26412cf58a.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "65cbbbad9b0dca0bb8ea94e59f45ecb1"
+"md5": "e11872eb195b63243d3372a954a9bb16"
 }
 
 [deps]
 
 source_file="res://assets/vehicles/brt/brt_Color_ed6f45f3-4397-4101-a0c1-0f3327b9d888.jpg"
-dest_files=["res://.godot/imported/brt_Color_ed6f45f3-4397-4101-a0c1-0f3327b9d888.jpg-7aca639d7cf29a553e764b26412cf58a.ctex"]
+dest_files=["res://.godot/imported/brt_Color_ed6f45f3-4397-4101-a0c1-0f3327b9d888.jpg-7aca639d7cf29a553e764b26412cf58a.s3tc.ctex", "res://.godot/imported/brt_Color_ed6f45f3-4397-4101-a0c1-0f3327b9d888.jpg-7aca639d7cf29a553e764b26412cf58a.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

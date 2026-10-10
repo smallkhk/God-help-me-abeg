@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dtm7rrjhfqa5e"
-path="res://.godot/imported/hilux_ORM_b879b9d6-6287-4242-99c5-3aa7e50fb126.jpg-0ac195723d806d2c755987691a3e6358.ctex"
+path.s3tc="res://.godot/imported/hilux_ORM_b879b9d6-6287-4242-99c5-3aa7e50fb126.jpg-0ac195723d806d2c755987691a3e6358.s3tc.ctex"
+path.etc2="res://.godot/imported/hilux_ORM_b879b9d6-6287-4242-99c5-3aa7e50fb126.jpg-0ac195723d806d2c755987691a3e6358.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "cfb93083f71e1fa367d82cfb69955dd7"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/vehicles/hilux/hilux_ORM_b879b9d6-6287-4242-99c5-3aa7e50fb126.jpg"
-dest_files=["res://.godot/imported/hilux_ORM_b879b9d6-6287-4242-99c5-3aa7e50fb126.jpg-0ac195723d806d2c755987691a3e6358.ctex"]
+dest_files=["res://.godot/imported/hilux_ORM_b879b9d6-6287-4242-99c5-3aa7e50fb126.jpg-0ac195723d806d2c755987691a3e6358.s3tc.ctex", "res://.godot/imported/hilux_ORM_b879b9d6-6287-4242-99c5-3aa7e50fb126.jpg-0ac195723d806d2c755987691a3e6358.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
