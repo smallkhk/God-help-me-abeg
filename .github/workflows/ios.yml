@@ -5,7 +5,8 @@ name: Build iOS IPA (unsigned)
 on:
   workflow_dispatch:
   push:
-    tags: ["ios-*"]
+    branches: [master]
+    paths: [".github/ios-build-trigger"]   # edit this file to start a build
 
 env:
   GODOT_VERSION: "4.7.2"
