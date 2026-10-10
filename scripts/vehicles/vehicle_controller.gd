@@ -413,6 +413,7 @@ func _grip_curve(norm: float) -> float:
 	return s * maxf(0.65, 1.0 - (a - 1.0) * 0.25)
 
 
+var _air_t := 0.0
 func _apply_body_aero(_delta: float, speed: float, _fwd: Vector3, up: Vector3) -> void:
 	if speed < 0.1:
 		return
@@ -425,21 +426,31 @@ func _apply_body_aero(_delta: float, speed: float, _fwd: Vector3, up: Vector3) -
 	apply_central_force(-up * df * speed * speed)
 	# Anti-launch: when wheels leave the deck at speed, kill upward velocity
 	# and pull the car back down quickly.
-	if wheels_on_ground < wheels.size() and speed > 15.0:
-		var vy := linear_velocity.y
-		if vy > 0.0:
-			linear_velocity.y = vy * 0.85
-		if wheels_on_ground == 0:
-			apply_central_force(Vector3.DOWN * mass * 9.8)
+	# Only when the car is properly airborne (not on every bump: that made
+	# the car feel glued and twitchy over kerbs and rough ground).
+	if wheels_on_ground == 0:
+		_air_t += get_physics_process_delta_time()
+	else:
+		_air_t = 0.0
+	if _air_t > 0.2 and speed > 20.0:
+		if linear_velocity.y > 0.0:
+			linear_velocity.y *= 0.95
+		apply_central_force(Vector3.DOWN * mass * 4.0)
 
 
 func _apply_stability_assist(_delta: float, up: Vector3) -> void:
 	var s := _assist(data.stability_assist_strength, 0.0, 0.35, 0.8)
 	if s <= 0.0:
 		return
-	# Damp excessive yaw rate only — a gentle nudge, never a steering override.
+	# Only fight yaw BEYOND what the steering asks for (a spin / snap
+	# oversteer). The old version damped all yaw, so the car felt lazy into a
+	# corner and then snapped when grip ran out.
 	var yaw_rate := angular_velocity.dot(up)
-	var correction := -yaw_rate * s * data.mass * 0.6
+	var wanted := forward_speed * tan(current_steer_angle) / maxf(data.wheelbase, 1.0)
+	var excess := yaw_rate - wanted
+	if absf(excess) < 0.15 or absf(forward_speed) < 3.0:
+		return
+	var correction := -(excess - signf(excess) * 0.15) * s * data.mass * 1.2
 	apply_torque(up * correction)
 
 

@@ -61,8 +61,10 @@ func _ready() -> void:
 		_scenes[k] = load(MODELS[k][0])
 		for w in MODELS[k][5]:
 			_pick.append(k)
-	if OS.has_feature("mobile") and not _hi_gfx():
-		count = 10
+	if not _hi_gfx():
+		count = 9
+	elif OS.has_feature("mobile"):
+		count = 12
 	_ambience()
 	await get_tree().process_frame
 	_find_player()

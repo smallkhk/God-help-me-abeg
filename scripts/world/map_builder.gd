@@ -1035,6 +1035,12 @@ func _spawn_model_instances(root: Node3D, inst: Dictionary) -> void:
 		var scene := (load(path) as PackedScene).instantiate()
 		var xforms: Array = inst[model]
 		var far := 600.0 if (model.begins_with("island_tree") or model.begins_with("k_tree")) else 180.0
+		# draw distance by real size: people/props pop out early, buildings stay
+		if model.begins_with("people/") or model in ["lagos/generator", "lagos/bole", "lagos/purewater", "lagos/gutter", "lagos/brtbarrier", "lagos/barricade", "lagos/palmoil", "lagos/lastma"]:
+			far = 70.0
+		elif model in ["lagos/church", "lagos/mosque", "lagos/tower", "lagos/bank", "lagos/petrol", "lagos/footbridge", "plaza/plaza", "lagos_house/house", "unfinished/unfinished", "billboard/billboard"]:
+			far = 650.0
+		var cell_m := 100.0 if far < 200.0 else 300.0
 		for m in scene.find_children("*", "MeshInstance3D", true, false):
 			var mesh_i := m as MeshInstance3D
 			var mn := String(mesh_i.name).to_upper()
@@ -1044,7 +1050,7 @@ func _spawn_model_instances(root: Node3D, inst: Dictionary) -> void:
 			# split into 300 m cells so off-screen / far groups are culled
 			var cells := {}
 			for xf in xforms:
-				var key := Vector2i(int(floor(xf.origin.x / 300.0)), int(floor(xf.origin.z / 300.0)))
+				var key := Vector2i(int(floor(xf.origin.x / cell_m)), int(floor(xf.origin.z / cell_m)))
 				if not cells.has(key):
 					cells[key] = []
 				cells[key].append(xf)
@@ -1059,7 +1065,7 @@ func _spawn_model_instances(root: Node3D, inst: Dictionary) -> void:
 				var mmi := MultiMeshInstance3D.new()
 				mmi.name = "%s_%s_%d_%d" % [model.replace("/", "_"), mesh_i.name, key.x, key.y]
 				mmi.multimesh = mm
-				mmi.visibility_range_end = far + 300.0
+				mmi.visibility_range_end = far + cell_m * 0.7
 				mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if far > 200.0 else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 				root.add_child(mmi)
 				_own(mmi)
