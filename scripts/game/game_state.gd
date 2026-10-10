@@ -32,6 +32,7 @@ var settings: Dictionary = {}
 
 func _ready() -> void:
 	_start_music()
+	_add_gamepad()
 	var data := SaveManager.load_data()
 	settings = data.get("settings", {})
 	# phones start on Low graphics (still switchable in Settings)
@@ -160,3 +161,44 @@ func _next_track() -> void:
 	if st:
 		_music.stream = st
 		_music.play()
+
+
+## Gamepad (MFi / PlayStation / Xbox pads work on iPhone and PC): RT gas,
+## LT brake, left stick steer, A/✕ handbrake, X/□ nitro, Y/△ camera, B/○ look
+## back, Start pause, D-pad up = day/night, D-pad down = rain, R3 horn.
+func _add_gamepad() -> void:
+	var axes := {"accelerate": [JOY_AXIS_TRIGGER_RIGHT, 1.0], "brake": [JOY_AXIS_TRIGGER_LEFT, 1.0],
+		"steer_left": [JOY_AXIS_LEFT_X, -1.0], "steer_right": [JOY_AXIS_LEFT_X, 1.0]}
+	var btns := {"handbrake": JOY_BUTTON_A, "nitro": JOY_BUTTON_X, "camera_next": JOY_BUTTON_Y,
+		"look_back": JOY_BUTTON_B, "pause": JOY_BUTTON_START, "time_next": JOY_BUTTON_DPAD_UP,
+		"weather_toggle": JOY_BUTTON_DPAD_DOWN, "horn": JOY_BUTTON_RIGHT_STICK, "restart": JOY_BUTTON_BACK}
+	for a in axes:
+		if not InputMap.has_action(a):
+			InputMap.add_action(a)
+		var e := InputEventJoypadMotion.new()
+		e.axis = axes[a][0]; e.axis_value = axes[a][1]
+		InputMap.action_add_event(a, e)
+	for a in btns:
+		if not InputMap.has_action(a):
+			InputMap.add_action(a)
+		var b := InputEventJoypadButton.new()
+		b.button_index = btns[a]
+		InputMap.action_add_event(a, b)
+	for a in ["time_next", "weather_toggle", "horn"]:
+		var k := InputEventKey.new()
+		k.physical_keycode = {"time_next": KEY_N, "weather_toggle": KEY_Y, "horn": KEY_H}[a]
+		InputMap.action_add_event(a, k)
+
+
+## Per-car paint colour (garage), null = factory colour.
+func car_color(car_id: String):
+	var c = settings.get("color_" + car_id, null)
+	return Color.html(c) if c is String else null
+
+
+func set_car_color(car_id: String, col) -> void:
+	if col == null:
+		settings.erase("color_" + car_id)
+	else:
+		settings["color_" + car_id] = (col as Color).to_html(false)
+	save()

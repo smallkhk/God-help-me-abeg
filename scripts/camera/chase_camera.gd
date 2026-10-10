@@ -7,11 +7,11 @@ extends Camera3D
 @export var follow_distance: float = 4.3
 @export var follow_height: float = 1.55
 @export var look_ahead: float = 3.0
-@export var position_smooth: float = 6.0
+@export var position_smooth: float = 14.0
 @export var rotation_smooth: float = 8.0
 @export var base_fov: float = 72.0
-@export var speed_fov_gain: float = 0.25   # extra FOV per (m/s), capped
-@export var max_extra_fov: float = 18.0
+@export var speed_fov_gain: float = 0.1   # extra FOV per (m/s), capped
+@export var max_extra_fov: float = 7.0
 
 enum View { CHASE, HOOD, BUMPER }
 var _view: int = View.CHASE
@@ -96,6 +96,10 @@ func _physics_process(delta: float) -> void:
 			_cam_pos = desired
 			global_transform = Transform3D(Basis(), desired).looking_at(xf.origin + fwd * look_ahead, up)
 		_cam_pos = _cam_pos.lerp(desired, 1.0 - exp(-position_smooth * delta))
+		# never trail more than 0.8 m behind the ideal spot (stops the camera
+		# drifting far back when you accelerate)
+		if _cam_pos.distance_to(desired) > 0.8:
+			_cam_pos = desired + (_cam_pos - desired).normalized() * 0.8
 		global_position = _cam_pos
 		# speed shake (subtle above ~120 km/h)
 		var spd := _target.linear_velocity.length()
@@ -120,5 +124,5 @@ func _physics_process(delta: float) -> void:
 	# Speed-reactive FOV adds a sense of velocity (spec §7).
 	var extra := minf(_target.linear_velocity.length() * speed_fov_gain, max_extra_fov)
 	if _target.nitro_active:
-		extra += 10.0
+		extra += 4.0
 	fov = lerpf(fov, base_fov + extra, 1.0 - exp(-4.0 * delta))

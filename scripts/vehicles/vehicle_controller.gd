@@ -132,6 +132,11 @@ func _ready() -> void:
 ## Swaps the placeholder box for the car's .glb model (spec §6.2). Cosmetic only;
 ## physics is untouched. Alignment (offset/rotation/scale) comes from VehicleData
 ## so each model is fitted without code.
+## Global handling tune (owner feedback: too slidey, too fast)
+const GRIP_BONUS := 1.3
+const SPEED_SCALE := 0.75
+
+
 func _mount_model() -> void:
 	if data.model_scene == null:
 		return
@@ -145,6 +150,12 @@ func _mount_model() -> void:
 			deg_to_rad(data.model_rotation_deg.y),
 			deg_to_rad(data.model_rotation_deg.z))
 		m.scale = Vector3.ONE * data.model_scale
+		_finish_materials(m)
+		var g := get_node_or_null("/root/Game")
+		if g and is_player:
+			var col = g.call("car_color", String(data.vehicle_id))
+			if col != null:
+				paint_model(m, col)
 	if data.hide_placeholder_when_model:
 		for n in ["Body", "Cabin", "WheelFL_mesh", "WheelFR_mesh", "WheelRL_mesh", "WheelRR_mesh"]:
 			var node := get_node_or_null(NodePath(n)) as Node3D
@@ -324,7 +335,9 @@ func _apply_tyre_force(w: Wheel, offset: Vector3, up: Vector3, driven_count: int
 	# --- Lateral (cornering) force: slip-angle model ---
 	var slip_angle := atan2(vr, absf(vf) + 0.5)
 	w.slip_angle = slip_angle
-	var lat_grip := (data.lateral_grip_front if w.is_front else data.lateral_grip_rear) * grip_scale
+	# GRIP_BONUS: planted, arcade-sim handling (no random sliding); rear a bit
+	# grippier than front so the car understeers slightly instead of spinning
+	var lat_grip := (data.lateral_grip_front * GRIP_BONUS if w.is_front else data.lateral_grip_rear * GRIP_BONUS * 1.08) * grip_scale
 	if w.is_rear and handbrake_input:
 		lat_grip *= data.handbrake_grip_fraction
 	# Load sensitivity (real tyres): grip coefficient drops as load rises, so
@@ -345,7 +358,7 @@ func _apply_tyre_force(w: Wheel, offset: Vector3, up: Vector3, driven_count: int
 		var ratio := data.get_gear_ratio(transmission.gear)
 		var first := data.get_gear_ratio(1)
 		var gear_mult := absf(ratio) / maxf(absf(first), 0.001)
-		var drive := data.max_drive_force * transmission.torque_factor() * throttle_input * gear_mult / driven_count
+		var drive := data.max_drive_force * SPEED_SCALE * transmission.torque_factor() * throttle_input * gear_mult / driven_count
 		if nitro_active and transmission.gear > 0:
 			drive *= 1.0 + nitro_power
 		if transmission.gear == -1:
@@ -418,7 +431,7 @@ func _apply_body_aero(_delta: float, speed: float, _fwd: Vector3, up: Vector3) -
 	if speed < 0.1:
 		return
 	var dir := linear_velocity.normalized()
-	var drag := data.drag_coefficient * speed * speed
+	var drag := data.drag_coefficient * 1.35 * speed * speed
 	apply_central_force(-dir * drag)
 	dbg_drag_force = drag
 	# Baseline downforce so bumps/seams at top speed don't launch the car.
@@ -541,7 +554,9 @@ func _update_wheel_visuals(delta: float, hit_info: Dictionary) -> void:
 	for i in wheels.size():
 		var w: Wheel = wheels[i]
 		if w.model_pivot:
-			var sa := w.spin_angle + (forward_speed / maxf(data.wheel_radius, 0.01)) * delta
+			# model wheels roll with road speed (spin_angle used to never advance here)
+			w.spin_angle = wrapf(w.spin_angle + (forward_speed / maxf(data.wheel_radius, 0.01)) * delta, -TAU, TAU)
+			var sa := w.spin_angle
 			var st := current_steer_angle if w.is_front else 0.0
 			var gb := global_transform.basis * Basis(Vector3.UP, st) * Basis(Vector3.RIGHT, sa) * w.model_rest
 			w.model_pivot.global_transform = Transform3D(gb, w.model_pivot.global_position)
@@ -559,3 +574,50 @@ func _update_wheel_visuals(delta: float, hit_info: Dictionary) -> void:
 		w.spin_angle += (forward_speed / maxf(data.wheel_radius, 0.01)) * delta
 		var steer := current_steer_angle if w.is_front else 0.0
 		w.mesh.rotation = Vector3(w.spin_angle, steer, 0.0)
+
+
+## Tint a car model's paint (multiplies the texture, so white/silver bodies take
+## the colour fully; tyres/glass stay dark). Shared with the garage preview.
+static func paint_model(m: Node, col: Color) -> void:
+	for mi in m.find_children("*", "MeshInstance3D", true, false):
+		var mesh: Mesh = (mi as MeshInstance3D).mesh
+		if mesh == null:
+			continue
+		for si in mesh.get_surface_count():
+			var mat := mesh.surface_get_material(si) as BaseMaterial3D
+			if mat == null:
+				continue
+			var nm := mat.resource_name.to_lower()
+			if nm.contains("glass") or nm.contains("window") or nm.contains("tyre") or nm.contains("tire") or nm.contains("rubber") or nm.contains("rim"):
+				continue
+			var dup := mat.duplicate() as BaseMaterial3D
+			dup.albedo_color = col
+			dup.metallic = maxf(dup.metallic, 0.35)
+			dup.roughness = minf(dup.roughness, 0.4)
+			(mi as MeshInstance3D).set_surface_override_material(si, dup)
+
+
+## Showroom finish: tinted, mirror-like glass and glossy reflective paint.
+static func _finish_materials(m: Node) -> void:
+	for mi in m.find_children("*", "MeshInstance3D", true, false):
+		var mesh: Mesh = (mi as MeshInstance3D).mesh
+		if mesh == null:
+			continue
+		for si in mesh.get_surface_count():
+			var mat := mesh.surface_get_material(si) as BaseMaterial3D
+			if mat == null:
+				continue
+			var nm := mat.resource_name.to_lower()
+			var dup := mat.duplicate() as BaseMaterial3D
+			if nm.contains("glass") or nm.contains("window") or nm.contains("mirror"):
+				dup.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+				dup.albedo_color = Color(0.08, 0.14, 0.16, 0.55) if not nm.contains("mirror") else Color(0.8, 0.82, 0.85)
+				dup.metallic = 0.95
+				dup.roughness = 0.03
+			elif nm.contains("tyre") or nm.contains("tire") or nm.contains("rubber"):
+				continue
+			else:
+				dup.roughness = minf(dup.roughness, 0.3)
+				dup.metallic = maxf(dup.metallic, 0.3)
+				dup.metallic_specular = 0.7
+			(mi as MeshInstance3D).set_surface_override_material(si, dup)

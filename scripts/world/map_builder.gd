@@ -65,8 +65,7 @@ func _build() -> void:
 	if chunk.has("terrain"):
 		# Terrain3D hills map: sculpted terrain + trees + grass instead of city layers
 		_build_terrain(root)
-		if chunk["road"].get("surface", "asphalt") != "dirt":
-			_build_median(root, _frames())
+		pass
 		return
 	_build_piers(root)
 	_build_water(root)
@@ -510,6 +509,17 @@ func _build_land(root: Node3D) -> void:
 	mi.material_override = _ground_material()
 	root.add_child(mi)
 	_own(mi)
+	# solid ground: cars that leave the road drive on it instead of sinking
+	var gshape := ConcavePolygonShape3D.new()
+	gshape.set_faces(mi.mesh.get_faces())
+	gshape.backface_collision = true
+	var gbody := StaticBody3D.new()
+	gbody.name = "GroundCollision"
+	var gcs := CollisionShape3D.new()
+	gcs.shape = gshape
+	gbody.add_child(gcs)
+	root.add_child(gbody)
+
 
 
 ## Real Lagos buildings (Google Open Buildings footprints) dressed in a bright
@@ -559,6 +569,8 @@ func _build_osm_buildings(root: Node3D) -> void:
 		cen /= poly.size()
 		if not near_set.has(_cell_of(cen.x, cen.y, near_cs)):
 			continue  # never visible from the race road
+		if float(b.get("d", 9999.0)) > 230.0:
+			continue   # buildings live along the road now; far ones are hidden by haze anyway
 		var near: bool = float(b.get("d", 9999.0)) < 160.0
 		if float(b.get("d", 9999.0)) < 150.0 and _try_place_model(poly, h, house_xf, route_pts, i):
 			continue
@@ -759,6 +771,7 @@ func _build_street_props(root: Node3D) -> void:
 		inst[model].append(Transform3D(Basis(Vector3.UP, yaw).scaled(Vector3.ONE * sc), pos))
 	var next_junk := 20.0
 	var next_extra := {}
+	var next_row := 10.0
 	var next_brtb := 300.0; var next_check := 900.0; var next_fb := 700.0
 
 	for i in frames.size():
@@ -902,6 +915,25 @@ func _build_street_props(root: Node3D) -> void:
 				put.call("people/stall", Vector3(sp0.x, GROUND_Y + 1.0, sp0.z), rng.randf() * TAU, 4.0)
 				put.call("people/mama", Vector3(sp0.x, GROUND_Y + 0.9, sp0.z) + fwd * 1.3, rng.randf() * TAU, 1.0)
 
+		# continuous row of real Lagos buildings right along the road
+		if not on_bridge and dist >= next_row:
+			next_row = dist + rng.randf_range(16.0, 26.0)
+			for rs in [-1.0, 1.0]:
+				if rng.randf() > 0.8:
+					continue
+				var rp: Vector3 = c + p * rs * (hw + rng.randf_range(13.0, 17.0))
+				if not is_land.call(rp):
+					continue
+				var face: Vector3 = -p * rs
+				var yawb := atan2(-face.z, face.x)
+				var roll := rng.randf()
+				var mdl := "lagos_house/house"; var sc := rng.randf_range(1.1, 1.35); var lift := 3.0
+				if roll < 0.25:
+					mdl = "plaza/plaza"; sc = 2.8; lift = 1.25
+				elif roll < 0.4:
+					mdl = "unfinished/unfinished"; sc = 1.0; lift = 3.0
+				put.call(mdl, Vector3(rp.x, GROUND_Y - 0.1 + lift * sc, rp.z), yawb, sc)
+
 		# AI-generated Lagos roadside life (models normalised: base at y=0, front +X)
 		if not on_bridge:
 			for e in _ROADSIDE:
@@ -1005,7 +1037,6 @@ func _build_street_props(root: Node3D) -> void:
 
 	if not bb_xf.is_empty():
 		_spawn_model_instances(root, {"billboard/billboard": bb_xf})
-	_build_median(root, frames)
 
 
 ## Real 3D grass tufts (SimpleGrassTextured, GPU-instanced) on the verges of
@@ -1583,7 +1614,7 @@ func _build_terrain(root: Node3D) -> void:
 		var k: String = kinds[rng.randi() % kinds.size()]
 		if not inst.has(k):
 			inst[k] = []
-		inst[k].append(Transform3D(Basis(Vector3.UP, rng.randf() * TAU).scaled(Vector3.ONE * rng.randf_range(6.0, 9.0)), Vector3(p[0], p[1] - 0.2, p[2])))
+		inst[k].append(Transform3D(Basis(Vector3.UP, rng.randf() * TAU).scaled(Vector3.ONE * rng.randf_range(2.6, 4.0)), Vector3(p[0], p[1] - 0.4, p[2])))
 	_spawn_model_instances(root, inst)
 
 	# grass tufts near the road (SimpleGrassTextured)

@@ -51,7 +51,7 @@ func _ready() -> void:
 
 
 func _unhandled_input(ev: InputEvent) -> void:
-	if (ev is InputEventKey and ev.pressed and not ev.echo and ev.physical_keycode == KEY_N) or (not ev is InputEventKey and InputMap.has_action("time_next") and ev.is_action_pressed("time_next")):
+	if InputMap.has_action("time_next") and ev.is_action_pressed("time_next") and not ev.is_echo():
 		apply((_preset + 1) % 3)
 	# F6: toggle High / Low graphics (photo sky, glow, shadows)
 	if ev is InputEventKey and ev.pressed and not ev.echo and ev.physical_keycode == KEY_F6:

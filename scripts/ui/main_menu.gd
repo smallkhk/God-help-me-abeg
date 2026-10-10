@@ -31,31 +31,36 @@ func _ready() -> void:
 func _show(page: String) -> void:
 	for k in _pages:
 		_pages[k].visible = k == page
+	# gamepad / keyboard navigation: focus the first button of the page
+	var btns: Array = _pages[page].find_children("*", "Button", true, false)
+	if not btns.is_empty():
+		(btns[0] as Button).call_deferred("grab_focus")
 
 
 # ---------- look ----------
 
 func _build_bg() -> void:
+	# key-art background (generated) + dark fade for readable buttons
+	var art := TextureRect.new()
+	art.texture = load("res://assets/ui/menu_bg.jpg")
+	art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	art.set_anchors_preset(Control.PRESET_FULL_RECT)
+	add_child(art)
 	var g := Gradient.new()
-	g.set_color(0, BG_TOP); g.set_color(1, BG_BOT)
+	g.set_color(0, Color(0, 0, 0, 0.82)); g.set_color(1, Color(0, 0, 0, 0.15))
 	var gt := GradientTexture2D.new()
-	gt.gradient = g; gt.fill_from = Vector2(0, 0); gt.fill_to = Vector2(0, 1)
-	var bg := TextureRect.new()
-	bg.texture = gt
-	bg.stretch_mode = TextureRect.STRETCH_SCALE
-	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
-	add_child(bg)
-	# road stripe across the bottom
-	var road := ColorRect.new()
-	road.color = Color(0.08, 0.08, 0.09)
-	road.anchor_left = 0; road.anchor_right = 1; road.anchor_top = 0.82; road.anchor_bottom = 1
-	add_child(road)
-	for i in 12:
-		var dash := ColorRect.new()
-		dash.color = ACCENT
-		dash.anchor_top = 0.905; dash.anchor_bottom = 0.915
-		dash.anchor_left = i / 12.0 + 0.01; dash.anchor_right = i / 12.0 + 0.05
-		add_child(dash)
+	gt.gradient = g; gt.fill_from = Vector2(0, 0); gt.fill_to = Vector2(1, 0)
+	var fade := TextureRect.new()
+	fade.texture = gt
+	fade.stretch_mode = TextureRect.STRETCH_SCALE
+	fade.set_anchors_preset(Control.PRESET_FULL_RECT)
+	add_child(fade)
+	# slow zoom so the menu feels alive
+	art.pivot_offset = get_viewport_rect().size * 0.5
+	var tw := create_tween().set_loops()
+	tw.tween_property(art, "scale", Vector2(1.08, 1.08), 14.0).set_trans(Tween.TRANS_SINE)
+	tw.tween_property(art, "scale", Vector2(1.0, 1.0), 14.0).set_trans(Tween.TRANS_SINE)
 	var title := _label("LAGOS STREET RACING", 72, ACCENT)
 	title.anchor_left = 0; title.anchor_right = 1; title.offset_top = 50; title.offset_bottom = 140
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER

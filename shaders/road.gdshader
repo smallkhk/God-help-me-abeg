@@ -27,7 +27,7 @@ void vertex() {
 }
 void fragment() {
 	if (abs(wnorm.y) > 0.6) {
-		float speck = hash(floor(wpos.xz * 25.0)) * 0.08;
+		float speck = 0.0;   // removed: per-pixel hash sparkled/aliased badly
 		float patches = noise(wpos.xz * 0.08) * 0.12;
 		float v = 0.10 + speck * 0.7 + patches * 0.6;
 		// real asphalt photo (CC0) at 4 m tiling + large-scale wear patches
@@ -61,10 +61,11 @@ void fragment() {
 		alb *= 1.0 - wetness * 0.45;
 		alb = mix(alb, vec3(0.02), pool * 0.6);
 		ALBEDO = alb;
-		ROUGHNESS = mix(clamp(texture(tex_asphalt_r, wpos.xz * 0.25).r - patches * 0.5 - hole * 0.6 - trk * 0.18 - oil * 0.3 + edge * 0.2, 0.15, 1.0), 0.02, max(wetness * 0.55, pool));
+		ROUGHNESS = mix(clamp(texture(tex_asphalt_r, wpos.xz * 0.25).r - patches * 0.5 - hole * 0.6 - trk * 0.18 - oil * 0.3 + edge * 0.2, 0.15, 1.0), 0.02, max(wetness * 0.45, pool * 0.85));
 		SPECULAR = 0.5 + pool * 0.5;
 		vec3 tn = texture(tex_asphalt_n, wpos.xz * 0.25).rgb * 2.0 - 1.0;
-		vec3 wn = normalize(vec3(tn.x, 1.0, -tn.y) * vec3(bump_strength, 1.0, bump_strength));
+		float bs = bump_strength * (1.0 - wetness * 0.7) * 0.6;   // flat when wet: no blue glitter
+		vec3 wn = normalize(vec3(tn.x, 1.0, -tn.y) * vec3(bs, 1.0, bs));
 		NORMAL = normalize((VIEW_MATRIX * vec4(wn * sign(wnorm.y), 0.0)).xyz);
 	} else {
 		// Lagos-style kerb paint: black / white blocks along the barrier

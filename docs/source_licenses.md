@@ -109,3 +109,4 @@ heights applied to footprints by tools/lagos_map_pipeline/apply_google_25d_heigh
 - assets/audio/sfx/*.ogg — CassetteAI sound-effects generator via fal.ai, generated for this project.
 - assets/models/lagos/*, assets/vehicles/{accord,lexus,gwagon,p406,golf3} — Tripo v2.5 text-to-3D (PBR; hero cars HD texture) via fal.ai, generated for this project.
 - assets/textures/fx/smoke.png — Kenney Particle Pack (CC0). assets/audio/sfx/{engine_*,screech,crash,nitro,wind}.ogg, assets/audio/music/*.ogg — CassetteAI via fal.ai, generated for this project.
+- assets/ui/menu_bg.jpg — FLUX.1 [dev] via fal.ai, generated for this project.

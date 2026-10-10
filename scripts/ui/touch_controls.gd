@@ -47,8 +47,6 @@ func _ready() -> void:
 	for a in [["time_next", KEY_N], ["weather_toggle", KEY_Y]]:
 		if not InputMap.has_action(a[0]):
 			InputMap.add_action(a[0])
-			var k := InputEventKey.new(); k.physical_keycode = a[1]
-			InputMap.action_add_event(a[0], k)
 	var top := [["camera_next", "CAM"], ["time_next", "DAY/NIGHT"], ["weather_toggle", "RAIN"]]
 	for t in top.size():
 		var tb := TouchScreenButton.new()

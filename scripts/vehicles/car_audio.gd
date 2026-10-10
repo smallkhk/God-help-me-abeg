@@ -79,7 +79,7 @@ func _loop_player(path: String, unit: float) -> AudioStreamPlayer3D:
 
 
 func _unhandled_input(ev: InputEvent) -> void:
-	if is_player and _horn and ev is InputEventKey and ev.pressed and not ev.echo and ev.physical_keycode == KEY_H:
+	if is_player and _horn and InputMap.has_action("horn") and ev.is_action_pressed("horn") and not ev.is_echo():
 		_horn.play()
 
 

@@ -14,6 +14,7 @@ var active := false             # set true on GO
 
 var progress: int = 0           # route sample index reached (for positions)
 var finished := false
+var finish_idx := -1   # race finish sample (race may be shorter than the route)
 
 var _vehicle: VehicleController
 var _lane_timer := 0.0
@@ -33,7 +34,7 @@ func _physics_process(delta: float) -> void:
 	var pos := _vehicle.global_position
 	while progress < route.size() - 1 and _flat(_lane_point(progress)).distance_to(_flat(pos)) < 10.0:
 		progress += 1
-	if progress >= route.size() - 1:
+	if progress >= route.size() - 1 or (finish_idx > 0 and progress >= finish_idx):
 		finished = true
 		return
 

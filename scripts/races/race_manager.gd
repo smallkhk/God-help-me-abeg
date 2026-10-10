@@ -43,6 +43,8 @@ var _pos_label: Label
 var _initialized := false
 var _ext := false
 var _ext_checkpoints: Array = []
+const RACE_LEN := 2500.0
+var _finish_idx := -1
 
 
 func _ready() -> void:
@@ -71,9 +73,19 @@ func _initialize() -> void:
 		var chunk := _builder.get_chunk()
 		if not chunk.is_empty():
 			_spawn = MapLoader.spawn_transform(chunk)
-			_spawn_gates(chunk.get("checkpoints", []))
 			_route = chunk["road"]["samples"]
 			_start_idx = _nearest_sample(_spawn.origin, 0, _route.size())
+			# short, punchy races: keep only the gates within RACE_LEN metres
+			var d0: float = float(_route[_start_idx].get("dist_m", 0.0))
+			var cps: Array = []
+			for cp in chunk.get("checkpoints", []):
+				if float(cp.get("dist_m", 0.0)) - d0 <= RACE_LEN or cps.size() < 2:
+					var c2: Dictionary = cp.duplicate()
+					c2["index"] = cps.size()
+					cps.append(c2)
+			_spawn_gates(cps)
+			var last: Dictionary = cps[cps.size() - 1] if not cps.is_empty() else {}
+			_finish_idx = _nearest_sample(Vector3(last.get("x", 0.0), 0, last.get("z", 0.0)), 0, _route.size()) if not last.is_empty() else _route.size() - 1
 			_spawn_rivals()
 	elif _ext:
 		_spawn_gates(_ext_checkpoints)
@@ -320,6 +332,8 @@ func _place_rivals() -> void:
 		d.finished = false
 		d.progress = si
 		d.lane_offset = lane
+		if _finish_idx > 0:
+			d.finish_idx = _finish_idx
 
 
 func _update_positions() -> void:

@@ -132,51 +132,157 @@ func _refresh_shop(d: VehicleData) -> void:
 ## Builds a small live 3D viewport inside the preview panel for a turntable of
 ## the selected car's model.
 func _build_preview() -> void:
-	var panel := get_node_or_null("Preview") as Control
-	if panel == null:
-		return
+	# full-screen showroom behind the UI (was a small box in the middle)
+	var panel := get_node_or_null("Preview") as ColorRect
+	if panel:
+		panel.color = Color(0, 0, 0, 0)
 	var cont := SubViewportContainer.new()
 	cont.stretch = true
 	cont.set_anchors_preset(Control.PRESET_FULL_RECT)
 	cont.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	panel.add_child(cont)
-	panel.move_child(cont, 0)  # behind the placeholder label
+	add_child(cont)
+	move_child(cont, 1)   # just above the background colour
 
 	var vp := SubViewport.new()
 	vp.own_world_3d = true
-	vp.transparent_bg = true
-	vp.msaa_3d = Viewport.MSAA_2X
+	vp.msaa_3d = Viewport.MSAA_4X
 	cont.add_child(vp)
 
 	var env := Environment.new()
+	env.background_mode = Environment.BG_COLOR
+	env.background_color = Color(0.05, 0.06, 0.09)
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.ambient_light_color = Color(0.6, 0.62, 0.68)
-	env.ambient_light_energy = 1.0
+	env.ambient_light_color = Color(0.55, 0.58, 0.66)
+	env.ambient_light_energy = 0.7
+	env.glow_enabled = true
+	env.glow_intensity = 0.6
+	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	var we := WorldEnvironment.new()
 	we.environment = env
 	vp.add_child(we)
 
 	var sun := DirectionalLight3D.new()
-	sun.rotation = Vector3(deg_to_rad(-40), deg_to_rad(35), 0)
-	sun.light_energy = 1.3
+	sun.rotation = Vector3(deg_to_rad(-50), deg_to_rad(30), 0)
+	sun.light_energy = 0.9
+	sun.shadow_enabled = true
 	vp.add_child(sun)
+	# studio spotlights from above
+	for x in [-1.0, 1.0]:
+		var sl := SpotLight3D.new()
+		sl.position = Vector3(x * 3.5, 6.0, 2.0)
+		sl.look_at_from_position(sl.position, Vector3(0, 0.5, 0), Vector3.UP)
+		sl.spot_range = 14.0; sl.spot_angle = 40.0; sl.light_energy = 6.0
+		sl.light_color = Color(1.0, 0.95, 0.88)
+		vp.add_child(sl)
+	# glossy turntable floor + rim
+	var floor_mi := MeshInstance3D.new()
+	var cyl := CylinderMesh.new(); cyl.top_radius = 4.2; cyl.bottom_radius = 4.2; cyl.height = 0.08
+	var fm := StandardMaterial3D.new()
+	fm.albedo_color = Color(0.09, 0.09, 0.1); fm.metallic = 0.7; fm.roughness = 0.12
+	cyl.material = fm
+	floor_mi.mesh = cyl
+	floor_mi.position = Vector3(0, -0.04, 0)
+	vp.add_child(floor_mi)
+	var ring := MeshInstance3D.new()
+	var tor := TorusMesh.new(); tor.inner_radius = 4.15; tor.outer_radius = 4.3
+	var rm := StandardMaterial3D.new()
+	rm.albedo_color = Color(0.98, 0.76, 0.12); rm.emission_enabled = true
+	rm.emission = Color(0.98, 0.76, 0.12); rm.emission_energy_multiplier = 2.0
+	tor.material = rm
+	ring.mesh = tor
+	vp.add_child(ring)
 
 	_pivot = Node3D.new()
 	vp.add_child(_pivot)
+	_cam = Camera3D.new()
+	_cam.fov = 50.0
+	vp.add_child(_cam)
+	_horn = AudioStreamPlayer.new()
+	_horn.stream = load("res://assets/audio/horn.ogg")
+	add_child(_horn)
+	_build_showroom_buttons()
 
-	var cam := Camera3D.new()
-	cam.position = Vector3(4.6, 2.0, 4.6)
-	cam.look_at_from_position(cam.position, Vector3(0, 0.6, 0), Vector3.UP)
-	cam.fov = 45.0
-	vp.add_child(cam)
+
+var _cam: Camera3D
+var _horn: AudioStreamPlayer
+var _yaw := 0.7
+var _pitch := 0.25
+var _dist := 6.2
+var _idle := 99.0
+var _drag := false
+var _lights_on := false
+var _lights: Array[Node3D] = []
+const PAINTS := [null, Color(0.85, 0.08, 0.08), Color(0.05, 0.05, 0.06), Color(0.95, 0.95, 0.95),
+	Color(0.1, 0.25, 0.75), Color(0.98, 0.76, 0.12), Color(0.1, 0.55, 0.25), Color(0.55, 0.1, 0.6),
+	Color(0.95, 0.45, 0.05), Color(0.6, 0.62, 0.66)]
+
+
+func _build_showroom_buttons() -> void:
+	var box := VBoxContainer.new()
+	box.anchor_left = 1.0; box.anchor_right = 1.0; box.anchor_top = 0.0
+	box.offset_left = -190; box.offset_right = -20; box.offset_top = 110
+	box.add_theme_constant_override("separation", 10)
+	add_child(box)
+	for spec in [["HEADLIGHTS", _toggle_lights], ["HORN", func(): _horn.play()], ["PAINT", func(): _paint(1)], ["FACTORY PAINT", func(): _paint(0)]]:
+		var b := Button.new()
+		b.text = spec[0]
+		b.custom_minimum_size = Vector2(170, 52)
+		b.add_theme_font_size_override("font_size", 20)
+		b.pressed.connect(spec[1])
+		box.add_child(b)
+	var hint := Label.new()
+	hint.text = "Drag to look around 360°"
+	hint.add_theme_font_size_override("font_size", 16)
+	hint.modulate = Color(1, 1, 1, 0.6)
+	box.add_child(hint)
+
+
+func _toggle_lights() -> void:
+	_lights_on = not _lights_on
+	for l in _lights:
+		l.visible = _lights_on
+
+
+func _paint(step: int) -> void:
+	if _cars.is_empty():
+		return
+	var id := String(_cars[_index].vehicle_id)
+	var cur = Game.car_color(id)
+	var i := 0
+	if step != 0:
+		for k in PAINTS.size():
+			if PAINTS[k] != null and cur != null and (PAINTS[k] as Color).is_equal_approx(cur):
+				i = k
+		i = (i + 1) % PAINTS.size()
+	Game.set_car_color(id, PAINTS[i])
+	_update_preview(_cars[_index])
+
+
+func _input(event: InputEvent) -> void:
+	# 360° orbit: mouse drag / touch drag anywhere that isn't a button
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		_drag = event.pressed and get_viewport().gui_get_hovered_control() == null
+	elif event is InputEventMouseMotion and _drag:
+		_orbit(event.relative)
+	elif event is InputEventScreenDrag:
+		_orbit(event.relative)
+	elif event is InputEventMouseButton and event.pressed and event.button_index in [MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN]:
+		_dist = clampf(_dist + (-0.4 if event.button_index == MOUSE_BUTTON_WHEEL_UP else 0.4), 3.5, 10.0)
+
+
+func _orbit(rel: Vector2) -> void:
+	_yaw -= rel.x * 0.008
+	_pitch = clampf(_pitch + rel.y * 0.005, -0.05, 1.2)
+	_idle = 0.0
 
 
 func _update_preview(d: VehicleData) -> void:
 	if _pivot == null:
 		return
 	if _current_model:
-		_current_model.queue_free()
+		_current_model.free()
 		_current_model = null
+	_lights.clear()
 	if d.model_scene:
 		var m := d.model_scene.instantiate() as Node3D
 		if m:
@@ -185,17 +291,59 @@ func _update_preview(d: VehicleData) -> void:
 				deg_to_rad(d.model_rotation_deg.y),
 				deg_to_rad(d.model_rotation_deg.z))
 			m.scale = Vector3.ONE * d.model_scale
-			_pivot.add_child(m)
-			_current_model = m
+			m.position = d.model_offset + Vector3(0, 0.5, 0)
+			var col = Game.car_color(String(d.vehicle_id))
+			if col != null:
+				VehicleController.paint_model(m, col)
+			var holder := Node3D.new()
+			holder.add_child(m)
+			_pivot.add_child(holder)
+			_current_model = holder
+			# headlights at the front (+Z) of the car's bounds
+			var ab := _aabb(holder)
+			for x in [-0.32, 0.32]:
+				var sl := SpotLight3D.new()
+				sl.position = Vector3(ab.get_center().x + ab.size.x * x, ab.position.y + ab.size.y * 0.38, ab.end.z - 0.05)
+				sl.spot_range = 18.0; sl.spot_angle = 28.0; sl.light_energy = 8.0
+				sl.light_color = Color(1.0, 0.97, 0.9)
+				holder.add_child(sl)
+				var glow := MeshInstance3D.new()
+				var sp := SphereMesh.new(); sp.radius = 0.09; sp.height = 0.18
+				var gm := StandardMaterial3D.new()
+				gm.emission_enabled = true; gm.emission = Color(1, 0.97, 0.88); gm.emission_energy_multiplier = 6.0
+				gm.albedo_color = Color.WHITE
+				sp.material = gm
+				glow.mesh = sp
+				glow.position = sl.position
+				holder.add_child(glow)
+				sl.visible = _lights_on; glow.visible = _lights_on
+				_lights.append(sl); _lights.append(glow)
 		_preview_note.visible = false
 	else:
 		_preview_note.visible = true
 		_preview_note.text = "[ %s — box placeholder\n(no model yet) ]" % d.display_name
 
 
+func _aabb(n: Node3D) -> AABB:
+	var out := AABB(); var first := true
+	for mi in n.find_children("*", "MeshInstance3D", true, false):
+		var g := mi as MeshInstance3D
+		var xf := n.global_transform.affine_inverse() * g.global_transform if n.is_inside_tree() else g.transform
+		var bb: AABB = xf * g.get_aabb()
+		out = bb if first else out.merge(bb)
+		first = false
+	return out
+
+
 func _process(delta: float) -> void:
-	if _pivot and _current_model:
-		_pivot.rotate_y(delta * 0.7)
+	if _cam == null:
+		return
+	_idle += delta
+	if _idle > 3.0:
+		_yaw += delta * 0.35   # slow turntable when you're not dragging
+	var target := Vector3(0, 0.8, 0)
+	_cam.position = target + Vector3(sin(_yaw) * cos(_pitch), sin(_pitch), cos(_yaw) * cos(_pitch)) * _dist
+	_cam.look_at(target, Vector3.UP)
 
 
 func _refresh() -> void:
