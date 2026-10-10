@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="VehicleData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/vehicles/vehicle_data.gd" id="1"]
+[ext_resource type="PackedScene" path="res://assets/vehicles/sf_lexus_is300/lexus_is300.glb" id="2"]
+
+[resource]
+script = ExtResource("1")
+display_name = "Lexus IS300 'Taz' (NFS MW)"
+vehicle_id = &"is300_01"
+mass = 1450.0
+center_of_mass_y = -0.4
+drivetrain = 1
+max_drive_force = 10500.0
+lateral_grip_front = 1.4
+lateral_grip_rear = 1.43
+price_naira = 6500000
+model_scene = ExtResource("2")
+model_offset = Vector3(0, 0, 0)
+model_rotation_deg = Vector3(0, 0, 0)
+model_scale = 1.0

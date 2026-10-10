@@ -86,6 +86,8 @@ func _process(dt: float) -> void:
 		_particles.global_position = cam.global_position + Vector3(0, 14, 0) - cam.global_basis.z * 10.0
 	_wet = move_toward(_wet, 1.0 if raining else 0.0, dt / (8.0 if raining else 25.0))
 	RenderingServer.global_shader_parameter_set("wetness", _wet)
+	# trees: normal breeze, storm wind when raining
+	RenderingServer.global_shader_parameter_set("tree_wind", 1.0 + _wet * 1.4)
 	# rain makes tyres slide: feed wetness into every car's grip model
 	for car in get_tree().get_nodes_in_group(&"vehicles"):
 		car.set("wetness", _wet)

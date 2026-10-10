@@ -10,6 +10,11 @@ extends RefCounted
 const ORDER: Array[StringName] = [
 	&"camry_01",
 	&"keke_01",
+	&"corolla_01",
+	&"p504_01",
+	&"is300_01",
+	&"rrsport_01",
+	&"skyline_01",
 	&"hilux_01",
 	&"cruiser_01",
 	&"golf3_01",

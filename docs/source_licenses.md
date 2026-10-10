@@ -113,3 +113,12 @@ heights applied to footprints by tools/lagos_map_pipeline/apply_google_25d_heigh
 - assets/audio/music/*.ogg — Kevin MacLeod (incompetech.com), "Rocket", "Hitman", "Movement Proposition", "Ouroboros", "Rhinoceros". Licensed under Creative Commons: By Attribution 4.0.
 - assets/audio/engine/real_loop.wav — "Car Engine Loop 96kHz 4s" by qubodup, OpenGameArt, CC-BY 3.0.
 - assets/models/trees/* — Tripo v2.5 text-to-3D via fal.ai, generated for this project.
+- Sketchfab models (CC Attribution 4.0), wheels separated/rescaled for the game:
+  - assets/vehicles/sf_corolla — "2014 Toyota Corolla E180 EU (with interior)" by armoredwave
+  - assets/vehicles/sf_accord08 — "Honda Accord 2008" by David_Holiday
+  - assets/vehicles/sf_lexus_is300 — "Taz Lexus IS300 NFSMW" by movartD
+  - assets/vehicles/sf_gclass — "Mercedes Benz G-class W263" by Lexyc16
+  - assets/vehicles/sf_hilux_sf — "Toyota Hilux" by David_Holiday
+  - assets/vehicles/sf_p504 — "Peugeot 504 break" by medraphc
+  - assets/vehicles/sf_rrsport — "Range Rover Sport" by David_Holiday
+  - assets/vehicles/sf_skyline — "Nissan Skyline R34 GT-R" by Lexyc16

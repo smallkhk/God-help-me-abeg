@@ -179,6 +179,10 @@ wetness={
 "type": "float",
 "value": 0.0
 }
+tree_wind={
+"type": "float",
+"value": 1.0
+}
 
 [editor_plugins]
 

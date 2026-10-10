@@ -1089,6 +1089,8 @@ func _spawn_model_instances(root: Node3D, inst: Dictionary) -> void:
 			continue
 		var scene := (load(path) as PackedScene).instantiate()
 		var xforms: Array = inst[model]
+		if model.begins_with("trees/"):
+			_apply_tree_wind(scene)
 		# race-track draw distance: nothing far from the road needs drawing
 		var far := 260.0 if (model.begins_with("trees/") or model.begins_with("k_tree")) else 140.0
 		# draw distance by real size: people/props pop out early, buildings stay
@@ -1126,6 +1128,36 @@ func _spawn_model_instances(root: Node3D, inst: Dictionary) -> void:
 				root.add_child(mmi)
 				_own(mmi)
 		scene.free()
+
+
+## Swap a tree model's materials for the wind shader (keeps its textures).
+const _TREE_WIND := preload("res://shaders/tree_wind.gdshader")
+var _wind_done := {}
+func _apply_tree_wind(scene: Node) -> void:
+	for mi in scene.find_children("*", "MeshInstance3D", true, false):
+		var mesh: Mesh = (mi as MeshInstance3D).mesh
+		if mesh == null or _wind_done.has(mesh):
+			continue
+		_wind_done[mesh] = true
+		var hgt := mesh.get_aabb().end.y
+		for si in mesh.get_surface_count():
+			var src := mesh.surface_get_material(si) as BaseMaterial3D
+			var sm := ShaderMaterial.new()
+			sm.shader = _TREE_WIND
+			sm.set_shader_parameter("tree_height", maxf(hgt, 0.5))
+			sm.set_shader_parameter("sway", clampf(hgt * 0.035, 0.05, 0.45))
+			sm.set_shader_parameter("flutter", clampf(hgt * 0.006, 0.01, 0.07))
+			if src:
+				sm.set_shader_parameter("albedo_color", src.albedo_color)
+				if src.albedo_texture:
+					sm.set_shader_parameter("albedo_tex", src.albedo_texture)
+				if src.normal_texture:
+					sm.set_shader_parameter("normal_tex", src.normal_texture)
+					sm.set_shader_parameter("has_normal", true)
+				if src.roughness_texture:
+					sm.set_shader_parameter("orm_tex", src.roughness_texture)
+					sm.set_shader_parameter("has_orm", true)
+			mesh.surface_set_material(si, sm)
 
 
 func _local_to(top: Node, n: Node3D) -> Transform3D:
