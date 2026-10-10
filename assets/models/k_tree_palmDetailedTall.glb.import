@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://c53atm7y7xdox"
-path="res://.godot/imported/island_tree_02.glb-d54cc0cd149ae65ba48630e1cd6210a4.scn"
+uid="uid://ba1yhk3vto3ed"
+path="res://.godot/imported/k_tree_palmDetailedTall.glb-ab7131f1d08daf6c22600d15a3cc318f.scn"
 
 [deps]
 
-source_file="res://assets/models/island_tree_02.glb"
-dest_files=["res://.godot/imported/island_tree_02.glb-d54cc0cd149ae65ba48630e1cd6210a4.scn"]
+source_file="res://assets/models/k_tree_palmDetailedTall.glb"
+dest_files=["res://.godot/imported/k_tree_palmDetailedTall.glb-ab7131f1d08daf6c22600d15a3cc318f.scn"]
 
 [params]
 

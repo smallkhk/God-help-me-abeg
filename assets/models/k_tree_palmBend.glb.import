@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://b12dyrv58wgvy"
-path="res://.godot/imported/shrub_02.glb-4f9df1f0ab5ed39bbcfbf0d320711dc3.scn"
+uid="uid://dh5j5043dtnb0"
+path="res://.godot/imported/k_tree_palmBend.glb-4699e8e68a63bb7dd5a7427954e9d22d.scn"
 
 [deps]
 
-source_file="res://assets/models/shrub_02.glb"
-dest_files=["res://.godot/imported/shrub_02.glb-4f9df1f0ab5ed39bbcfbf0d320711dc3.scn"]
+source_file="res://assets/models/k_tree_palmBend.glb"
+dest_files=["res://.godot/imported/k_tree_palmBend.glb-4699e8e68a63bb7dd5a7427954e9d22d.scn"]
 
 [params]
 

@@ -761,10 +761,10 @@ func _build_street_props(root: Node3D) -> void:
 					var pos: Vector3 = c + p * side * (hw + rng.randf_range(10.0, 220.0)) + fwd * rng.randf_range(-6.0, 6.0)
 					if is_land.call(pos):
 						pos.y = GROUND_Y
-						put.call(["island_tree_01", "island_tree_02", "island_tree_03"][rng.randi() % 3], pos, rng.randf() * TAU, rng.randf_range(2.6, 3.4))
+						put.call(["k_tree_palmTall", "k_tree_palmDetailedTall", "k_tree_palmBend", "k_tree_palm"][rng.randi() % 4], pos, rng.randf() * TAU, rng.randf_range(8.0, 10.5))
 						if rng.randf() < 0.5:
 							var sp: Vector3 = pos + Vector3(rng.randf_range(-4, 4), 0, rng.randf_range(-4, 4))
-							put.call("shrub_01" if rng.randf() < 0.5 else "shrub_02", sp, rng.randf() * TAU, rng.randf_range(0.8, 1.5))
+							put.call("k_plant_bushLarge" if rng.randf() < 0.5 else "k_plant_bushDetailed", sp, rng.randf() * TAU, rng.randf_range(3.0, 5.0))
 
 		# telecom masts (red/white), visible from far
 		if dist >= next_mast:
@@ -799,7 +799,7 @@ func _build_street_props(root: Node3D) -> void:
 					var rp: Vector3 = c + p * side * (hw + rng.randf_range(4.0, 10.0)) + fwd * rng.randf_range(-3.0, 3.0)
 					if is_land.call(rp):
 						rp.y = GROUND_Y
-						put.call(["island_tree_01", "island_tree_02", "island_tree_03"][rng.randi() % 3], rp, rng.randf() * TAU, rng.randf_range(2.6, 3.4))
+						put.call(["k_tree_palmTall", "k_tree_palmDetailedTall", "k_tree_palmBend", "k_tree_palm"][rng.randi() % 4], rp, rng.randf() * TAU, rng.randf_range(8.0, 10.5))
 
 		# parked cars on the roadside (Kenney CC0 models)
 		if not on_bridge and i % 3 == 0 and rng.randf() < 0.3:
@@ -879,7 +879,7 @@ func _spawn_model_instances(root: Node3D, inst: Dictionary) -> void:
 			continue
 		var scene := (load(path) as PackedScene).instantiate()
 		var xforms: Array = inst[model]
-		var far := 600.0 if model.begins_with("island_tree") else 180.0
+		var far := 600.0 if (model.begins_with("island_tree") or model.begins_with("k_tree")) else 180.0
 		for m in scene.find_children("*", "MeshInstance3D", true, false):
 			var mesh_i := m as MeshInstance3D
 			var mn := String(mesh_i.name).to_upper()

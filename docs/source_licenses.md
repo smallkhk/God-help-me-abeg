@@ -95,3 +95,4 @@ heights applied to footprints by tools/lagos_map_pipeline/apply_google_25d_heigh
 
 ## Kenney Car Kit (assets/vehicles/kenney/) — CC0, https://kenney.nl/assets/car-kit
 ## Ground textures (ground_sand/dirt/grass.jpg) — ambientCG Ground080/054/068, CC0
+## Kenney Nature Kit palms/bushes (assets/models/k_*.glb) — CC0, https://kenney.nl/assets/nature-kit
