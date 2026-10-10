@@ -2,7 +2,7 @@ extends SceneTree
 ## Renders each new car model on the test track from the side + front.
 func _init() -> void:
 	await process_frame
-	for id in ["camry_01"]:
+	for id in ["family_01"]:
 		var d: VehicleData = CarDatabase.get_data(id)
 		var w := Node3D.new(); root.add_child(w)
 		var env := WorldEnvironment.new(); env.environment = Environment.new()

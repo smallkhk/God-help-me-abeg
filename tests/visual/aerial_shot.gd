@@ -4,7 +4,7 @@ func _init() -> void:
 	await process_frame
 	if OS.get_environment("LOWGFX") == "1":
 		root.get_node("Game").high_graphics = false
-	for path in ["res://scenes/world/maps/hills/hills.tscn", "res://scenes/world/maps/lekki/lekki.tscn"]:
+	for path in ["res://scenes/world/maps/lekki/lekki.tscn"]:
 		var sc: Node = load(path).instantiate()
 		root.add_child(sc)
 		for i in 8: await process_frame

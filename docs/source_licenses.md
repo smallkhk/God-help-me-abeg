@@ -100,3 +100,5 @@ heights applied to footprints by tools/lagos_map_pipeline/apply_google_25d_heigh
 ## Terrain3D (addons/terrain_3d/) — MIT, TokisanGames, v1.0.2 (Godot Asset Store)
 ## SimpleGrassTextured (addons/simplegrasstextured/) — MIT, IcterusGames, v2.1.0 (Godot Asset Store)
 ## Kenney Nature Kit trees (k_tree_*) — CC0
+## AI-generated assets (fal.ai, generated for this project)
+- assets/vehicles/danfo/danfo.glb — Tripo v2.5 text-to-3D (PBR), Lagos danfo.

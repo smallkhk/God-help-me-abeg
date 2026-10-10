@@ -812,8 +812,13 @@ func _build_street_props(root: Node3D) -> void:
 			var cp: Vector3 = c + p * side2 * (hw + 2.6)
 			if is_land.call(cp):
 				cp.y = GROUND_Y
-				var kc := ["kenney/sedan", "kenney/taxi", "kenney/van", "kenney/suv", "kenney/taxi", "kenney/van"]
-				put.call(kc[rng.randi() % kc.size()], cp, atan2(fwd.x, fwd.z) + (0.0 if rng.randf() < 0.5 else PI), 1.75)
+				var kc := ["kenney/sedan", "kenney/taxi", "danfo/danfo", "kenney/suv", "danfo/danfo", "danfo/danfo"]
+				var km: String = kc[rng.randi() % kc.size()]
+				var yaw := atan2(fwd.x, fwd.z) + (0.0 if rng.randf() < 0.5 else PI)
+				if km == "danfo/danfo":
+					put.call(km, cp + Vector3(0, 1.0, 0), yaw + PI * 0.5, 1.0)
+				else:
+					put.call(km, cp, yaw, 1.75)
 
 		# roadside Lagos clutter: chairs, gens, crates, tyres, jerrycans, bins, AC units
 		if not on_bridge and dist >= next_junk:
@@ -879,7 +884,7 @@ func _build_street_props(root: Node3D) -> void:
 ## One MultiMesh per mesh part of each glb model (cheap to draw thousands).
 func _spawn_model_instances(root: Node3D, inst: Dictionary) -> void:
 	for model in inst:
-		var path := ("res://assets/vehicles/%s.glb" % model) if model.begins_with("kenney/") else ("res://assets/models/%s.glb" % model)
+		var path := ("res://assets/vehicles/%s.glb" % model) if model.contains("/") else ("res://assets/models/%s.glb" % model)
 		if not ResourceLoader.exists(path):
 			continue
 		var scene := (load(path) as PackedScene).instantiate()
