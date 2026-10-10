@@ -87,3 +87,8 @@ derived textures are shared under the same licence):
 - toll_fascia.jpg — "Lekki Toll Gate Lagos.jpg" (CC BY-SA 4.0)
 - makoko_wall.jpg, makoko_roof.jpg — "Makoko 3.jpg" (CC BY-SA 4.0)
 - theatre_facade.jpg — "National Arts Theatre, Iganmu - Lagos.jpg" (CC BY-SA 4.0)
+
+## Building heights
+
+Google Open Buildings 2.5D Temporal (2023 epoch), CC BY 4.0 — measured building
+heights applied to footprints by tools/lagos_map_pipeline/apply_google_25d_heights.py.
