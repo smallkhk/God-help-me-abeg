@@ -24,7 +24,7 @@ var selected_car_id: StringName = &"camry_01"
 # --- career / economy ---
 const START_MONEY := 2000000
 const STARTER_CARS := ["camry_01", "keke_01"]
-const UPGRADE_KINDS := ["engine", "tyres", "nitro"]
+const UPGRADE_KINDS := ["engine", "tyres", "brakes", "suspension", "nitro"]
 const MAX_UPGRADE := 3
 var money: int = START_MONEY
 var owned: Array = []                 # car ids (String)
@@ -218,4 +218,31 @@ func set_car_color(car_id: String, col) -> void:
 		settings.erase("color_" + car_id)
 	else:
 		settings["color_" + car_id] = (col as Color).to_html(false)
+	save()
+
+
+## Garage TUNING: per-car handling setup (real VehicleData multipliers).
+## grip_balance −1 (more front grip) .. +1 (more rear grip); stiffness 0.8–1.25;
+## brake_bias 0.5–0.75 (front share); steer_speed 0.7–1.3.
+const TUNE_DEFAULTS := {"grip_balance": 0.0, "stiffness": 1.0, "brake_bias": 0.6, "steer_speed": 1.0}
+func tuning(car_id: String) -> Dictionary:
+	var t: Dictionary = TUNE_DEFAULTS.duplicate()
+	t.merge(settings.get("tune_" + car_id, {}), true)
+	return t
+
+
+func set_tuning(car_id: String, key: String, value: float) -> void:
+	var t: Dictionary = settings.get("tune_" + car_id, {})
+	t[key] = value
+	settings["tune_" + car_id] = t
+	save()
+
+
+## Garage CUSTOMIZE: window tint 0 (clear) .. 1 (limo black), per car.
+func window_tint(car_id: String) -> float:
+	return float(settings.get("tint_" + car_id, 0.55))
+
+
+func set_window_tint(car_id: String, v: float) -> void:
+	settings["tint_" + car_id] = v
 	save()

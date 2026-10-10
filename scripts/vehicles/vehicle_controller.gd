@@ -92,6 +92,21 @@ func _apply_upgrades(g: Node) -> void:
 	data.longitudinal_grip *= 1.0 + 0.05 * t
 	nitro_capacity_s = 2.5 + 1.5 * n
 	nitro_power = 0.55 + 0.15 * n
+	# brakes + suspension upgrades
+	var b: int = g.upgrade_level(id, "brakes")
+	var su: int = g.upgrade_level(id, "suspension")
+	data.brake_force *= 1.0 + 0.1 * b
+	data.suspension_stiffness *= 1.0 + 0.06 * su
+	data.anti_roll_stiffness *= 1.0 + 0.15 * su
+	# TUNING (garage sliders)
+	var tn: Dictionary = g.tuning(String(id))
+	var gb: float = tn["grip_balance"]
+	data.lateral_grip_front *= 1.0 - 0.06 * gb
+	data.lateral_grip_rear *= 1.0 + 0.06 * gb
+	data.suspension_stiffness *= tn["stiffness"]
+	data.suspension_damping *= sqrt(tn["stiffness"])
+	brake_bias = tn["brake_bias"]
+	data.steer_rate *= tn["steer_speed"]
 
 
 func _ready() -> void:
@@ -134,6 +149,9 @@ func _ready() -> void:
 ## Swaps the placeholder box for the car's .glb model (spec §6.2). Cosmetic only;
 ## physics is untouched. Alignment (offset/rotation/scale) comes from VehicleData
 ## so each model is fitted without code.
+var brake_bias := 0.6   # front share of brake force (garage TUNING)
+
+
 ## Global handling tune (owner feedback: too slidey, too fast)
 const GRIP_BONUS := 1.3
 const ARB_SCALE := 3.0   # flatter cornering (less body lean)
@@ -153,8 +171,8 @@ func _mount_model() -> void:
 			deg_to_rad(data.model_rotation_deg.y),
 			deg_to_rad(data.model_rotation_deg.z))
 		m.scale = Vector3.ONE * data.model_scale
-		_finish_materials(m)
 		var g := get_node_or_null("/root/Game")
+		_finish_materials(m, float(g.call("window_tint", String(data.vehicle_id))) if g else 0.55)
 		if g and is_player:
 			var col = g.call("car_color", String(data.vehicle_id))
 			if col != null:
@@ -384,7 +402,7 @@ func _apply_tyre_force(w: Wheel, offset: Vector3, up: Vector3, driven_count: int
 		drive_t = drive * r
 	var brake_t := 0.0
 	if brake_input > 0.0 and not (brake_input > 0.1 and forward_speed < 0.5 and transmission.gear == -1):
-		var front_bias := 0.6 if w.is_front else 0.4
+		var front_bias := brake_bias if w.is_front else 1.0 - brake_bias
 		brake_t = data.brake_force * brake_input * front_bias * r
 		# ABS: ease the brake while the tyre is locking (σ well below 0)
 		var abs_s := _assist(data.abs_strength, 0.0, 0.6, 1.0)
@@ -633,7 +651,7 @@ static func paint_model(m: Node, col: Color) -> void:
 
 
 ## Showroom finish: tinted, mirror-like glass and glossy reflective paint.
-static func _finish_materials(m: Node) -> void:
+static func _finish_materials(m: Node, tint := 0.55) -> void:
 	for mi in m.find_children("*", "MeshInstance3D", true, false):
 		var mesh: Mesh = (mi as MeshInstance3D).mesh
 		if mesh == null:
@@ -646,7 +664,7 @@ static func _finish_materials(m: Node) -> void:
 			var dup := mat.duplicate() as BaseMaterial3D
 			if nm.contains("glass") or nm.contains("window") or nm.contains("mirror"):
 				dup.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-				dup.albedo_color = Color(0.08, 0.14, 0.16, 0.55) if not nm.contains("mirror") else Color(0.8, 0.82, 0.85)
+				dup.albedo_color = Color(0.08, 0.14, 0.16, lerpf(0.25, 0.95, tint)) if not nm.contains("mirror") else Color(0.8, 0.82, 0.85)
 				dup.metallic = 0.95
 				dup.roughness = 0.03
 			else:

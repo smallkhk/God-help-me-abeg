@@ -55,6 +55,9 @@ func _ready() -> void:
 	var we := _scene_root().find_children("*", "WorldEnvironment", true, false)
 	if not we.is_empty():
 		_env = (we[0] as WorldEnvironment).environment
+	var gs := get_node_or_null("/root/Game")
+	if gs and bool(gs.call("get_setting", "start_rain", false)):
+		set_rain(true)
 	for rm in _scene_root().find_children("*", "Node", true, false):
 		var ev = rm.get("event")
 		if ev is RaceEvent and ev.weather == "rain":

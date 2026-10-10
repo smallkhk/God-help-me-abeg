@@ -122,3 +122,10 @@ heights applied to footprints by tools/lagos_map_pipeline/apply_google_25d_heigh
   - assets/vehicles/sf_p504 — "Peugeot 504 break" by medraphc
   - assets/vehicles/sf_rrsport — "Range Rover Sport" by David_Holiday
   - assets/vehicles/sf_skyline — "Nissan Skyline R34 GT-R" by Lexyc16
+- Menu UI redesign:
+  - assets/ui/fonts/BebasNeue-Regular.ttf — Bebas Neue by Dharma Type, SIL Open Font License 1.1 (Google Fonts).
+  - assets/ui/fonts/Montserrat.ttf — Montserrat by Julieta Ulanovsky et al., SIL Open Font License 1.1 (Google Fonts).
+  - assets/ui/icons/*.svg — Lucide icons (lucide.dev), ISC License; recoloured.
+  - assets/audio/ui/{hover,click,slide}.ogg — "UI Sound Library" by Little Robot Sound Factory (OpenGameArt), CC-BY 3.0.
+  - assets/ui/tiles/*.jpg — FLUX.1 [dev]/[schnell] via fal.ai, generated for this project.
+  - assets/ui/lagos_map.json — route lines traced from this project's map data (OpenStreetMap-derived, ODbL).

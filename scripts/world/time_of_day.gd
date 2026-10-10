@@ -47,7 +47,10 @@ func _ready() -> void:
 		_env = we.environment
 		if _env.sky and _env.sky.sky_material is ProceduralSkyMaterial:
 			_sky = _env.sky.sky_material
-	apply.call_deferred(start_preset)
+	# menu setting "Race time" overrides the map's default (EVENT keeps it)
+	var st := String(Game.get_setting("start_time", "event"))
+	var preset: int = {"day": Preset.DAY, "sunset": Preset.SUNSET, "night": Preset.NIGHT}.get(st, start_preset)
+	apply.call_deferred(preset)
 
 
 func _unhandled_input(ev: InputEvent) -> void:
