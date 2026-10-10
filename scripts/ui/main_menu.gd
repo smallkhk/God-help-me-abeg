@@ -1,7 +1,6 @@
 extends Control
-## Main menu (premium redesign): cinematic split layout — logo + angled nav on
-## the left, the player's real selected car as a live 3D showcase on the right
-## over a Lagos night backdrop. Pages: HOME, RACE (event browser + preview),
+## Main menu (premium redesign): the Lagos key-art picture (bridge, skyline,
+## NORA GT-R) with the angled nav laid over its painted buttons. Pages: HOME, RACE (event browser + preview),
 ## MAP (real routes on a Lagos map), SETTINGS. All data is real: money from the
 ## save, car from CarDatabase, best times from SaveManager, rewards from events.
 
@@ -31,33 +30,18 @@ var _page_name := "home"
 var _money_label: Label
 var _sel_race := 0
 var _preview := {}
-var _cam: Camera3D
-var _car_root: Node3D
-var _t := 0.0
 
 
 func _ready() -> void:
 	theme = UIStyle.theme()
 	_build_backdrop()
-	_build_showcase()
-	_build_vignette()
 	_build_hud()
 	_pages["home"] = _build_home()
 	_pages["race"] = _build_race()
 	_pages["map"] = _build_map()
 	_pages["settings"] = _build_settings()
+	_layout()
 	_show("home", true)
-
-
-func _process(delta: float) -> void:
-	_t += delta
-	if _cam:
-		# slow cinematic drift around the car's rear three-quarter
-		var a := -2.45 + sin(_t * 0.18) * 0.12
-		var d := 8.2 + sin(_t * 0.11) * 0.3
-		_cam.position = Vector3(sin(a) * d, 1.35 + sin(_t * 0.23) * 0.08, cos(a) * d)
-		# aim left of the car so it sits in the right half of the screen
-		_cam.look_at(Vector3(0, 0.7, 0) - Vector3(cos(a), 0, -sin(a)) * 2.6, Vector3.UP)
 
 
 func _unhandled_input(ev: InputEvent) -> void:
@@ -77,8 +61,8 @@ func _show(page: String, instant := false) -> void:
 				create_tween().tween_property(p, "modulate:a", 1.0, 0.25)
 		else:
 			p.visible = false
-	if _car_root:
-		_car_root.get_parent().get_parent().visible = page == "home"   # showcase only on home
+	if _dim:
+		create_tween().tween_property(_dim, "color:a", 0.0 if page == "home" else 0.78, 0.25)
 	var btns: Array = _pages[page].find_children("*", "Button", true, false)
 	if not btns.is_empty():
 		UIStyle.focus_later(btns[0])
@@ -88,144 +72,121 @@ func _show(page: String, instant := false) -> void:
 			UIStyle.enter(items[i], -50.0, 0.05 * i)
 
 
-# ───────────────────────── backdrop + 3D car ─────────────────────────
+# ───────────────────────── backdrop (key art) ─────────────────────────
+## The home screen is the key-art picture (bridge, skyline, NORA GT-R, logo).
+## Its painted buttons/badges were erased; the real, working ones are laid out
+## in the picture's own pixel space (ART, 1157x567) so they sit exactly where
+## the painted ones were on any screen shape.
+const ART := Vector2(1157, 567)
+const ART_PAD := Vector2(90, 38)   # blurred extension around the picture
+const NAV_Y := [208, 270, 324, 378, 432]
+const NAV_H := [56, 48, 48, 48, 48]
+
+var _art: TextureRect
+var _dim: ColorRect
+var _pill: PanelContainer
+var _chip: PanelContainer
+var _chip_l: Array = []
+var _nav: Array = []
+
+
 func _build_backdrop() -> void:
 	var bg := ColorRect.new()
-	bg.color = UIStyle.INK
+	bg.color = Color(0.02, 0.03, 0.05)
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(bg)
-	var art := TextureRect.new()
-	art.texture = load("res://assets/ui/tiles/backdrop.jpg")
-	art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-	art.set_anchors_preset(Control.PRESET_FULL_RECT)
-	art.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(art)
-	art.pivot_offset = get_viewport_rect().size * 0.5
-	var tw := create_tween().set_loops()
-	tw.tween_property(art, "scale", Vector2(1.06, 1.06), 18.0).set_trans(Tween.TRANS_SINE)
-	tw.tween_property(art, "scale", Vector2(1.0, 1.0), 18.0).set_trans(Tween.TRANS_SINE)
+	_art = TextureRect.new()
+	_art.texture = load("res://assets/ui/menu_home.jpg")
+	_art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_art.stretch_mode = TextureRect.STRETCH_SCALE
+	_art.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_art)
+	# darkens the picture behind the RACE / MAP / SETTINGS pages
+	_dim = ColorRect.new()
+	_dim.color = Color(0.01, 0.015, 0.03, 0.78)
+	_dim.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_dim)
+	get_viewport().size_changed.connect(_layout)
 
 
-func _build_showcase() -> void:
-	var d := CarDatabase.get_data(Game.selected_car_id)
-	if d == null or d.model_scene == null:
-		return
-	var cont := SubViewportContainer.new()
-	cont.stretch = true
-	cont.set_anchors_preset(Control.PRESET_FULL_RECT)
-	cont.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(cont)
-	var vp := SubViewport.new()
-	vp.own_world_3d = true
-	vp.transparent_bg = true
-	vp.msaa_3d = Viewport.MSAA_4X
-	cont.add_child(vp)
-	var env := Environment.new()
-	env.background_mode = Environment.BG_CLEAR_COLOR
-	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.ambient_light_color = Color(0.32, 0.38, 0.55)
-	env.ambient_light_energy = 0.55
-	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
-	env.glow_enabled = true
-	env.glow_intensity = 0.7
-	var we := WorldEnvironment.new(); we.environment = env
-	vp.add_child(we)
-	# night lighting: cool moon key, warm street lamp, red tail-light glow
-	var moon := DirectionalLight3D.new()
-	moon.rotation = Vector3(deg_to_rad(-35), deg_to_rad(-150), 0)
-	moon.light_color = Color(0.62, 0.72, 1.0); moon.light_energy = 0.8; moon.shadow_enabled = true
-	vp.add_child(moon)
-	var lamp := SpotLight3D.new()
-	lamp.position = Vector3(2.5, 6.0, 1.5)
-	lamp.look_at_from_position(lamp.position, Vector3.ZERO, Vector3.UP)
-	lamp.light_color = Color(1.0, 0.78, 0.45); lamp.light_energy = 9.0; lamp.spot_range = 16.0; lamp.spot_angle = 45.0
-	vp.add_child(lamp)
-	var rim := SpotLight3D.new()
-	rim.position = Vector3(-4.0, 2.5, -5.0)
-	rim.look_at_from_position(rim.position, Vector3(0, 0.6, 0), Vector3.UP)
-	rim.light_color = Color(0.45, 0.6, 1.0); rim.light_energy = 5.0; rim.spot_range = 14.0; rim.spot_angle = 35.0
-	vp.add_child(rim)
-	# wet asphalt: dark mirror-ish road that fades out at its edges
-	var road := MeshInstance3D.new()
-	var pm := PlaneMesh.new(); pm.size = Vector2(16, 16)
-	var sm := ShaderMaterial.new()
-	var sh := Shader.new()
-	sh.code = """shader_type spatial;
-render_mode cull_disabled;
-void fragment() {
-	vec2 c = UV - 0.5;
-	float fade = 1.0 - smoothstep(0.18, 0.5, length(c));
-	ALBEDO = vec3(0.02, 0.022, 0.028);
-	ROUGHNESS = 0.08;
-	METALLIC = 0.6;
-	SPECULAR = 0.8;
-	ALPHA = fade * 0.92;
-}"""
-	sm.shader = sh
-	pm.material = sm
-	road.mesh = pm
-	vp.add_child(road)
-	_car_root = Node3D.new()
-	vp.add_child(_car_root)
-	var m := d.model_scene.instantiate() as Node3D
-	m.rotation = Vector3(deg_to_rad(d.model_rotation_deg.x), deg_to_rad(d.model_rotation_deg.y), deg_to_rad(d.model_rotation_deg.z))
-	m.scale = Vector3.ONE * d.model_scale
-	var col = Game.car_color(String(d.vehicle_id))
-	if col != null:
-		VehicleController.paint_model(m, col)
-	_car_root.add_child(m)
-	# sit the model's lowest point on the road
-	var lo := INF
-	for mi in m.find_children("*", "MeshInstance3D", true, false):
-		var g := mi as MeshInstance3D
-		var bb: AABB = (_car_root.global_transform.affine_inverse() * g.global_transform) * g.get_aabb()
-		lo = minf(lo, bb.position.y)
-	if lo != INF:
-		m.position.y -= lo
-	var tail := OmniLight3D.new()
-	tail.position = Vector3(0, 0.8, -2.6)
-	tail.light_color = Color(1.0, 0.1, 0.08); tail.light_energy = 1.6; tail.omni_range = 3.5
-	_car_root.add_child(tail)
-	_cam = Camera3D.new()
-	_cam.fov = 38.0
-	vp.add_child(_cam)
-	_cam.current = true
+## Picture scale + top-left on screen: show the picture's full width when the
+## screen is wide (iPhone), else its full height (16:9 laptop).
+func _art_xf() -> Array:
+	var vs := get_viewport_rect().size
+	var sc := maxf(vs.x / ART.x, vs.y / (ART.y + ART_PAD.y * 2.0))
+	return [sc, (vs - ART * sc) * 0.5]
 
 
-func _build_vignette() -> void:
-	# left-side darkening for the nav + bottom fade for readability
-	for spec in [[Vector2(0, 0), Vector2(1, 0), 0.92, 0.0], [Vector2(0, 1), Vector2(0, 0.55), 0.7, 0.0]]:
-		var g := Gradient.new()
-		g.set_color(0, Color(0, 0, 0, spec[2])); g.set_color(1, Color(0, 0, 0, spec[3]))
-		var gt := GradientTexture2D.new()
-		gt.gradient = g; gt.fill_from = spec[0]; gt.fill_to = spec[1]
-		var r := TextureRect.new()
-		r.texture = gt
-		r.stretch_mode = TextureRect.STRETCH_SCALE
-		r.set_anchors_preset(Control.PRESET_FULL_RECT)
-		r.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		if spec[0] == Vector2(0, 0):
-			r.anchor_right = 0.62
-		add_child(r)
+## Screen area clear of the iPhone notch / rounded corners, in UI units.
+func _safe_rect() -> Rect2:
+	var vs := get_viewport_rect().size
+	var r := Rect2(Vector2(14, 10), vs - Vector2(28, 20))
+	var scr := Vector2(DisplayServer.screen_get_size())
+	var sa := DisplayServer.get_display_safe_area()
+	if OS.has_feature("mobile") and scr.x > 0.0 and sa.size.x > 0:
+		var k := vs / scr
+		r = r.intersection(Rect2(Vector2(sa.position) * k, Vector2(sa.size) * k))
+	return r
+
+
+func _keep_in(c: Control, safe: Rect2) -> void:
+	c.position = c.position.clamp(safe.position, safe.end - c.size)
+
+
+func _layout() -> void:
+	var xf := _art_xf()
+	var sc: float = xf[0]; var o: Vector2 = xf[1]
+	var safe := _safe_rect()
+	_art.position = o - ART_PAD * sc
+	_art.size = (ART + ART_PAD * 2.0) * sc
+	if _pill:
+		_pill.size = Vector2(249, 33) * sc
+		_pill.position = o + Vector2(890, 17) * sc
+		_keep_in(_pill, safe)
+		_money_label.add_theme_font_size_override("font_size", int(16 * sc))
+		(_pill.get_meta("icon") as Control).custom_minimum_size = Vector2(20, 20) * sc
+	if _chip:
+		_chip.size = Vector2(162, 50) * sc
+		_chip.position = o + Vector2(962, 500) * sc
+		_keep_in(_chip, safe)
+		_chip_l[0].add_theme_font_size_override("font_size", int(8 * sc))
+		_chip_l[1].add_theme_font_size_override("font_size", int(18 * sc))
+		_chip_l[2].custom_minimum_size = Vector2(24, 24) * sc
+	# slide the nav right if the notch would cover it
+	var nav_dx := maxf(0.0, safe.position.x - (o.x + 40.0 * sc))
+	for i in _nav.size():
+		var n: Dictionary = _nav[i]
+		var b: Button = n["b"]
+		b.position = o + Vector2(50 if i > 0 else 40, NAV_Y[i]) * sc + Vector2(nav_dx, 0)
+		b.size = Vector2(332 if i > 0 else 344, NAV_H[i]) * sc
+		b.custom_minimum_size = b.size
+		n["tl"].add_theme_font_size_override("font_size", int((27 if i == 0 else 23) * sc))
+		n["dl"].add_theme_font_size_override("font_size", int(9.5 * sc))
+		n["ic"].custom_minimum_size = Vector2(24, 24) * sc
+		n["ch"].custom_minimum_size = Vector2(15, 15) * sc
+		n["row"].offset_left = 20 * sc; n["row"].offset_right = -14 * sc
+		n["row"].add_theme_constant_override("separation", int(14 * sc))
 
 
 func _build_hud() -> void:
-	var pill := PanelContainer.new()
-	pill.add_theme_stylebox_override("panel", UIStyle.box(UIStyle.PANEL, UIStyle.LINE, 0.0, 1, 8))
-	pill.anchor_left = 1.0; pill.anchor_right = 1.0
-	pill.offset_left = -360; pill.offset_right = -28; pill.offset_top = 24; pill.offset_bottom = 74
-	add_child(pill)
+	_pill = PanelContainer.new()
+	var ps := UIStyle.box(Color(0.03, 0.04, 0.06, 0.9), UIStyle.LINE, 0.0, 1, 40)
+	ps.content_margin_left = 12; ps.content_margin_right = 16; ps.content_margin_top = 2; ps.content_margin_bottom = 2
+	_pill.add_theme_stylebox_override("panel", ps)
+	add_child(_pill)
 	var h := HBoxContainer.new()
 	h.add_theme_constant_override("separation", 10)
-	h.alignment = BoxContainer.ALIGNMENT_END
-	pill.add_child(h)
+	h.alignment = BoxContainer.ALIGNMENT_CENTER
+	_pill.add_child(h)
 	var ic := TextureRect.new()
-	ic.texture = UIStyle.icon("coins"); ic.custom_minimum_size = Vector2(26, 26)
+	ic.texture = UIStyle.icon("coins")
 	ic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE; ic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	ic.modulate = Color(0.35, 0.9, 0.45)
+	ic.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	ic.modulate = Color(0.45, 0.9, 0.4)
 	h.add_child(ic)
-	_money_label = UIStyle.label(Game.naira(Game.money), 22, UIStyle.TEXT, UIStyle.bold())
+	_pill.set_meta("icon", ic)
+	_money_label = UIStyle.label(Game.naira(Game.money), 16, UIStyle.TEXT, UIStyle.bold())
 	h.add_child(_money_label)
 
 
@@ -235,53 +196,16 @@ func _build_home() -> Control:
 	root.set_anchors_preset(Control.PRESET_FULL_RECT)
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(root)
-	# logo
-	var logo := UIStyle.title("LAGOS", 150, Color.WHITE)
-	logo.position = Vector2(70, 18)
-	logo.add_theme_color_override("font_shadow_color", Color(0.98, 0.76, 0.12, 0.55))
-	logo.add_theme_constant_override("shadow_offset_x", 5); logo.add_theme_constant_override("shadow_offset_y", 5)
-	root.add_child(logo)
-	var sub := UIStyle.title("STREET RACING", 62, Y)
-	sub.position = Vector2(150, 150); sub.rotation = deg_to_rad(-5)
-	root.add_child(sub)
-	var tag := UIStyle.label("THIRD MAINLAND   •   LEKKI   •   EKO", 15, UIStyle.MUTED, UIStyle.bold())
-	tag.position = Vector2(108, 228)
-	root.add_child(tag)
-	# nav
-	var nav := VBoxContainer.new()
-	nav.position = Vector2(56, 268)
-	nav.add_theme_constant_override("separation", 9)
-	root.add_child(nav)
+	# logo, tagline, skyline and "Lagos never sleeps" are part of the picture
 	var items := [
 		["flag", "RACE", "Hit the streets. Earn respect.", func(): _show("race")],
 		["car", "GARAGE", "View & upgrade your rides.", func(): Game.goto(Game.SCENE_GARAGE)],
 		["map-pin", "MAP", "Explore Lagos.", func(): _show("map")],
-		["settings", "SETTINGS", "Graphics, audio, controls.", func(): _show("settings")],
+		["settings", "SETTINGS", "Game, audio, controls.", func(): _show("settings")],
 		["log-out", "QUIT", "See you on the streets.", func(): get_tree().quit()],
 	]
 	for it in items:
-		nav.add_child(_nav_item(it[0], it[1], it[2], it[3]))
-	# tagline bottom-left
-	var never := UIStyle.title("LAGOS NEVER SLEEPS", 34, Y)
-	never.anchor_top = 1.0; never.anchor_bottom = 1.0
-	never.offset_left = 70; never.offset_top = -64
-	never.rotation = deg_to_rad(-4)
-	root.add_child(never)
-	# selected car: real name + price (bottom-right, above the weather chip)
-	var d := CarDatabase.get_data(Game.selected_car_id)
-	if d:
-		var cb := VBoxContainer.new()
-		cb.anchor_left = 1.0; cb.anchor_right = 1.0; cb.anchor_top = 1.0; cb.anchor_bottom = 1.0
-		cb.offset_left = -520; cb.offset_right = -36; cb.offset_top = -210; cb.offset_bottom = -120
-		cb.alignment = BoxContainer.ALIGNMENT_END
-		root.add_child(cb)
-		var n := UIStyle.title(d.display_name.to_upper(), 40, Color.WHITE)
-		n.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-		cb.add_child(n)
-		var price := "OWNED" if Game.owns(d.vehicle_id) else Game.naira(d.price_naira)
-		var pl := UIStyle.label("YOUR RIDE   •   " + price, 15, Y, UIStyle.bold())
-		pl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-		cb.add_child(pl)
+		root.add_child(_nav_item(it[0], it[1], it[2], it[3]))
 	root.add_child(_weather_chip())
 	return root
 
@@ -289,21 +213,17 @@ func _build_home() -> Control:
 func _nav_item(icon_name: String, t: String, desc: String, cb: Callable) -> Button:
 	var b := Button.new()
 	b.name = "Nav" + t
-	b.custom_minimum_size = Vector2(440, 64)
-	b.add_theme_stylebox_override("normal", UIStyle.box(Color(0.03, 0.035, 0.05, 0.82), UIStyle.LINE))
+	b.add_theme_stylebox_override("normal", UIStyle.box(Color(0.03, 0.035, 0.05, 0.9), Color(1, 1, 1, 0.22)))
 	var on := UIStyle.box(Y, Y)
 	b.add_theme_stylebox_override("hover", on)
 	b.add_theme_stylebox_override("focus", on)
 	b.add_theme_stylebox_override("pressed", on)
 	var row := HBoxContainer.new()
 	row.set_anchors_preset(Control.PRESET_FULL_RECT)
-	row.offset_left = 28; row.offset_right = -22
-	row.add_theme_constant_override("separation", 18)
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	b.add_child(row)
 	var ic := TextureRect.new()
 	ic.texture = UIStyle.icon(icon_name)
-	ic.custom_minimum_size = Vector2(34, 34)
 	ic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	ic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	ic.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -311,15 +231,14 @@ func _nav_item(icon_name: String, t: String, desc: String, cb: Callable) -> Butt
 	var col := VBoxContainer.new()
 	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	col.alignment = BoxContainer.ALIGNMENT_CENTER
-	col.add_theme_constant_override("separation", -4)
+	col.add_theme_constant_override("separation", -3)
 	row.add_child(col)
-	var tl := UIStyle.title(t, 32, Color.WHITE)
+	var tl := UIStyle.title(t, 23, Color.WHITE)
 	col.add_child(tl)
-	var dl := UIStyle.label(desc, 13, UIStyle.MUTED)
+	var dl := UIStyle.label(desc, 10, Color(1, 1, 1, 0.75))
 	col.add_child(dl)
 	var ch := TextureRect.new()
 	ch.texture = UIStyle.icon("chevron-right")
-	ch.custom_minimum_size = Vector2(26, 26)
 	ch.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	ch.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	ch.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -330,38 +249,43 @@ func _nav_item(icon_name: String, t: String, desc: String, cb: Callable) -> Butt
 		var k := UIStyle.INK if on_ else Color.WHITE
 		ic.modulate = k; ch.modulate = k
 		tl.add_theme_color_override("font_color", k)
-		dl.add_theme_color_override("font_color", Color(0, 0, 0, 0.75) if on_ else UIStyle.MUTED)
-		create_tween().tween_property(row, "offset_left", 40.0 if on_ else 28.0, 0.12)
+		dl.add_theme_color_override("font_color", Color(0, 0, 0, 0.75) if on_ else Color(1, 1, 1, 0.75))
 	b.focus_entered.connect(func(): lit.call(true))
 	b.focus_exited.connect(func(): lit.call(false))
 	b.mouse_entered.connect(func(): b.grab_focus())
 	b.pressed.connect(cb)
 	UIStyle.juice(b)
+	_nav.append({"b": b, "tl": tl, "dl": dl, "ic": ic, "ch": ch, "row": row})
 	return b
 
 
 func _weather_chip() -> Control:
-	var p := PanelContainer.new()
-	p.add_theme_stylebox_override("panel", UIStyle.box(UIStyle.PANEL, UIStyle.LINE, 0.0, 1, 8))
-	p.anchor_left = 1.0; p.anchor_right = 1.0; p.anchor_top = 1.0; p.anchor_bottom = 1.0
-	p.offset_left = -300; p.offset_right = -36; p.offset_top = -104; p.offset_bottom = -36
+	_chip = PanelContainer.new()
+	var cs := UIStyle.box(Color(0.03, 0.04, 0.06, 0.88), UIStyle.LINE, 0.0, 1, 8)
+	cs.content_margin_left = 12; cs.content_margin_right = 10; cs.content_margin_top = 2; cs.content_margin_bottom = 2
+	_chip.add_theme_stylebox_override("panel", cs)
 	var h := HBoxContainer.new()
-	h.add_theme_constant_override("separation", 12)
-	p.add_child(h)
+	h.add_theme_constant_override("separation", 10)
+	h.alignment = BoxContainer.ALIGNMENT_CENTER
+	_chip.add_child(h)
 	var tod := String(Game.get_setting("start_time", "event"))
 	var rain := bool(Game.get_setting("start_rain", false))
 	var ic := TextureRect.new()
 	ic.texture = UIStyle.icon("cloud-rain" if rain else ({"night": "moon", "sunset": "sun"}.get(tod, "cloud")))
-	ic.custom_minimum_size = Vector2(36, 36)
 	ic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE; ic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	ic.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	h.add_child(ic)
 	var v := VBoxContainer.new()
 	v.add_theme_constant_override("separation", -2)
+	v.alignment = BoxContainer.ALIGNMENT_CENTER
 	h.add_child(v)
-	v.add_child(UIStyle.label("RACE CONDITIONS", 11, UIStyle.MUTED, UIStyle.bold()))
+	var hd := UIStyle.label("RACE CONDITIONS", 8, UIStyle.MUTED, UIStyle.bold())
+	v.add_child(hd)
 	var tt: String = {"event": "As per event", "day": "Day", "sunset": "Sunset", "night": "Night"}.get(tod, "As per event")
-	v.add_child(UIStyle.title("%s%s" % [tt, "  ·  RAIN" if rain else ""], 26, Color.WHITE))
-	return p
+	var val := UIStyle.title("%s%s" % [tt, "  ·  RAIN" if rain else ""], 18, Color.WHITE)
+	v.add_child(val)
+	_chip_l = [hd, val, ic]
+	return _chip
 
 
 # ─────────────────────────────── RACE ───────────────────────────────
@@ -635,10 +559,10 @@ func _refresh_weather() -> void:
 	var home: Control = _pages.get("home")
 	if home == null:
 		return
-	for c in home.get_children():
-		if c is PanelContainer and c.anchor_top == 1.0:
-			c.queue_free()
+	if _chip:
+		_chip.queue_free()
 	home.add_child(_weather_chip())
+	_layout()
 
 
 # ───────────────────────────── helpers ──────────────────────────────

@@ -128,4 +128,5 @@ heights applied to footprints by tools/lagos_map_pipeline/apply_google_25d_heigh
   - assets/ui/icons/*.svg — Lucide icons (lucide.dev), ISC License; recoloured.
   - assets/audio/ui/{hover,click,slide}.ogg — "UI Sound Library" by Little Robot Sound Factory (OpenGameArt), CC-BY 3.0.
   - assets/ui/tiles/*.jpg — FLUX.1 [dev]/[schnell] via fal.ai, generated for this project.
+  - assets/ui/menu_home.jpg — key-art image supplied by the project owner (painted buttons removed, edges extended, 2x upscale).
   - assets/ui/lagos_map.json — route lines traced from this project's map data (OpenStreetMap-derived, ODbL).
