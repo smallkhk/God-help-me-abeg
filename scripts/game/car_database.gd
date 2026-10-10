@@ -8,13 +8,13 @@ extends RefCounted
 
 ## Display order in the garage (cheapest/starter first).
 const ORDER: Array[StringName] = [
+	&"camry_01",
 	&"hatch_01",
 	&"sedan_01",
 	&"family_01",
 	&"sport_01",
 	&"suv_01",
 	&"luxury_01",
-	&"camry_01",
 	&"concept_01",
 	&"super_01",
 ]

@@ -21,7 +21,7 @@ var selected_car_id: StringName = &"sedan_01"
 
 # --- career / economy ---
 const START_MONEY := 2000000
-const STARTER_CARS := ["hatch_01", "sedan_01"]
+const STARTER_CARS := ["hatch_01", "sedan_01", "camry_01"]
 const UPGRADE_KINDS := ["engine", "tyres", "nitro"]
 const MAX_UPGRADE := 3
 var money: int = START_MONEY
@@ -39,6 +39,9 @@ func _ready() -> void:
 	money = int(data.get("money", START_MONEY))
 	owned = data.get("owned", STARTER_CARS.duplicate())
 	upgrades = data.get("upgrades", {})
+	for c in STARTER_CARS:   # starter cars are always owned (also on old saves)
+		if not owned.has(c):
+			owned.append(c)
 	if data.has("selected_car") and typeof(data["selected_car"]) == TYPE_STRING:
 		selected_car_id = StringName(data["selected_car"])
 	if not owned.has(String(selected_car_id)):
