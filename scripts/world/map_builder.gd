@@ -519,6 +519,11 @@ func _build_osm_buildings(root: Node3D) -> void:
 	var rng := RandomNumberGenerator.new()
 	var base := GROUND_Y - 0.6   # sunk a little so walls always meet the ground
 	var near_set := _near_cells()
+	var house_xf: Array = []
+	var route_pts: Array = []
+	var rs: Array = chunk.get("road", {}).get("samples", [])
+	for k in range(0, rs.size(), 3):
+		route_pts.append(Vector2(rs[k]["x"], rs[k]["z"]))
 	var near_cs: float = chunk.get("land_cells", {}).get("cell_m", 50.0)
 	for i in blds.size():
 		var b: Dictionary = blds[i]
@@ -536,6 +541,8 @@ func _build_osm_buildings(root: Node3D) -> void:
 		if not near_set.has(_cell_of(cen.x, cen.y, near_cs)):
 			continue  # never visible from the race road
 		var near: bool = float(b.get("d", 9999.0)) < 160.0
+		if float(b.get("d", 9999.0)) < 150.0 and _try_place_house(poly, h, house_xf, route_pts):
+			continue
 		var wc: Color = _WALLS[rng.randi() % _WALLS.size()]
 		var top := base + h
 		var ob := _obb(poly)
@@ -589,6 +596,8 @@ func _build_osm_buildings(root: Node3D) -> void:
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	root.add_child(mi)
 	_own(mi)
+	if not house_xf.is_empty():
+		_spawn_model_instances(root, {"lagos_house/house": house_xf})
 
 
 func _obb(poly: PackedVector2Array) -> Dictionary:
@@ -899,7 +908,9 @@ const _AI_VEH := {"danfo/danfo": [1.0, PI * 0.5], "keke/keke": [0.9, -PI * 0.5]}
 ## One MultiMesh per mesh part of each glb model (cheap to draw thousands).
 func _spawn_model_instances(root: Node3D, inst: Dictionary) -> void:
 	for model in inst:
-		var path := ("res://assets/vehicles/%s.glb" % model) if model.contains("/") else ("res://assets/models/%s.glb" % model)
+		var path := "res://assets/vehicles/%s.glb" % model
+		if not ResourceLoader.exists(path):
+			path = "res://assets/models/%s.glb" % model
 		if not ResourceLoader.exists(path):
 			continue
 		var scene := (load(path) as PackedScene).instantiate()
@@ -1407,3 +1418,38 @@ func _build_terrain(root: Node3D) -> void:
 				var o := Vector3(p[0] + rng.randf_range(-3, 3), p[1], p[2] + rng.randf_range(-3, 3))
 				tfs.append(Transform3D(Basis(Vector3.UP, rng.randf() * TAU).scaled(Vector3.ONE * rng.randf_range(1.5, 2.5)), o))
 		grass.call("add_grass_batch", tfs)
+
+
+## Real Lagos house model (fal/Tripo): 6.1 m deep (front = +X, balcony side),
+## 6.4 m wide, 6 m tall, centred on its middle. Fit it to a house-sized footprint,
+## turn its front to the road. Returns false if the footprint isn't house-like.
+const _HOUSE_DIM := Vector3(6.1, 6.0, 6.4)
+func _try_place_house(poly: PackedVector2Array, h: float, out: Array, route_pts: Array) -> bool:
+	if poly.size() < 4 or poly.size() > 12:
+		return false
+	var ob := _obb(poly)
+	var l := float(ob["u1"]) - float(ob["u0"]); var w := float(ob["v1"]) - float(ob["v0"])
+	if l * w < 50.0 or l * w > 420.0 or l > 26.0 or w > 22.0 or h > 14.0:
+		return false
+	var c: Vector2 = ob["c"]; var n: Vector2 = ob["n"]
+	var ctr: Vector2 = c * (float(ob["u0"]) + float(ob["u1"])) * 0.5 + n * (float(ob["v0"]) + float(ob["v1"])) * 0.5
+	var best := Vector2.ZERO; var bd := INF
+	for rp in route_pts:
+		var d := ctr.distance_squared_to(rp)
+		if d < bd:
+			bd = d; best = rp
+	var to_road := (best - ctr).normalized()
+	# front axis = OBB axis most aligned with the road direction
+	var f: Vector2; var depth: float; var width: float
+	if absf(to_road.dot(c)) > absf(to_road.dot(n)):
+		f = c * signf(to_road.dot(c)); depth = l; width = w
+	else:
+		f = n * signf(to_road.dot(n)); depth = w; width = l
+	var sx := depth / _HOUSE_DIM.x; var sz := width / _HOUSE_DIM.z
+	var sy := clampf(h / _HOUSE_DIM.y, 0.95, 1.6)
+	if sx < 0.6 or sz < 0.6 or sx > 3.0 or sz > 3.0:
+		return false
+	var yaw := atan2(-f.y, f.x)
+	var basis := Basis(Vector3.UP, yaw) * Basis.from_scale(Vector3(sx, sy, sz))
+	out.append(Transform3D(basis, Vector3(ctr.x, GROUND_Y - 0.1 + _HOUSE_DIM.y * 0.5 * sy, ctr.y)))
+	return true
