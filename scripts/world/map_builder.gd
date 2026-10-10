@@ -1036,7 +1036,22 @@ func _build_landmarks(root: Node3D) -> void:
 			_prim(node, pad, Vector3(0, -0.2, 0), _mat(Color(0.80, 0.70, 0.52), 0.0, 0.95))
 			var lawn := BoxMesh.new(); lawn.size = Vector3(200, 0.6, 200)
 			_prim(node, lawn, Vector3(0, -0.1, 0), _mat(Color(0.36, 0.52, 0.25), 0.0, 0.95))
+		# Prefer the Blender-modelled landmark (assets/landmarks/*.glb); fall back to primitives.
+		var glb: String = {"theatre": "national_theatre", "civic": "civic_towers", "eko_hotel": "eko_hotel",
+			"link_bridge": "link_bridge", "toll_gate": "toll_plaza"}.get(lm["kind"], "")
+		var glb_path := "res://assets/landmarks/%s.glb" % glb
+		var model: Node3D = null
+		if glb != "" and ResourceLoader.exists(glb_path):
+			model = (load(glb_path) as PackedScene).instantiate() as Node3D
 		match lm["kind"]:
+			"theatre" when model:
+				node.add_child(model); top = 37.0
+			"civic" when model:
+				node.add_child(model); top = 134.0
+			"eko_hotel" when model:
+				node.add_child(model); top = 80.0
+			"link_bridge" when model:
+				node.add_child(model); top = 90.0
 			"theatre": top = _lm_theatre(node)
 			"makoko": top = _lm_makoko(node)
 			"civic": top = _lm_civic(node)
@@ -1044,12 +1059,19 @@ func _build_landmarks(root: Node3D) -> void:
 			"link_bridge": top = _lm_link_bridge(node)
 			"toll_gate":
 				if bd > 600.0:
+					if model:
+						model.free()
 					node.queue_free()
 					continue
 				var s2 = samples[best]
 				node.position = Vector3(s2["x"], float(s2["elev_m"]), s2["z"])
 				node.rotation.y = float(s2["heading_rad"])
-				top = _lm_toll_gate(node, float(chunk["road"]["half_width_m"]))
+				if model:
+					node.add_child(model); top = 18.0
+				else:
+					top = _lm_toll_gate(node, float(chunk["road"]["half_width_m"]))
+		if model and model.get_parent() == null:
+			model.free()
 		var tag := Label3D.new()
 		tag.text = lm["name"]
 		tag.billboard = BaseMaterial3D.BILLBOARD_ENABLED
