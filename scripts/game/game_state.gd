@@ -33,7 +33,8 @@ var settings: Dictionary = {}
 func _ready() -> void:
 	var data := SaveManager.load_data()
 	settings = data.get("settings", {})
-	high_graphics = bool(settings.get("high_graphics", true))
+	# phones start on Low graphics (still switchable in Settings)
+	high_graphics = bool(settings.get("high_graphics", not OS.has_feature("mobile")))
 	AudioServer.set_bus_volume_db(0, linear_to_db(float(settings.get("volume", 0.8))))
 	money = int(data.get("money", START_MONEY))
 	owned = data.get("owned", STARTER_CARS.duplicate())

@@ -25,6 +25,7 @@ func _ready() -> void:
 	_vehicle = get_node_or_null(vehicle_path) as VehicleController
 	_debug_panel.visible = _debug_visible
 	_timer_label.visible = false
+	add_child(TouchControls.new())
 	# nitro tank bar (bottom-left, above the speed)
 	_nitro_bar = ProgressBar.new()
 	_nitro_bar.max_value = 1.0

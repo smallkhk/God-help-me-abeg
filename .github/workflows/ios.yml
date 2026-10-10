@@ -1,0 +1,58 @@
+name: Build iOS IPA (unsigned)
+
+# Builds an UNSIGNED .ipa on GitHub's macOS runner. Sign + install it yourself
+# (e.g. with eSign). Run it from the Actions tab → "Build iOS IPA" → Run workflow.
+on:
+  workflow_dispatch:
+
+env:
+  GODOT_VERSION: "4.7.2"
+
+jobs:
+  ios:
+    runs-on: macos-15
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Godot + export templates
+        run: |
+          V=$GODOT_VERSION
+          curl -sSL -o godot.zip "https://github.com/godotengine/godot/releases/download/${V}-stable/Godot_v${V}-stable_macos.universal.zip"
+          unzip -q godot.zip
+          curl -sSL -o templates.tpz "https://github.com/godotengine/godot/releases/download/${V}-stable/Godot_v${V}-stable_export_templates.tpz"
+          T="$HOME/Library/Application Support/Godot/export_templates/${V}.stable"
+          mkdir -p "$T"
+          unzip -q templates.tpz -d tpl
+          cp -R tpl/templates/* "$T/"
+          ls "$T" | head
+
+      - name: Import project
+        run: |
+          ./Godot.app/Contents/MacOS/Godot --headless --path . --import || true
+
+      - name: Export Xcode project
+        run: |
+          mkdir -p build/ios
+          ./Godot.app/Contents/MacOS/Godot --headless --path . --export-release "iOS" build/ios/LagosStreetRacing.ipa
+          ls -la build/ios
+
+      - name: Build unsigned app with Xcode
+        run: |
+          cd build/ios
+          PROJ=$(ls -d *.xcodeproj | head -1)
+          SCHEME="${PROJ%.xcodeproj}"
+          xcodebuild -project "$PROJ" -scheme "$SCHEME" -configuration Release \
+            -sdk iphoneos -destination 'generic/platform=iOS' \
+            -archivePath "$PWD/game.xcarchive" archive \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" DEVELOPMENT_TEAM=""
+          APP=$(find game.xcarchive/Products/Applications -name "*.app" -maxdepth 1 | head -1)
+          mkdir -p Payload && cp -R "$APP" Payload/
+          zip -qry LagosStreetRacing-unsigned.ipa Payload
+          ls -la LagosStreetRacing-unsigned.ipa
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LagosStreetRacing-unsigned-ipa
+          path: build/ios/LagosStreetRacing-unsigned.ipa
+          retention-days: 14
