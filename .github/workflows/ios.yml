@@ -38,6 +38,9 @@ jobs:
           cp -R tpl/templates/* "$T/"
           ls "$T" | head
 
+      - name: Stamp build version (in-game updater compares against this)
+        run: date +%s > build_version.txt
+
       - name: Import project
         run: |
           ./Godot.app/Contents/MacOS/Godot --headless --path . --import || true

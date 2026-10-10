@@ -1,0 +1,54 @@
+name: Content update (in-game download)
+
+# Publishes the whole game as one update.pck on the `content-latest` release.
+# Phones with the IPA installed download it on next launch — no reinstall.
+# Start it from the Actions tab, or edit .github/content-update-trigger.
+on:
+  workflow_dispatch:
+  push:
+    branches: [master]
+    paths: [".github/content-update-trigger"]
+
+permissions:
+  contents: write
+
+env:
+  GODOT_VERSION: "4.7.2"
+
+jobs:
+  pack:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Godot + export templates
+        run: |
+          V=$GODOT_VERSION
+          curl -sSL -o godot.zip "https://github.com/godotengine/godot/releases/download/${V}-stable/Godot_v${V}-stable_linux.x86_64.zip"
+          unzip -q godot.zip && mv Godot_v${V}-stable_linux.x86_64 godot
+          curl -sSL -o templates.tpz "https://github.com/godotengine/godot/releases/download/${V}-stable/Godot_v${V}-stable_export_templates.tpz"
+          T="$HOME/.local/share/godot/export_templates/${V}.stable"
+          mkdir -p "$T" && unzip -q templates.tpz -d tpl && cp -R tpl/templates/* "$T/"
+
+      - name: Stamp version
+        run: date +%s > build_version.txt
+
+      - name: Import + export pack (iOS preset, ASTC textures)
+        run: |
+          ./godot --headless --path . --import || true
+          mkdir -p out
+          ./godot --headless --path . --export-pack "iOS" out/update.pck
+          ls -la out
+
+      - name: Publish to release content-latest
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VER=$(cat build_version.txt)
+          SIZE=$(stat -c %s out/update.pck)
+          URL="https://github.com/${{ github.repository }}/releases/download/content-latest/update.pck"
+          printf '{"version": %s, "size": %s, "url": "%s"}\n' "$VER" "$SIZE" "$URL" > out/manifest.json
+          cat out/manifest.json
+          gh release view content-latest >/dev/null 2>&1 || gh release create content-latest --title "Game content (in-game update)" --notes "Downloaded automatically by the game." --latest=false
+          gh release upload content-latest out/update.pck out/manifest.json --clobber
