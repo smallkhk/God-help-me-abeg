@@ -630,7 +630,7 @@ func _auto_ground(m: Node3D) -> void:
 	if wheels.is_empty():
 		return
 	var lowest := INF
-	var inv := m.get_parent().global_transform.affine_inverse() if m.is_inside_tree() else Transform3D()
+	var inv: Transform3D = (m.get_parent() as Node3D).global_transform.affine_inverse() if m.is_inside_tree() else Transform3D()
 	for mi in m.find_children("*", "MeshInstance3D", true, false):
 		var g := mi as MeshInstance3D
 		var xf: Transform3D = (inv * g.global_transform) if g.is_inside_tree() else (m.transform * g.transform)
@@ -638,6 +638,6 @@ func _auto_ground(m: Node3D) -> void:
 		lowest = minf(lowest, bb.position.y)
 	if lowest == INF:
 		return
-	var sag := mass * 9.81 / float(wheels.size()) / maxf(data.suspension_stiffness, 1.0)
-	var contact := wheels[0].marker.position.y - (data.suspension_rest_length - sag) - data.wheel_radius
+	var sag: float = mass * 9.81 / float(wheels.size()) / maxf(data.suspension_stiffness, 1.0)
+	var contact: float = wheels[0].marker.position.y - (data.suspension_rest_length - sag) - data.wheel_radius
 	m.position.y += contact - lowest
