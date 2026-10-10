@@ -97,3 +97,6 @@ heights applied to footprints by tools/lagos_map_pipeline/apply_google_25d_heigh
 ## Ground textures (ground_sand/dirt/grass.jpg) — ambientCG Ground080/054/068, CC0
 ## Kenney Nature Kit palms/bushes (assets/models/k_*.glb) — CC0, https://kenney.nl/assets/nature-kit
 ## Sky3D (addons/sky_3d/) — MIT, TokisanGames/Sky3D v2.1.0 (third-party textures: see addons/sky_3d/ThirdParty.md)
+## Terrain3D (addons/terrain_3d/) — MIT, TokisanGames, v1.0.2 (Godot Asset Store)
+## SimpleGrassTextured (addons/simplegrasstextured/) — MIT, IcterusGames, v2.1.0 (Godot Asset Store)
+## Kenney Nature Kit trees (k_tree_*) — CC0

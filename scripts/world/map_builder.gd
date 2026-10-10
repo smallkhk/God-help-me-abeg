@@ -57,6 +57,11 @@ func _build() -> void:
 	_build_road(root)
 	_build_markings(root)
 	_build_streetlights(root)
+	if chunk.has("terrain"):
+		# Terrain3D hills map: sculpted terrain + trees + grass instead of city layers
+		_build_terrain(root)
+		_build_median(root, _frames())
+		return
 	_build_piers(root)
 	_build_water(root)
 	_build_skyline(root)
@@ -1323,3 +1328,69 @@ func _lm_toll_gate(n: Node3D, hw: float) -> float:
 	var sign2 := lbl.duplicate() as Label3D
 	sign2.position = Vector3(0, 7.6, 7.2); sign2.rotation.y = 0.0; n.add_child(sign2)
 	return 10.0
+
+
+# ---------------- Terrain3D hills ----------------
+## Builds a Terrain3D (addons/terrain_3d) from the chunk's height grid, textures it
+## with grass/dirt/sand (auto-shader: dirt on slopes), then scatters trees and
+## SimpleGrassTextured grass at positions baked by generate_hills_track.py.
+func _build_terrain(root: Node3D) -> void:
+	var t: Dictionary = chunk["terrain"]
+	var n: int = t["size_px"]
+	var spacing: float = t["spacing"]
+	var origin: float = t["origin"]
+	var f := FileAccess.open(t["heights"], FileAccess.READ)
+	if f == null or not ClassDB.class_exists("Terrain3D"):
+		push_warning("MapBuilder: Terrain3D or height data missing")
+		return
+	var img := Image.create_from_data(n, n, false, Image.FORMAT_RF, f.get_buffer(n * n * 4))
+	var terrain: Node3D = ClassDB.instantiate("Terrain3D")
+	terrain.name = "Terrain3D"
+	root.add_child(terrain)
+	terrain.set("vertex_spacing", spacing)
+	# textures: 0 grass (flat), 1 dirt (slopes), 2 sand
+	var assets: Resource = ClassDB.instantiate("Terrain3DAssets")
+	var tex_files := ["ground_grass", "ground_dirt", "ground_sand"]
+	for i in tex_files.size():
+		var ta: Resource = ClassDB.instantiate("Terrain3DTextureAsset")
+		ta.set("name", tex_files[i])
+		ta.call("set_albedo_texture", load("res://assets/textures/%s.jpg" % tex_files[i]))
+		ta.set("uv_scale", 0.15)
+		assets.call("set_texture", i, ta)
+	terrain.call("set_assets", assets)
+	var mat: Resource = terrain.get("material")
+	if mat:
+		mat.call("set_auto_shader", true)
+	var data: Object = terrain.get("data")
+	# control map: auto-shader bit on everywhere (base 0 = grass, overlay 1 = dirt on slopes)
+	var ctrl_bytes := PackedByteArray()
+	ctrl_bytes.resize(n * n * 4)
+	for i in range(0, n * n * 4, 4):
+		ctrl_bytes[i] = 1
+	var ctrl := Image.create_from_data(n, n, false, Image.FORMAT_RF, ctrl_bytes)
+	data.call("import_images", [img, ctrl, null], Vector3(origin, 0, origin), 0.0, 1.0)
+	_own(terrain)
+
+	# trees (Kenney low-poly) on the hills
+	var inst := {}
+	var rng := RandomNumberGenerator.new(); rng.seed = 99
+	var kinds := ["k_tree_oak", "k_tree_default", "k_tree_fat", "k_tree_detailed", "k_tree_palmTall"]
+	for p in chunk.get("trees", []):
+		var k: String = kinds[rng.randi() % kinds.size()]
+		if not inst.has(k):
+			inst[k] = []
+		inst[k].append(Transform3D(Basis(Vector3.UP, rng.randf() * TAU).scaled(Vector3.ONE * rng.randf_range(6.0, 9.0)), Vector3(p[0], p[1] - 0.2, p[2])))
+	_spawn_model_instances(root, inst)
+
+	# grass tufts near the road (SimpleGrassTextured)
+	var gs := load("res://addons/simplegrasstextured/grass.gd") as GDScript
+	if gs and chunk.has("grass"):
+		var grass: Node3D = gs.new()
+		grass.name = "Grass"
+		root.add_child(grass)
+		var tfs: Array = []
+		for p in chunk["grass"]:
+			for j in 3:
+				var o := Vector3(p[0] + rng.randf_range(-3, 3), p[1], p[2] + rng.randf_range(-3, 3))
+				tfs.append(Transform3D(Basis(Vector3.UP, rng.randf() * TAU).scaled(Vector3.ONE * rng.randf_range(1.5, 2.5)), o))
+		grass.call("add_grass_batch", tfs)

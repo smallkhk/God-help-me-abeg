@@ -76,7 +76,8 @@ func _use_sky3d(on: bool) -> void:
 		_sky3d.tod.longitude = deg_to_rad(3.40)
 		_sky3d.tod.utc = 1.0
 		_sky3d.game_time_enabled = false   # fixed time per preset (N cycles)
-		_sky3d.sky_contribution = 0.75     # recommended for the Compatibility renderer
+		_sky3d.sky_contribution = 0.6      # Compatibility renderer looks washed out at 1.0
+		_sky3d.tonemap_exposure = 0.75
 		_sky3d.sun.directional_shadow_max_distance = 250.0
 	elif not on and _sky3d != null:
 		_sky3d.queue_free()
