@@ -137,32 +137,54 @@ func _build_home() -> Control:
 func _build_race() -> Control:
 	var v := _page()
 	v.add_child(_label("CHOOSE A RACE", 30, ACCENT))
+	# cards with the real track layout (route drawn from the map data, race
+	# section in yellow, green start, chequered finish)
+	var grid := GridContainer.new()
+	grid.columns = 4
+	grid.add_theme_constant_override("h_separation", 14)
+	grid.add_theme_constant_override("v_separation", 14)
 	for r in RACES:
 		var card := Button.new()
-		card.custom_minimum_size = Vector2(600, 92)
+		card.custom_minimum_size = Vector2(270, 230)
 		var sb := StyleBoxFlat.new()
-		sb.bg_color = Color(0.1, 0.11, 0.14, 0.95)
-		sb.border_color = r["col"]; sb.border_width_left = 10
-		sb.set_corner_radius_all(10)
+		sb.bg_color = Color(0.08, 0.09, 0.12, 0.92)
+		sb.border_color = r["col"]; sb.set_border_width_all(2)
+		sb.set_corner_radius_all(12)
 		var sh := sb.duplicate() as StyleBoxFlat
-		sh.bg_color = Color(0.2, 0.2, 0.24, 0.98); sh.border_color = ACCENT
+		sh.bg_color = Color(0.16, 0.16, 0.2, 0.96); sh.border_color = ACCENT; sh.set_border_width_all(4)
 		card.add_theme_stylebox_override("normal", sb)
 		card.add_theme_stylebox_override("hover", sh)
 		card.add_theme_stylebox_override("focus", sh)
 		card.add_theme_stylebox_override("pressed", sh)
 		var path: String = r["scene"]
 		card.pressed.connect(func(): Game.goto(path))
-		var t := _label(r["name"], 28)
-		t.position = Vector2(26, 10)
+		var img_path := "res://assets/ui/tracks/%s.png" % r["id"]
+		if r["id"] != "" and ResourceLoader.exists(img_path):
+			var tr := TextureRect.new()
+			tr.texture = load(img_path)
+			tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+			tr.position = Vector2(8, 8); tr.size = Vector2(254, 150)
+			tr.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			card.add_child(tr)
+		else:
+			var ic := _label("FREE ROAM", 30, Color(1, 1, 1, 0.35))
+			ic.position = Vector2(8, 60); ic.size = Vector2(254, 40)
+			ic.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			card.add_child(ic)
+		var t := _label(r["name"], 22)
+		t.position = Vector2(12, 162)
 		card.add_child(t)
 		var best_txt := ""
 		if r["id"] != "":
-			var b := SaveManager.get_best_time(r["id"])
-			best_txt = "   ·   Best " + (_fmt(b) if b > 0.0 else "—")
-		var s := _label(r["sub"] + best_txt, 18, Color(1, 1, 1, 0.7))
-		s.position = Vector2(26, 52)
-		card.add_child(s)
-		v.add_child(card)
+			var bt := SaveManager.get_best_time(r["id"])
+			best_txt = "Best " + (_fmt(bt) if bt > 0.0 else "—")
+		var kind: String = String(r["sub"]).split("·")[0].strip_edges()
+		var st := _label("%s   %s" % [kind, best_txt], 15, Color(1, 1, 1, 0.65))
+		st.position = Vector2(12, 196)
+		card.add_child(st)
+		grid.add_child(card)
+	v.add_child(grid)
 	var rv := _label("Rivals: %d   (change in Settings)" % int(Game.get_setting("rivals", 4)), 18, Color(1, 1, 1, 0.7))
 	v.add_child(rv)
 	_center(v, _button("BACK", func(): _show("home"), 220))
@@ -186,6 +208,27 @@ func _build_settings() -> Control:
 		Game.high_graphics = on
 		Game.set_setting("high_graphics", on))
 	v.add_child(gfx)
+	# frame-rate cap
+	var fh := HBoxContainer.new()
+	fh.add_theme_constant_override("separation", 10)
+	var fl := _label("Frame rate", 22)
+	fl.custom_minimum_size = Vector2(180, 0)
+	fh.add_child(fl)
+	var cur := int(Game.get_setting("max_fps", 60))
+	for f in [30, 60, 90, 120, 0]:
+		var fb := Button.new()
+		fb.text = "MAX" if f == 0 else str(f)
+		fb.toggle_mode = true
+		fb.button_pressed = f == cur
+		fb.custom_minimum_size = Vector2(72, 44)
+		fb.add_theme_font_size_override("font_size", 20)
+		fb.pressed.connect(func():
+			Game.set_setting("max_fps", f)
+			Engine.max_fps = f
+			for o in fh.get_children():
+				if o is Button: o.button_pressed = o == fb)
+		fh.add_child(fb)
+	v.add_child(fh)
 	var fs := CheckButton.new()
 	fs.text = "Fullscreen"
 	fs.add_theme_font_size_override("font_size", 20)

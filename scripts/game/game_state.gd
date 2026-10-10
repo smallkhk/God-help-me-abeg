@@ -145,10 +145,14 @@ static func naira(amount: int) -> String:
 ## Background music (generated Afrobeats / Amapiano instrumentals), alternating.
 var _music: AudioStreamPlayer
 var _track := 0
-const MUSIC := ["res://assets/audio/music/afro1.ogg", "res://assets/audio/music/afro2.ogg"]
+# Kevin MacLeod (incompetech.com), CC-BY 4.0
+const MUSIC := ["res://assets/audio/music/rocket.ogg", "res://assets/audio/music/hitman.ogg",
+	"res://assets/audio/music/movement_proposition.ogg", "res://assets/audio/music/ouroboros.ogg",
+	"res://assets/audio/music/rhinoceros.ogg"]
 func _start_music() -> void:
 	_music = AudioStreamPlayer.new()
-	_music.volume_db = -14.0
+	_music.volume_db = -16.0
+	_track = randi() % MUSIC.size()
 	_music.process_mode = Node.PROCESS_MODE_ALWAYS
 	add_child(_music)
 	_music.finished.connect(_next_track)
@@ -184,6 +188,11 @@ func _add_gamepad() -> void:
 		var b := InputEventJoypadButton.new()
 		b.button_index = btns[a]
 		InputMap.action_add_event(a, b)
+	# pad A = click / select in menus, B = back
+	for pair in [["ui_accept", JOY_BUTTON_A], ["ui_cancel", JOY_BUTTON_B]]:
+		var pb := InputEventJoypadButton.new(); pb.button_index = pair[1]
+		InputMap.action_add_event(pair[0], pb)
+	Engine.max_fps = int(get_setting("max_fps", 60))
 	for a in ["time_next", "weather_toggle", "horn"]:
 		var k := InputEventKey.new()
 		k.physical_keycode = {"time_next": KEY_N, "weather_toggle": KEY_Y, "horn": KEY_H}[a]

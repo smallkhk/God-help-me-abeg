@@ -6,6 +6,10 @@ extends Node3D
 
 const LOOP_RPM := [1000.0, 2500.0, 3800.0, 5000.0, 6200.0, 7400.0]
 const RATE := 22050.0
+# real recorded car engine loop (qubodup, OpenGameArt, CC-BY 3.0)
+const REAL_LOOP := "res://assets/audio/engine/real_loop.wav"
+const REAL_RPM := 2200.0
+var _real := false
 
 var vehicle: VehicleController
 var is_player := true
@@ -22,8 +26,9 @@ var _crash_cd := 0.0
 
 
 func _ready() -> void:
-	for i in LOOP_RPM.size():
-		var path := "res://assets/audio/engine/engine_%d.wav" % i
+	_real = ResourceLoader.exists(REAL_LOOP)
+	for i in (1 if _real else LOOP_RPM.size()):
+		var path := REAL_LOOP if _real else "res://assets/audio/engine/engine_%d.wav" % i
 		if not ResourceLoader.exists(path):
 			continue
 		var st := load(path) as AudioStreamWAV
@@ -88,8 +93,12 @@ func _process(_delta: float) -> void:
 		return
 	var rpm: float = vehicle.transmission.engine_rpm
 	var load := 0.55 + 0.45 * vehicle.throttle_input
+	if _real and not _layers.is_empty():
+		var pl := _layers[0]
+		pl.pitch_scale = clampf(rpm / REAL_RPM, 0.45, 2.9)
+		pl.volume_db = linear_to_db(0.55 + 0.45 * load) + (0.0 if is_player else -5.0)
 	# find the two loops around this rpm and cross-fade them
-	var n := _layers.size()
+	var n := 0 if _real else _layers.size()
 	for i in n:
 		var ref: float = LOOP_RPM[i]
 		var w := 0.0

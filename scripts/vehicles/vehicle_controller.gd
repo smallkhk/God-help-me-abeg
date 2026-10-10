@@ -156,6 +156,8 @@ func _mount_model() -> void:
 			var col = g.call("car_color", String(data.vehicle_id))
 			if col != null:
 				paint_model(m, col)
+	if m is Node3D:
+		_auto_ground(m as Node3D)
 	if data.hide_placeholder_when_model:
 		for n in ["Body", "Cabin", "WheelFL_mesh", "WheelFR_mesh", "WheelRL_mesh", "WheelRR_mesh"]:
 			var node := get_node_or_null(NodePath(n)) as Node3D
@@ -306,10 +308,13 @@ func _physics_process(delta: float) -> void:
 
 func _update_steering(delta: float, speed: float) -> void:
 	# Speed-sensitive steering (spec §5.2): big angles slow, restrained fast.
-	var t := clampf(speed / data.steer_speed_falloff, 0.0, 1.0)
-	var max_angle := lerpf(data.max_steer_angle, data.max_steer_angle * data.high_speed_steer_fraction, t)
+	# owner feedback: hard steer at speed swung the car ~90°. Lock falls off
+	# much sooner and further with speed, and the wheel turns in slower.
+	var t := clampf(speed / minf(data.steer_speed_falloff, 22.0), 0.0, 1.0)
+	t = sqrt(t)
+	var max_angle := lerpf(data.max_steer_angle * 0.85, data.max_steer_angle * minf(data.high_speed_steer_fraction, 0.11), t)
 	var target := steer_input * max_angle
-	var rate := data.steer_rate if absf(steer_input) > 0.01 else data.steer_return_rate
+	var rate := data.steer_rate * 0.65 if absf(steer_input) > 0.01 else data.steer_return_rate
 	current_steer_angle = move_toward(current_steer_angle, target, rate * delta)
 
 
@@ -592,8 +597,7 @@ static func paint_model(m: Node, col: Color) -> void:
 				continue
 			var dup := mat.duplicate() as BaseMaterial3D
 			dup.albedo_color = col
-			dup.metallic = maxf(dup.metallic, 0.35)
-			dup.roughness = minf(dup.roughness, 0.4)
+
 			(mi as MeshInstance3D).set_surface_override_material(si, dup)
 
 
@@ -614,10 +618,26 @@ static func _finish_materials(m: Node) -> void:
 				dup.albedo_color = Color(0.08, 0.14, 0.16, 0.55) if not nm.contains("mirror") else Color(0.8, 0.82, 0.85)
 				dup.metallic = 0.95
 				dup.roughness = 0.03
-			elif nm.contains("tyre") or nm.contains("tire") or nm.contains("rubber"):
-				continue
 			else:
-				dup.roughness = minf(dup.roughness, 0.3)
-				dup.metallic = maxf(dup.metallic, 0.3)
-				dup.metallic_specular = 0.7
+				continue   # keep the original paint (forced gloss looked plastic)
 			(mi as MeshInstance3D).set_surface_override_material(si, dup)
+
+
+## Ride height: shift the model so its lowest point (the tyres) sits where the
+## raycast wheels actually touch the road at rest, so no car floats or sinks
+## whatever its model_offset says.
+func _auto_ground(m: Node3D) -> void:
+	if wheels.is_empty():
+		return
+	var lowest := INF
+	var inv := m.get_parent().global_transform.affine_inverse() if m.is_inside_tree() else Transform3D()
+	for mi in m.find_children("*", "MeshInstance3D", true, false):
+		var g := mi as MeshInstance3D
+		var xf: Transform3D = (inv * g.global_transform) if g.is_inside_tree() else (m.transform * g.transform)
+		var bb: AABB = xf * g.get_aabb()
+		lowest = minf(lowest, bb.position.y)
+	if lowest == INF:
+		return
+	var sag := mass * 9.81 / float(wheels.size()) / maxf(data.suspension_stiffness, 1.0)
+	var contact := wheels[0].marker.position.y - (data.suspension_rest_length - sag) - data.wheel_radius
+	m.position.y += contact - lowest

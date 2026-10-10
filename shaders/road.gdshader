@@ -62,9 +62,10 @@ void fragment() {
 		alb = mix(alb, vec3(0.02), pool * 0.6);
 		ALBEDO = alb;
 		ROUGHNESS = mix(clamp(texture(tex_asphalt_r, wpos.xz * 0.25).r - patches * 0.5 - hole * 0.6 - trk * 0.18 - oil * 0.3 + edge * 0.2, 0.15, 1.0), 0.02, max(wetness * 0.45, pool * 0.85));
-		SPECULAR = 0.5 + pool * 0.5;
+		SPECULAR = 0.25 + pool * 0.6;
+		ROUGHNESS = max(ROUGHNESS, mix(0.7, 0.08, max(pool, wetness * 0.4)));
 		vec3 tn = texture(tex_asphalt_n, wpos.xz * 0.25).rgb * 2.0 - 1.0;
-		float bs = bump_strength * (1.0 - wetness * 0.7) * 0.6;   // flat when wet: no blue glitter
+		float bs = bump_strength * (1.0 - wetness * 0.7) * 0.3;   // flat when wet: no blue glitter
 		vec3 wn = normalize(vec3(tn.x, 1.0, -tn.y) * vec3(bs, 1.0, bs));
 		NORMAL = normalize((VIEW_MATRIX * vec4(wn * sign(wnorm.y), 0.0)).xyz);
 	} else {

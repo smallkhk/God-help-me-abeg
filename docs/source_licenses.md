@@ -110,3 +110,6 @@ heights applied to footprints by tools/lagos_map_pipeline/apply_google_25d_heigh
 - assets/models/lagos/*, assets/vehicles/{accord,lexus,gwagon,p406,golf3} — Tripo v2.5 text-to-3D (PBR; hero cars HD texture) via fal.ai, generated for this project.
 - assets/textures/fx/smoke.png — Kenney Particle Pack (CC0). assets/audio/sfx/{engine_*,screech,crash,nitro,wind}.ogg, assets/audio/music/*.ogg — CassetteAI via fal.ai, generated for this project.
 - assets/ui/menu_bg.jpg — FLUX.1 [dev] via fal.ai, generated for this project.
+- assets/audio/music/*.ogg — Kevin MacLeod (incompetech.com), "Rocket", "Hitman", "Movement Proposition", "Ouroboros", "Rhinoceros". Licensed under Creative Commons: By Attribution 4.0.
+- assets/audio/engine/real_loop.wav — "Car Engine Loop 96kHz 4s" by qubodup, OpenGameArt, CC-BY 3.0.
+- assets/models/trees/* — Tripo v2.5 text-to-3D via fal.ai, generated for this project.

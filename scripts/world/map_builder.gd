@@ -801,19 +801,6 @@ func _build_street_props(root: Node3D) -> void:
 		elif on_bridge:
 			last_pole = {-1.0: null, 1.0: null}
 
-		# palm trees on land near the road
-		if dist >= next_palm:
-			next_palm = dist + 20.0
-			for side in [-1.0, 1.0]:
-				if rng.randf() < 0.45:
-					var pos: Vector3 = c + p * side * (hw + rng.randf_range(10.0, 220.0)) + fwd * rng.randf_range(-6.0, 6.0)
-					if is_land.call(pos):
-						pos.y = GROUND_Y
-						put.call(["k_tree_palmTall", "k_tree_palmDetailedTall", "k_tree_palmBend", "k_tree_palm"][rng.randi() % 4], pos, rng.randf() * TAU, rng.randf_range(8.0, 10.5))
-						if rng.randf() < 0.5:
-							var sp: Vector3 = pos + Vector3(rng.randf_range(-4, 4), 0, rng.randf_range(-4, 4))
-							put.call("k_plant_bushLarge" if rng.randf() < 0.5 else "k_plant_bushDetailed", sp, rng.randf() * TAU, rng.randf_range(3.0, 5.0))
-
 		# telecom masts (red/white), visible from far
 		if dist >= next_mast:
 			next_mast = dist + rng.randf_range(700.0, 1100.0)
@@ -851,13 +838,17 @@ func _build_street_props(root: Node3D) -> void:
 				put.call("brt/brt", pos + p * side * 3.6 + Vector3(0, bv[0], 0), atan2(fwd.x, fwd.z) + bv[1], bv[2])
 
 		# palm rows right along the roadside (real ~15 m coconut palms)
-		if not on_bridge and i % 4 == 0:
+		if not on_bridge and i % 5 == 0:
 			for side in [-1.0, 1.0]:
-				if rng.randf() < 0.7:
+				if rng.randf() < 0.6:
 					var rp: Vector3 = c + p * side * (hw + rng.randf_range(4.0, 10.0)) + fwd * rng.randf_range(-3.0, 3.0)
 					if is_land.call(rp):
 						rp.y = GROUND_Y
-						put.call(["k_tree_palmTall", "k_tree_palmDetailedTall", "k_tree_palmBend", "k_tree_palm"][rng.randi() % 4], rp, rng.randf() * TAU, rng.randf_range(8.0, 10.5))
+						# real leafy trees (fal/Tripo), roadside only
+						var tk: String = ["trees/coconut", "trees/coconut", "trees/almond"][rng.randi() % 3]
+						put.call(tk, rp, rng.randf() * TAU, rng.randf_range(0.85, 1.15))
+						if rng.randf() < 0.4:
+							put.call("trees/bush", rp + fwd * rng.randf_range(2.0, 4.0), rng.randf() * TAU, rng.randf_range(0.8, 1.4))
 
 		# parked cars on the roadside (Kenney CC0 models)
 		if not on_bridge and i % 3 == 0 and rng.randf() < 0.3:
@@ -1098,7 +1089,7 @@ func _spawn_model_instances(root: Node3D, inst: Dictionary) -> void:
 		var scene := (load(path) as PackedScene).instantiate()
 		var xforms: Array = inst[model]
 		# race-track draw distance: nothing far from the road needs drawing
-		var far := 260.0 if (model.begins_with("island_tree") or model.begins_with("k_tree")) else 140.0
+		var far := 260.0 if (model.begins_with("trees/") or model.begins_with("k_tree")) else 140.0
 		# draw distance by real size: people/props pop out early, buildings stay
 		if model.begins_with("people/") or model in ["lagos/generator", "lagos/bole", "lagos/purewater", "lagos/gutter", "lagos/brtbarrier", "lagos/barricade", "lagos/palmoil", "lagos/lastma"]:
 			far = 60.0
@@ -1602,9 +1593,19 @@ func _build_terrain(root: Node3D) -> void:
 	# trees (Kenney low-poly) on the hills
 	var inst := {}
 	var rng := RandomNumberGenerator.new(); rng.seed = 99
-	var kinds := ["k_tree_oak", "k_tree_default", "k_tree_fat", "k_tree_detailed", "k_tree_palmTall"]
+	var kinds := ["trees/almond", "trees/almond", "trees/coconut", "trees/bush"]
+	var rpts: Array = []
+	var rs2: Array = chunk["road"]["samples"]
+	for k2 in range(0, rs2.size(), 4):
+		rpts.append(Vector2(rs2[k2]["x"], rs2[k2]["z"]))
 	var bush := ["rocks", "rocks", "rocks", "fallentree", "fallentree", "termite", "termite", "mudhut", "villagekiosk", "palmoil"]
 	for p in chunk.get("trees", []):
+		# keep only what lines the track (12-30 m from the road)
+		var near_d := INF
+		for rp2 in rpts:
+			near_d = minf(near_d, Vector2(p[0], p[2]).distance_squared_to(rp2))
+		if near_d > 30.0 * 30.0:
+			continue
 		if rng.randf() < 0.14:
 			var bk: String = "lagos/" + bush[rng.randi() % bush.size()]
 			if not inst.has(bk):
@@ -1614,7 +1615,7 @@ func _build_terrain(root: Node3D) -> void:
 		var k: String = kinds[rng.randi() % kinds.size()]
 		if not inst.has(k):
 			inst[k] = []
-		inst[k].append(Transform3D(Basis(Vector3.UP, rng.randf() * TAU).scaled(Vector3.ONE * rng.randf_range(2.6, 4.0)), Vector3(p[0], p[1] - 0.4, p[2])))
+		inst[k].append(Transform3D(Basis(Vector3.UP, rng.randf() * TAU).scaled(Vector3.ONE * rng.randf_range(0.85, 1.15)), Vector3(p[0], p[1] - 0.15, p[2])))
 	_spawn_model_instances(root, inst)
 
 	# grass tufts near the road (SimpleGrassTextured)

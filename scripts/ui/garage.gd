@@ -31,6 +31,8 @@ func _ready() -> void:
 			_index = i
 			break
 	_refresh()
+	# gamepad: A presses the focused button (Select first), d-pad moves focus
+	%SelectButton.call_deferred("grab_focus")
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -40,7 +42,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		_cycle(1)
 	elif event.is_action_pressed("accelerate"):
 		_select_current()
-	elif event.is_action_pressed("pause"):
+	elif event.is_action_pressed("pause") or event.is_action_pressed("ui_cancel"):
 		Game.goto_main_menu()
 
 
