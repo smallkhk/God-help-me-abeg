@@ -1348,16 +1348,9 @@ func _build_terrain(root: Node3D) -> void:
 	terrain.name = "Terrain3D"
 	root.add_child(terrain)
 	terrain.set("vertex_spacing", spacing)
-	# textures: 0 grass (flat), 1 dirt (slopes), 2 sand
-	var assets: Resource = ClassDB.instantiate("Terrain3DAssets")
-	var tex_files := ["ground_grass", "ground_dirt", "ground_sand"]
-	for i in tex_files.size():
-		var ta: Resource = ClassDB.instantiate("Terrain3DTextureAsset")
-		ta.set("name", tex_files[i])
-		ta.call("set_albedo_texture", load("res://assets/textures/%s.jpg" % tex_files[i]))
-		ta.set("uv_scale", 0.15)
-		assets.call("set_texture", i, ta)
-	terrain.call("set_assets", assets)
+	# textures: Terrain3D demo's channel-packed ground (0) + rock (1) — the
+	# auto-shader puts ground on flat areas and rock on steep slopes.
+	terrain.call("set_assets", load("res://demo/data/assets.tres"))
 	var mat: Resource = terrain.get("material")
 	if mat:
 		mat.call("set_auto_shader", true)
