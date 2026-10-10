@@ -4,6 +4,8 @@ name: Build iOS IPA (unsigned)
 # (e.g. with eSign). Run it from the Actions tab → "Build iOS IPA" → Run workflow.
 on:
   workflow_dispatch:
+  push:
+    tags: ["ios-*"]
 
 env:
   GODOT_VERSION: "4.7.2"
