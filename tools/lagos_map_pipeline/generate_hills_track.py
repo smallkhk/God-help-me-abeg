@@ -5,9 +5,11 @@ tree and grass scatter positions that sit exactly on the terrain."""
 import json, math, os, sys
 import numpy as np
 OUT = sys.argv[1] if len(sys.argv) > 1 else "data/map/hills"
+# "offroad": narrow bumpy laterite trail through the bush (no barriers, dirt surface)
+OFF = len(sys.argv) > 2 and sys.argv[2] == "offroad"
 N, SP = 1024, 2.0                    # 1024 px * 2 m = 2048 m square
 X0 = -N * SP / 2                     # world x/z of pixel 0
-rng = np.random.default_rng(7)
+rng = np.random.default_rng(23 if OFF else 7)
 
 def fbm(n, octaves=6, base=4):
     out = np.zeros((n, n))
@@ -26,7 +28,7 @@ def fbm(n, octaves=6, base=4):
 
 H = fbm(N)
 H = (H - H.min()) / (H.max() - H.min())
-H = H ** 1.6 * 70.0 + 2.0             # 2..72 m hills, flatter valleys
+H = H ** 1.6 * (48.0 if OFF else 70.0) + 2.0             # 2..72 m hills, flatter valleys
 
 def height_at(x, z):
     fx = (x - X0) / SP; fz = (z - X0) / SP
@@ -38,7 +40,10 @@ def height_at(x, z):
 pts = []
 for k in range(2400):
     th = 2 * math.pi * k / 2400
-    r = 650 + 160 * math.sin(3 * th + 0.4) + 90 * math.sin(5 * th + 1.3) + 40 * math.sin(9 * th)
+    if OFF:
+        r = 600 + 200 * math.sin(2 * th + 1.1) + 110 * math.sin(7 * th + 0.3) + 45 * math.sin(13 * th + 2.0)
+    else:
+        r = 650 + 160 * math.sin(3 * th + 0.4) + 90 * math.sin(5 * th + 1.3) + 40 * math.sin(9 * th)
     pts.append((r * math.cos(th), r * math.sin(th)))
 # resample every 6 m
 res = [pts[0]]; acc = 0.0
@@ -50,12 +55,15 @@ for (ax, az), (bx, bz) in zip(pts, pts[1:] + pts[:1]):
     acc += seg - d
 # road elevation: terrain height heavily smoothed (keeps grades driveable)
 raw = np.array([height_at(x, z) for x, z in res])
-k = 61; pad = np.concatenate([raw[-k:], raw, raw[:k]])
+k = 31 if OFF else 61; pad = np.concatenate([raw[-k:], raw, raw[:k]])
 sm = np.convolve(pad, np.ones(k) / k, mode="same")[k:-k]
 sm = np.convolve(np.concatenate([sm[-k:], sm, sm[:k]]), np.ones(k) / k, mode="same")[k:-k]
 road_elev = sm + 0.3
+if OFF:   # washboard + whoops: short bumps the suspension has to soak up
+    dd = np.arange(len(res)) * 6.0
+    road_elev = road_elev + 0.22 * np.sin(dd / 9.0) * np.sin(dd / 53.0) + 0.5 * np.maximum(np.sin(dd / 140.0) - 0.6, 0) * np.sin(dd / 4.5)
 
-HW = 12.1
+HW = 5.5 if OFF else 12.1
 # carve/fill terrain to the road (flat bed + smooth shoulders)
 gx = X0 + np.arange(N) * SP
 GX, GZ = np.meshgrid(gx, gx)
@@ -66,8 +74,8 @@ for (x, z), e in zip(res[::2], road_elev[::2]):
     d = np.hypot(GX[j0:j1, i0:i1] - x, GZ[j0:j1, i0:i1] - z)
     m = d < best_d[j0:j1, i0:i1]
     best_d[j0:j1, i0:i1][m] = d[m]; best_e[j0:j1, i0:i1][m] = e
-w = np.clip((best_d - (HW + 3)) / 40.0, 0, 1); w = w * w * (3 - 2 * w)
-H = (best_e - 0.25) * (1 - w) + H * w
+w = np.clip((best_d - (HW + (0.5 if OFF else 3))) / (14.0 if OFF else 40.0), 0, 1); w = w * w * (3 - 2 * w)
+H = (best_e - (0.06 if OFF else 0.25)) * (1 - w) + H * w
 H = H.astype(np.float32)
 
 samples = []; dist = 0.0
@@ -89,25 +97,26 @@ for _ in range(40000):
     x, z = r2.uniform(X0 + 20, -X0 - 20, 2)
     fx, fz = int((x - X0) / SP), int((z - X0) / SP)
     d = best_d[fz, fx]
-    if d < HW + 6 or d > 260: continue
+    if d < HW + (2.5 if OFF else 6) or d > 260: continue
     y = float(height_at(x, z)) if False else float(H[fz, fx])
-    if len(trees) < 1800 and r2.random() < 0.35:
+    if len(trees) < (3200 if OFF else 1800) and r2.random() < (0.5 if OFF else 0.35):
         trees.append([round(x, 2), round(y, 2), round(z, 2)])
     if d < 120:
         grass.append([round(x, 2), round(y, 2), round(z, 2)])
 os.makedirs(OUT, exist_ok=True)
 H.tofile(os.path.join(OUT, "heights.bin"))
-chunk = {"chunk_id": "hills_loop", "description": "Procedural hills loop (Terrain3D)", "approximate": True,
+CID = "offroad_trail" if OFF else "hills_loop"
+chunk = {"chunk_id": CID, "description": "Procedural %s (Terrain3D)" % CID, "approximate": True,
          "geo_origin": {"lat": 6.6, "lon": 3.5}, "bounds_local_m": [X0, X0, -X0, -X0],
-         "terrain": {"heights": "res://data/map/hills/heights.bin", "size_px": N, "spacing": SP, "origin": X0},
-         "road": {"half_width_m": HW, "barrier_height_m": 0.9, "lanes_per_direction": 3, "lane_width_m": 3.5,
+         "terrain": {"heights": "res://" + OUT.rstrip("/") + "/heights.bin", "size_px": N, "spacing": SP, "origin": X0},
+         "road": {"half_width_m": HW, "barrier_height_m": 0.0 if OFF else 0.9, "lanes_per_direction": 1 if OFF else 3, "surface": "dirt" if OFF else "asphalt", "lane_width_m": 3.5,
                   "median_width_m": 1.2, "length_m": dist, "samples": samples},
          "bridge": {"deck_thickness_m": 1.2, "support_spacing_m": 40.0, "support_width_m": 2.0, "water_level_y": -50.0, "pier_foot_y": -60.0},
          "buildings": [], "osm_buildings": [], "land_cells": {"cell_m": 50.0, "cells": []},
          "spawn": {"x": s0["x"], "y": s0["elev_m"] + 0.5, "z": s0["z"], "heading_rad": s0["heading_rad"]},
          "checkpoints": cps, "trees": trees, "grass": grass[:6000],
          "source": {"type": "procedural", "license": "generated"}}
-json.dump(chunk, open(os.path.join(OUT, "hills_loop.json"), "w"))
+json.dump(chunk, open(os.path.join(OUT, CID + ".json"), "w"))
 g = np.diff(road_elev) / 6.0
 print("road %.0f m, %d samples, elev %.1f..%.1f m, max grade %.1f%%, trees %d, grass %d" %
       (dist, len(samples), road_elev.min(), road_elev.max(), 100 * abs(g).max(), len(trees), len(grass)))

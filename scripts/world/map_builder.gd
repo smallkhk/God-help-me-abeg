@@ -55,12 +55,14 @@ func _build() -> void:
 		root.owner = get_tree().edited_scene_root
 
 	_build_road(root)
-	_build_markings(root)
-	_build_streetlights(root)
+	if chunk["road"].get("surface", "asphalt") != "dirt":
+		_build_markings(root)
+		_build_streetlights(root)
 	if chunk.has("terrain"):
 		# Terrain3D hills map: sculpted terrain + trees + grass instead of city layers
 		_build_terrain(root)
-		_build_median(root, _frames())
+		if chunk["road"].get("surface", "asphalt") != "dirt":
+			_build_median(root, _frames())
 		return
 	_build_piers(root)
 	_build_water(root)
@@ -96,6 +98,7 @@ func _build_road(root: Node3D) -> void:
 	# SurfaceTool mesh (the baked shape failed to register with the physics
 	# server). This keeps collision identical to the visible surface (spec §8.3).
 	var soup := PackedVector3Array()
+	var acc_d := 0.0
 
 	for i in range(frames.size() - 1):
 		var a = frames[i]
@@ -105,13 +108,19 @@ func _build_road(root: Node3D) -> void:
 		var bl: Vector3 = b["c"] - b["p"] * hw
 		var br: Vector3 = b["c"] + b["p"] * hw
 
+		var d0 := acc_d; var d1: float = d0 + (a["c"] as Vector3).distance_to(b["c"])
+		acc_d = d1
+		_quad_uv(st, al, bl, br, ar, [Vector2(-hw, d0), Vector2(-hw, d1), Vector2(hw, d1), Vector2(hw, d0)])
+		soup.push_back(al); soup.push_back(bl); soup.push_back(br)
+		soup.push_back(al); soup.push_back(br); soup.push_back(ar)
+		if barrier_h <= 0.01:
+			continue
 		var up := Vector3.UP * barrier_h
 		# Road surface quad (two tris, CCW so the normal faces up), then raised
 		# barriers on each edge. Visual tris go to SurfaceTool; the same tris go
 		# to the collision soup (soup must be appended here, not inside a helper —
 		# PackedVector3Array passes by value in GDScript).
 		for q in [
-			[al, bl, br, ar],            # road surface
 			[al, al + up, bl + up, bl],  # left barrier
 			[ar, br, br + up, ar + up],  # right barrier
 		]:
@@ -519,7 +528,7 @@ func _build_osm_buildings(root: Node3D) -> void:
 	var rng := RandomNumberGenerator.new()
 	var base := GROUND_Y - 0.6   # sunk a little so walls always meet the ground
 	var near_set := _near_cells()
-	var house_xf: Array = []
+	var house_xf := {}
 	var route_pts: Array = []
 	var rs: Array = chunk.get("road", {}).get("samples", [])
 	for k in range(0, rs.size(), 3):
@@ -541,7 +550,7 @@ func _build_osm_buildings(root: Node3D) -> void:
 		if not near_set.has(_cell_of(cen.x, cen.y, near_cs)):
 			continue  # never visible from the race road
 		var near: bool = float(b.get("d", 9999.0)) < 160.0
-		if float(b.get("d", 9999.0)) < 150.0 and _try_place_house(poly, h, house_xf, route_pts):
+		if float(b.get("d", 9999.0)) < 150.0 and _try_place_model(poly, h, house_xf, route_pts, i):
 			continue
 		var wc: Color = _WALLS[rng.randi() % _WALLS.size()]
 		var top := base + h
@@ -597,7 +606,7 @@ func _build_osm_buildings(root: Node3D) -> void:
 	root.add_child(mi)
 	_own(mi)
 	if not house_xf.is_empty():
-		_spawn_model_instances(root, {"lagos_house/house": house_xf})
+		_spawn_model_instances(root, house_xf)
 
 
 func _obb(poly: PackedVector2Array) -> Dictionary:
@@ -796,7 +805,7 @@ func _build_street_props(root: Node3D) -> void:
 			var pos: Vector3 = c + p * side * (hw + rng.randf_range(14.0, 30.0))
 			if is_land.call(pos):
 				pos.y = GROUND_Y
-				boards.append([pos, atan2(p.x, p.z) + (PI * 0.5 if side < 0 else -PI * 0.5)])
+				boards.append([pos, atan2(p.x, p.z) + (PI * 0.5 if side < 0 else -PI * 0.5), -p * side])
 
 		# bus shelters on the approaches
 		if not on_bridge and dist >= next_stop:
@@ -805,6 +814,9 @@ func _build_street_props(root: Node3D) -> void:
 			var pos: Vector3 = c + p * side * (hw + 4.0)
 			pos.y = GROUND_Y if is_land.call(pos) else c.y
 			_bus_stop(st, pos, Basis(Vector3.UP, atan2(p.x, p.z)))
+			if pos.y == GROUND_Y and rng.randf() < 0.45:
+				var bv: Array = _AI_VEH["brt/brt"]
+				put.call("brt/brt", pos + p * side * 3.6 + Vector3(0, bv[0], 0), atan2(fwd.x, fwd.z) + bv[1], bv[2])
 
 		# palm rows right along the roadside (real ~15 m coconut palms)
 		if not on_bridge and i % 4 == 0:
@@ -821,11 +833,11 @@ func _build_street_props(root: Node3D) -> void:
 			var cp: Vector3 = c + p * side2 * (hw + 2.6)
 			if is_land.call(cp):
 				cp.y = GROUND_Y
-				var kc := ["kenney/sedan", "kenney/taxi", "danfo/danfo", "kenney/suv", "danfo/danfo", "danfo/danfo", "keke/keke"]
+				var kc := ["kenney/sedan", "kenney/taxi", "danfo/danfo", "kenney/suv", "danfo/danfo", "danfo/danfo", "keke/keke", "okada/okada", "okada/okada"]
 				var km: String = kc[rng.randi() % kc.size()]
 				var yaw := atan2(fwd.x, fwd.z) + (0.0 if rng.randf() < 0.5 else PI)
 				if _AI_VEH.has(km):
-					put.call(km, cp + Vector3(0, _AI_VEH[km][0], 0), yaw + _AI_VEH[km][1], 1.0)
+					put.call(km, cp + Vector3(0, _AI_VEH[km][0], 0), yaw + _AI_VEH[km][1], _AI_VEH[km][2])
 				else:
 					put.call(km, cp, yaw, 1.75)
 
@@ -838,6 +850,24 @@ func _build_street_props(root: Node3D) -> void:
 				for kk in rng.randi_range(3, 4):
 					var kp: Vector3 = kp0 + fwd * (kk * 3.0) + Vector3(0, GROUND_Y + _AI_VEH["keke/keke"][0] - kp0.y, 0)
 					put.call("keke/keke", kp, kyaw + _AI_VEH["keke/keke"][1], 1.0)
+
+		# okada park (3-6 bikes at an angle) and container kiosks facing the road
+		if not on_bridge and i % 5 == 2 and rng.randf() < 0.1:
+			var os: float = -1.0 if rng.randf() < 0.5 else 1.0
+			var op0: Vector3 = c + p * os * (hw + 3.0)
+			if is_land.call(op0):
+				var ov: Array = _AI_VEH["okada/okada"]
+				for kk in rng.randi_range(3, 6):
+					var opos: Vector3 = op0 + fwd * (kk * 1.1) + Vector3(0, GROUND_Y + ov[0] - op0.y, 0)
+					var od := -p * os
+					put.call("okada/okada", opos, atan2(-od.z, od.x) + 0.45, ov[2])
+		if not on_bridge and i % 6 == 3 and rng.randf() < 0.12:
+			var ks: float = -1.0 if rng.randf() < 0.5 else 1.0
+			var kpos: Vector3 = c + p * ks * (hw + rng.randf_range(6.0, 9.0))
+			if is_land.call(kpos):
+				var face := -p * ks
+				kpos.y = GROUND_Y - 0.05 + 1.25 * 1.6
+				put.call("kiosk/kiosk", kpos, atan2(-face.z, face.x), 1.6)
 
 		# roadside Lagos clutter: chairs, gens, crates, tyres, jerrycans, bins, AC units
 		if not on_bridge and dist >= next_junk:
@@ -894,15 +924,23 @@ func _build_street_props(root: Node3D) -> void:
 
 	_spawn_model_instances(root, inst)
 
+	var bb_xf: Array = []
 	for bd in boards:
+		if bd.size() > 2 and rng.randf() < 0.6:
+			var fc: Vector3 = bd[2]
+			bb_xf.append(Transform3D(Basis(Vector3.UP, atan2(-fc.z, fc.x)).scaled(Vector3.ONE * 2.4), bd[0] + Vector3(0, 2.5 * 2.4 - 0.1, 0)))
+			continue
 		_billboard(root, bd[0], bd[1], _BRANDS[rng.randi() % _BRANDS.size()], rng)
 
+	if not bb_xf.is_empty():
+		_spawn_model_instances(root, {"billboard/billboard": bb_xf})
 	_build_median(root, frames)
 
 
 ## AI-generated (fal/Tripo) vehicles are centred on their middle and lie along X:
 ## [lift to put wheels on the ground, yaw offset to face along the road]
-const _AI_VEH := {"danfo/danfo": [1.0, PI * 0.5], "keke/keke": [0.9, -PI * 0.5]}
+const _AI_VEH := {"danfo/danfo": [1.0, PI * 0.5, 1.0], "keke/keke": [0.9, -PI * 0.5, 1.0],
+	"okada/okada": [0.66, -PI * 0.5, 1.1], "brt/brt": [2.0, -PI * 0.5, 1.25]}
 
 
 ## One MultiMesh per mesh part of each glb model (cheap to draw thousands).
@@ -1096,6 +1134,16 @@ func _obox(st: SurfaceTool, c: Vector3, s: Vector3, bas: Basis, col: Color) -> v
 
 func _road_material() -> Material:
 	var sm := ShaderMaterial.new()
+	var r: Dictionary = chunk["road"]
+	if r.get("surface", "asphalt") == "dirt":
+		sm.shader = load("res://shaders/road_dirt.gdshader")
+		sm.set_shader_parameter("tex_dirt", load("res://assets/textures/ground_dirt.jpg"))
+		sm.set_shader_parameter("tex_grass", load("res://assets/textures/ground_grass.jpg"))
+		sm.set_shader_parameter("half_width", float(r["half_width_m"]))
+		return sm
+	sm.set_shader_parameter("half_width", float(r["half_width_m"]))
+	sm.set_shader_parameter("lane_width", float(r.get("lane_width_m", 3.5)))
+	sm.set_shader_parameter("median_half", float(r.get("median_width_m", 1.0)) * 0.5)
 	sm.shader = load("res://shaders/road.gdshader")
 	sm.set_shader_parameter("tex_asphalt", load("res://assets/textures/asphalt.jpg"))
 	sm.set_shader_parameter("tex_concrete", load("res://assets/textures/concrete.jpg"))
@@ -1114,6 +1162,11 @@ func _road_material_flat() -> StandardMaterial3D:
 	# and the car looks like it's floating).
 	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
 	return mat
+
+
+func _quad_uv(st: SurfaceTool, v0: Vector3, v1: Vector3, v2: Vector3, v3: Vector3, uv: Array) -> void:
+	for k in [0, 1, 2, 0, 2, 3]:
+		st.set_uv(uv[k]); st.add_vertex([v0, v1, v2, v3][k])
 
 
 func _quad(st: SurfaceTool, v0: Vector3, v1: Vector3, v2: Vector3, v3: Vector3) -> void:
@@ -1423,13 +1476,18 @@ func _build_terrain(root: Node3D) -> void:
 ## Real Lagos house model (fal/Tripo): 6.1 m deep (front = +X, balcony side),
 ## 6.4 m wide, 6 m tall, centred on its middle. Fit it to a house-sized footprint,
 ## turn its front to the road. Returns false if the footprint isn't house-like.
-const _HOUSE_DIM := Vector3(6.1, 6.0, 6.4)
-func _try_place_house(poly: PackedVector2Array, h: float, out: Array, route_pts: Array) -> bool:
+## AI-generated (fal/Tripo) buildings: model -> size (Godot X depth, Y height, Z width), front at +X
+const _BLD := {
+	"lagos_house/house": Vector3(6.1, 6.0, 6.4),
+	"unfinished/unfinished": Vector3(7.0, 6.0, 8.76),
+	"plaza/plaza": Vector3(2.62, 2.5, 7.88),
+}
+func _try_place_model(poly: PackedVector2Array, h: float, out: Dictionary, route_pts: Array, seed_i: int) -> bool:
 	if poly.size() < 4 or poly.size() > 12:
 		return false
 	var ob := _obb(poly)
 	var l := float(ob["u1"]) - float(ob["u0"]); var w := float(ob["v1"]) - float(ob["v0"])
-	if l * w < 50.0 or l * w > 420.0 or l > 26.0 or w > 22.0 or h > 14.0:
+	if l * w < 40.0 or l * w > 1400.0 or l > 60.0 or w > 40.0 or h > 16.0:
 		return false
 	var c: Vector2 = ob["c"]; var n: Vector2 = ob["n"]
 	var ctr: Vector2 = c * (float(ob["u0"]) + float(ob["u1"])) * 0.5 + n * (float(ob["v0"]) + float(ob["v1"])) * 0.5
@@ -1445,11 +1503,22 @@ func _try_place_house(poly: PackedVector2Array, h: float, out: Array, route_pts:
 		f = c * signf(to_road.dot(c)); depth = l; width = w
 	else:
 		f = n * signf(to_road.dot(n)); depth = w; width = l
-	var sx := depth / _HOUSE_DIM.x; var sz := width / _HOUSE_DIM.z
-	var sy := clampf(h / _HOUSE_DIM.y, 0.95, 1.6)
-	if sx < 0.6 or sz < 0.6 or sx > 3.0 or sz > 3.0:
+	# pick a model: long shopfront blocks -> plaza, else house / uncompleted building
+	var model := "lagos_house/house"
+	if width >= 14.0 and width / maxf(depth, 1.0) >= 1.6:
+		model = "plaza/plaza"
+	elif width > 26.0 or depth > 26.0:
 		return false
+	elif (seed_i * 2654435761) % 100 < 22:
+		model = "unfinished/unfinished"
+	var dim: Vector3 = _BLD[model]
+	var sx := depth / dim.x; var sz := width / dim.z
+	if sx < 0.6 or sz < 0.6 or sx > 4.0 or sz > 4.0 or maxf(sx, sz) / minf(sx, sz) > 2.2:
+		return false
+	var sy := clampf(h / dim.y, 0.95, 1.6) if model != "plaza/plaza" else clampf(minf(sx, sz) * 1.1, 2.4, 3.6)
 	var yaw := atan2(-f.y, f.x)
 	var basis := Basis(Vector3.UP, yaw) * Basis.from_scale(Vector3(sx, sy, sz))
-	out.append(Transform3D(basis, Vector3(ctr.x, GROUND_Y - 0.1 + _HOUSE_DIM.y * 0.5 * sy, ctr.y)))
+	if not out.has(model):
+		out[model] = []
+	out[model].append(Transform3D(basis, Vector3(ctr.x, GROUND_Y - 0.1 + dim.y * 0.5 * sy, ctr.y)))
 	return true
