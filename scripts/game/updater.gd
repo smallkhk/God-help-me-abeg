@@ -28,24 +28,46 @@ var _total := 0
 var _queue: Array = []      # [[url, dest, size], ...] still to download
 var _state := {}
 var _new_state := {}
+var _builtin := 0
 
 
 func _init() -> void:
-	if FileAccess.file_exists(BASE):
-		if ProjectSettings.load_resource_pack(BASE, true):
-			if FileAccess.file_exists(PATCH) and not ProjectSettings.load_resource_pack(PATCH, true):
-				DirAccess.remove_absolute(ProjectSettings.globalize_path(PATCH))
-		else:
-			DirAccess.remove_absolute(ProjectSettings.globalize_path(BASE))
-	elif FileAccess.file_exists(PACK):
-		if not ProjectSettings.load_resource_pack(PACK, true):
-			DirAccess.remove_absolute(ProjectSettings.globalize_path(PACK))
-	version = _read_version()
+	# version of the game inside the installed IPA (before any pack is mounted)
+	_builtin = _read_version()
 	var f := FileAccess.open(STATE, FileAccess.READ)
 	if f:
 		var d = JSON.parse_string(f.get_as_text())
 		if typeof(d) == TYPE_DICTIONARY:
 			_state = d
+	if int(_state.get("builtin", -1)) != _builtin:
+		# first launch of a newly installed IPA: whatever was downloaded for the
+		# old IPA is older than what we now ship — delete it (frees 400+ MB)
+		for p in [PACK, BASE, PATCH, PACK + ".part", BASE + ".part", PATCH + ".part"]:
+			DirAccess.remove_absolute(ProjectSettings.globalize_path(p))
+		_state = {"builtin": _builtin}
+		_save_state()
+	if FileAccess.file_exists(BASE):
+		if ProjectSettings.load_resource_pack(BASE, true):
+			_mount(PATCH)
+		else:
+			DirAccess.remove_absolute(ProjectSettings.globalize_path(BASE))
+	elif FileAccess.file_exists(PATCH):
+		_mount(PATCH)      # the IPA's own content is the base
+	elif FileAccess.file_exists(PACK):
+		_mount(PACK)
+	version = _read_version()
+
+
+func _mount(p: String) -> void:
+	if FileAccess.file_exists(p) and not ProjectSettings.load_resource_pack(p, true):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(p))
+
+
+func _save_state() -> void:
+	var f := FileAccess.open(STATE, FileAccess.WRITE)
+	if f:
+		f.store_string(JSON.stringify(_state))
+		f.close()
 
 
 func _read_version() -> int:
@@ -73,11 +95,15 @@ func _on_manifest(result: int, code: int, _h: PackedStringArray, body: PackedByt
 	if m.has("base_url"):
 		# base + patch: fetch only the parts that changed
 		var bv := int(m["base_version"])
-		_new_state = {"base": bv, "patch": int(m["version"])}
-		if int(_state.get("base", -1)) != bv or not FileAccess.file_exists(BASE):
+		_new_state = {"builtin": _builtin, "base": bv, "patch": int(m["version"])}
+		# the IPA already holds everything up to its build: no base download if it
+		# is at least as new as the base, only the patch on top of it
+		if _builtin < bv and (int(_state.get("base", -1)) != bv or not FileAccess.file_exists(BASE)):
 			_queue.append([str(m["base_url"]), BASE, int(m.get("base_size", 0))])
-		if str(m.get("patch_url", "")) != "":
+		if str(m.get("patch_url", "")) != "" and int(_state.get("patch", -1)) != int(m["version"]):
 			_queue.append([str(m["patch_url"]), PATCH, int(m.get("patch_size", 0))])
+		if _queue.is_empty():
+			return
 	else:
 		_queue.append([str(m["url"]), PACK, int(m.get("size", 0))])
 	_show_ui("Downloading update…")
@@ -116,17 +142,15 @@ func _on_pack(result: int, code: int, _h: PackedStringArray, _b: PackedByteArray
 	if dest == BASE:
 		# an old patch belongs to the old base: drop it before anything can mount it
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(PATCH))
-		var sf := FileAccess.open(STATE, FileAccess.WRITE)
-		sf.store_string(JSON.stringify({"base": _new_state["base"], "patch": _new_state["base"]}))
-		sf.close()
+		_state = {"builtin": _builtin, "base": _new_state["base"], "patch": _new_state["base"]}
+		_save_state()
 	_queue.pop_front()
 	if not _queue.is_empty():
 		_next_download()
 		return
 	if not _new_state.is_empty():
-		var f := FileAccess.open(STATE, FileAccess.WRITE)
-		f.store_string(JSON.stringify(_new_state))
-		f.close()
+		_state = _new_state
+		_save_state()
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(PACK))   # old full pack not needed
 	_bar.value = 100.0
 	_label.text = "Update installed! Close the game fully and open it again."
