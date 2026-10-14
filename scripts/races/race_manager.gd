@@ -388,6 +388,8 @@ func _spawn_rivals() -> void:
 			if not _lanes.is_empty():
 				drv.lanes.assign(_lanes)
 		drv.skill = rng.randf_range(0.75, 1.0)
+		drv.aggression = [0.85, 0.35, 0.6, 0.2, 0.7][i % 5]   # Tunde dirty, Bisi clean...
+		drv.road_half = float(_builder.get_chunk()["road"]["half_width_m"]) if _builder else 8.0
 		car.add_child(drv)
 		var au := CarAudio.new()
 		au.vehicle = car

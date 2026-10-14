@@ -184,6 +184,8 @@ func _physics_process(dt: float) -> void:
 		_cars_t = 1.0
 		_cars = _scene_root().find_children("*", "VehicleController", true, false)
 	for v in _vehicles:
+		if _knocked(v, dt):
+			continue
 		var spd: float = v["speed"]
 		# brake for anything just ahead in this lane (player, rivals, other traffic):
 		# these bodies are moved kinematically, so driving into a car would shove it
@@ -247,6 +249,48 @@ func _physics_process(dt: float) -> void:
 		var near: Node3D = _vehicles[_rng.randi() % _vehicles.size()]["body"]
 		_horn_player.global_position = near.global_position
 		_horn_player.play(_rng.randf() * 4.0)
+
+
+## Light vehicles (okada, keke) are moved kinematically, so on contact they would
+## shove a car like an immovable wall. Instead, a car that hits one knocks it
+## over: its collision switches off, it tips and slides away, then it is
+## recycled out of sight. The car keeps going (it just loses a little speed).
+const LIGHT := ["okada", "keke"]
+func _knocked(v: Dictionary, dt: float) -> bool:
+	var body: AnimatableBody3D = v["body"]
+	if v.has("knock"):
+		var k: Dictionary = v["knock"]
+		k["t"] = float(k["t"]) + dt
+		var vel: Vector3 = k["vel"]
+		k["vel"] = vel.move_toward(Vector3.ZERO, dt * 9.0)
+		body.global_position += vel * dt
+		var vis: Node3D = body.get_child(0)
+		vis.rotation.z = lerpf(vis.rotation.z, float(k["tip"]), clampf(dt * 5.0, 0.0, 1.0))
+		if float(k["t"]) > 6.0:
+			v.erase("knock")
+			vis.rotation.z = 0.0
+			(body.get_child(1) as CollisionShape3D).disabled = false
+			v["d"] = fposmod(_player_d() + (radius * 0.95 if _rng.randf() < 0.5 else -radius * 0.95), _len)
+			_place(v)
+		return true
+	if not v["kind"] in LIGHT:
+		return false
+	var reach: float = float(MODELS[v["kind"]][4]) * 0.5 + 2.6
+	for c in _cars:
+		if not is_instance_valid(c):
+			continue
+		var car := c as RigidBody3D
+		var rel: Vector3 = body.global_position - car.global_position
+		rel.y = 0.0
+		if rel.length() > reach:
+			continue
+		var cv := car.linear_velocity
+		var push := rel.normalized() * maxf(cv.length() * 0.6, 3.0) + Vector3(cv.x, 0, cv.z) * 0.4
+		v["knock"] = {"t": 0.0, "vel": push, "tip": (PI * 0.45) * (1.0 if rel.dot(car.global_transform.basis.x) > 0.0 else -1.0)}
+		(body.get_child(1) as CollisionShape3D).disabled = true
+		car.linear_velocity = cv * 0.93     # the bump costs the car a little speed
+		return true
+	return false
 
 
 func _ahead(from: Vector3, fwd: Vector3, p: Vector3, reach: float) -> bool:
