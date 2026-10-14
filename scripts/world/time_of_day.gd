@@ -73,8 +73,13 @@ func apply(preset: int) -> void:
 	# smooth edges: 4x MSAA on High, 2x on Low, plus FXAA to soften
 	# shimmering texture/specular edges MSAA can't touch
 	var vp := get_viewport()
-	vp.msaa_3d = Viewport.MSAA_4X if high else Viewport.MSAA_2X
+	# 2x MSAA on High (4x was the biggest GPU cost at native phone resolution),
+	# FXAA only on Low. Phones render 3D at 85 % of native res (UI stays sharp).
+	vp.msaa_3d = Viewport.MSAA_2X if high else Viewport.MSAA_DISABLED
 	vp.screen_space_aa = Viewport.SCREEN_SPACE_AA_FXAA
+	if OS.has_feature("mobile"):
+		vp.scaling_3d_mode = Viewport.SCALING_3D_MODE_BILINEAR
+		vp.scaling_3d_scale = 0.85
 	if _env and _env.sky:
 		var hdri := "res://assets/sky/%s.hdr" % c["hdri"]
 		if high and ResourceLoader.exists(hdri):
@@ -86,7 +91,7 @@ func apply(preset: int) -> void:
 			_env.sky.sky_material = _sky
 	if _sun:
 		_sun.shadow_enabled = true
-		_sun.directional_shadow_max_distance = 250.0 if high else 120.0
+		_sun.directional_shadow_max_distance = (150.0 if OS.has_feature("mobile") else 250.0) if high else 120.0
 	if _sky:
 		_sky.sky_top_color = c["top"]
 		_sky.sky_horizon_color = c["hor"]

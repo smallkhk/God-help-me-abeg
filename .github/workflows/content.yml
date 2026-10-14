@@ -5,6 +5,11 @@ name: Content update (in-game download)
 # Start it from the Actions tab, or edit .github/content-update-trigger.
 on:
   workflow_dispatch:
+    inputs:
+      rebase:
+        description: "Rebuild the base pack (full download for newer IPAs)"
+        type: boolean
+        default: false
   push:
     branches: [master]
     paths: [".github/content-update-trigger"]
@@ -34,11 +39,34 @@ jobs:
       - name: Stamp version
         run: date +%s > build_version.txt
 
-      - name: Import + export pack (iOS preset, ASTC textures)
+      - name: Import + export packs (iOS preset)
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           ./godot --headless --path . --import || true
-          mkdir -p out
+          mkdir -p out base
+          # full pack: older IPAs download this one
           ./godot --headless --path . --export-pack "iOS" out/update.pck
+          # base + patch: newer IPAs keep the base and fetch only changed files
+          gh release download content-latest -p base.pck -p base.json -D base 2>/dev/null || true
+          REBASE=1
+          if [ -f base/base.pck ] && [ -f base/base.json ] && [ "${{ github.event.inputs.rebase }}" != "true" ]; then
+            ./godot --headless --path . --export-patch "iOS" out/patch.pck --patches "$PWD/base/base.pck" && REBASE=0
+            if [ "$REBASE" = 0 ]; then
+              P=$(stat -c %s out/patch.pck); B=$(stat -c %s base/base.pck)
+              # patch grown past 40% of the base: start a fresh base
+              [ $((P * 100 / B)) -gt 40 ] && REBASE=1
+            fi
+          fi
+          if [ "$REBASE" = 1 ]; then
+            cp out/update.pck out/base.pck
+            printf '{"base_version": %s}\n' "$(cat build_version.txt)" > out/base.json
+            rm -f out/patch.pck
+          else
+            cp base/base.pck out/base.pck
+            cp base/base.json out/base.json
+          fi
+          echo "REBASE=$REBASE" >> $GITHUB_ENV
           ls -la out
 
       - name: Publish to release content-latest
@@ -47,8 +75,17 @@ jobs:
         run: |
           VER=$(cat build_version.txt)
           SIZE=$(stat -c %s out/update.pck)
-          URL="https://github.com/${{ github.repository }}/releases/download/content-latest/update.pck"
-          printf '{"version": %s, "size": %s, "url": "%s"}\n' "$VER" "$SIZE" "$URL" > out/manifest.json
+          R="https://github.com/${{ github.repository }}/releases/download/content-latest"
+          BV=$(python3 -c "import json;print(json.load(open('out/base.json'))['base_version'])")
+          BS=$(stat -c %s out/base.pck)
+          if [ -f out/patch.pck ]; then PURL="$R/patch.pck"; PS=$(stat -c %s out/patch.pck); else PURL=""; PS=0; fi
+          printf '{"version": %s, "size": %s, "url": "%s", "base_version": %s, "base_url": "%s", "base_size": %s, "patch_url": "%s", "patch_size": %s}\n' \
+            "$VER" "$SIZE" "$R/update.pck" "$BV" "$R/base.pck" "$BS" "$PURL" "$PS" > out/manifest.json
           cat out/manifest.json
           gh release view content-latest >/dev/null 2>&1 || gh release create content-latest --title "Game content (in-game update)" --notes "Downloaded automatically by the game." --latest=false
-          gh release upload content-latest out/update.pck out/manifest.json --clobber
+          FILES="out/update.pck"
+          [ "$REBASE" = 1 ] && FILES="$FILES out/base.pck out/base.json"
+          [ -f out/patch.pck ] && FILES="$FILES out/patch.pck"
+          gh release upload content-latest $FILES --clobber
+          # manifest last, so phones never see it before the packs are there
+          gh release upload content-latest out/manifest.json --clobber

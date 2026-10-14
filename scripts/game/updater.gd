@@ -6,11 +6,18 @@ extends Node
 ##      autoload is first in the list, so everything after it loads from the pack)
 ##   2. the manifest is checked; a newer pack is downloaded with a progress bar
 ##      and the player is asked to close and reopen the game.
+## Small updates: the workflow also publishes a base pack (the whole game, rebuilt
+## rarely) and a patch pack (only files changed since that base). This updater
+## keeps base + patch and only downloads what changed, so a normal update is a
+## few MB. Older IPAs keep using the full update.pck from the same manifest.
 ## Limits: engine/plugin (native) changes and project.godot settings still need
 ## a new IPA.
 
 const MANIFEST_URL := "https://github.com/smallkhk/God-help-me-abeg/releases/download/content-latest/manifest.json"
-const PACK := "user://update.pck"
+const PACK := "user://update.pck"      # full pack (older builds / fallback)
+const BASE := "user://base.pck"
+const PATCH := "user://patch.pck"
+const STATE := "user://update_state.json"
 
 var version := 0
 var _http: HTTPRequest
@@ -18,13 +25,27 @@ var _layer: CanvasLayer
 var _label: Label
 var _bar: ProgressBar
 var _total := 0
+var _queue: Array = []      # [[url, dest, size], ...] still to download
+var _state := {}
+var _new_state := {}
 
 
 func _init() -> void:
-	if FileAccess.file_exists(PACK):
+	if FileAccess.file_exists(BASE):
+		if ProjectSettings.load_resource_pack(BASE, true):
+			if FileAccess.file_exists(PATCH) and not ProjectSettings.load_resource_pack(PATCH, true):
+				DirAccess.remove_absolute(ProjectSettings.globalize_path(PATCH))
+		else:
+			DirAccess.remove_absolute(ProjectSettings.globalize_path(BASE))
+	elif FileAccess.file_exists(PACK):
 		if not ProjectSettings.load_resource_pack(PACK, true):
 			DirAccess.remove_absolute(ProjectSettings.globalize_path(PACK))
 	version = _read_version()
+	var f := FileAccess.open(STATE, FileAccess.READ)
+	if f:
+		var d = JSON.parse_string(f.get_as_text())
+		if typeof(d) == TYPE_DICTIONARY:
+			_state = d
 
 
 func _read_version() -> int:
@@ -49,12 +70,27 @@ func _on_manifest(result: int, code: int, _h: PackedStringArray, body: PackedByt
 	var m = JSON.parse_string(body.get_string_from_utf8())
 	if typeof(m) != TYPE_DICTIONARY or int(m.get("version", 0)) <= version:
 		return
-	_total = int(m.get("size", 0))
+	if m.has("base_url"):
+		# base + patch: fetch only the parts that changed
+		var bv := int(m["base_version"])
+		_new_state = {"base": bv, "patch": int(m["version"])}
+		if int(_state.get("base", -1)) != bv or not FileAccess.file_exists(BASE):
+			_queue.append([str(m["base_url"]), BASE, int(m.get("base_size", 0))])
+		if str(m.get("patch_url", "")) != "":
+			_queue.append([str(m["patch_url"]), PATCH, int(m.get("patch_size", 0))])
+	else:
+		_queue.append([str(m["url"]), PACK, int(m.get("size", 0))])
 	_show_ui("Downloading update…")
-	_http.download_file = PACK + ".part"
 	_http.timeout = 0.0
 	_http.request_completed.connect(_on_pack)
-	_http.request(str(m["url"]))
+	_next_download()
+
+
+func _next_download() -> void:
+	var job: Array = _queue[0]
+	_total = int(job[2])
+	_http.download_file = String(job[1]) + ".part"
+	_http.request(String(job[0]))
 	set_process(true)
 
 
@@ -69,13 +105,29 @@ func _process(_dt: float) -> void:
 
 func _on_pack(result: int, code: int, _h: PackedStringArray, _b: PackedByteArray) -> void:
 	set_process(false)
-	var part := ProjectSettings.globalize_path(PACK + ".part")
+	var dest: String = _queue[0][1]
+	var part := ProjectSettings.globalize_path(dest + ".part")
 	if result != HTTPRequest.RESULT_SUCCESS or code != 200:
 		DirAccess.remove_absolute(part)
 		_label.text = "Update failed (check internet). Will retry next launch."
 		get_tree().create_timer(4.0).timeout.connect(_layer.queue_free)
 		return
-	DirAccess.rename_absolute(part, ProjectSettings.globalize_path(PACK))
+	DirAccess.rename_absolute(part, ProjectSettings.globalize_path(dest))
+	if dest == BASE:
+		# an old patch belongs to the old base: drop it before anything can mount it
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(PATCH))
+		var sf := FileAccess.open(STATE, FileAccess.WRITE)
+		sf.store_string(JSON.stringify({"base": _new_state["base"], "patch": _new_state["base"]}))
+		sf.close()
+	_queue.pop_front()
+	if not _queue.is_empty():
+		_next_download()
+		return
+	if not _new_state.is_empty():
+		var f := FileAccess.open(STATE, FileAccess.WRITE)
+		f.store_string(JSON.stringify(_new_state))
+		f.close()
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(PACK))   # old full pack not needed
 	_bar.value = 100.0
 	_label.text = "Update installed! Close the game fully and open it again."
 
