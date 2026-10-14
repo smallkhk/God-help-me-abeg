@@ -23,6 +23,12 @@ var laps_needed := 1   # wraps of the start line before the rival is finished
 var wraps := 0
 var aggression := 0.5     # 0 = clean racer, 1 = dirty: how often it bumps / blocks
 var road_half := 8.0      # kerb distance from the centre line (m)
+## Alternative routes it may take: [{"from": route idx, "to": route idx, "pts": Array[Vector3]}]
+var shortcuts: Array = []
+var _sc := -1             # shortcut being driven, or -1
+var _sc_i := 0
+var _sc_lane := 0.0
+var _sc_seen := {}        # shortcut -> lap it was last considered on
 
 var _vehicle: VehicleController
 var _lane_timer := 0.0
@@ -50,6 +56,9 @@ func _physics_process(delta: float) -> void:
 		return
 	var pos := _vehicle.global_position
 	var m := route.size() - 1   # loops repeat sample 0 as the last sample
+	if _sc >= 0:
+		_drive_shortcut(delta, pos)
+		return
 	if loop:
 		var guard := 0
 		while _flat(_lane_point(progress)).distance_to(_flat(pos)) < 10.0 and guard < 50:
@@ -80,6 +89,9 @@ func _physics_process(delta: float) -> void:
 	if _stuck > 4.0 or _vehicle.global_transform.basis.y.y < 0.3 and speed < 2.0:
 		_stuck = 0.0
 		_reset_ahead()
+		return
+	_consider_shortcuts()
+	if _sc >= 0:
 		return
 	_human(delta, pos, speed)
 	var look := 3 + int(speed / 8.0)
@@ -210,3 +222,69 @@ func _blocked(pos: Vector3, fwd: Vector3) -> float:
 	if col is VehicleController or col is AnimatableBody3D:
 		return from.distance_to(hit["position"])
 	return -1.0
+
+
+## Coming up to a shortcut entrance: braver drivers dive in more often.
+func _consider_shortcuts() -> void:
+	for k in shortcuts.size():
+		var sc: Dictionary = shortcuts[k]
+		var f: int = sc["from"]
+		if progress < f - 14 or progress > f - 2 or int(_sc_seen.get(k, -1)) == wraps:
+			continue
+		_sc_seen[k] = wraps
+		if randf() < 0.25 + aggression * 0.5:
+			_sc = k
+			_sc_i = 0
+			_sc_lane = randf_range(-1.2, 1.2)
+			return
+
+
+func _sc_point(pts: Array, i: int) -> Vector3:
+	var a: Vector3 = pts[mini(i, pts.size() - 1)]
+	var b: Vector3 = pts[mini(i + 1, pts.size() - 1)] if i + 1 < pts.size() else a + (a - pts[maxi(i - 1, 0)])
+	var d := (b - a).normalized()
+	return a + Vector3(d.z, 0.0, -d.x) * _sc_lane
+
+
+## Narrow back street: follow its centre line, slower, then rejoin the circuit.
+func _drive_shortcut(delta: float, pos: Vector3) -> void:
+	var sc: Dictionary = shortcuts[_sc]
+	var pts: Array = sc["pts"]
+	while _sc_i < pts.size() - 1 and _flat(pts[_sc_i]).distance_to(_flat(pos)) < 7.0:
+		_sc_i += 1
+	if _sc_i >= pts.size() - 2:
+		progress = int(sc["to"])
+		_sc = -1
+		return
+	var speed := _vehicle.linear_velocity.length()
+	if speed < 1.0:
+		_stuck += delta
+	else:
+		_stuck = 0.0
+	if _stuck > 4.0 or _vehicle.global_transform.basis.y.y < 0.3 and speed < 2.0:
+		_stuck = 0.0
+		var i := mini(_sc_i + 2, pts.size() - 2)
+		var p0: Vector3 = pts[i]; var p1: Vector3 = pts[i + 1]
+		_vehicle.linear_velocity = Vector3.ZERO
+		_vehicle.angular_velocity = Vector3.ZERO
+		_vehicle.global_transform = Transform3D(Basis(Vector3.UP, atan2(p1.x - p0.x, p1.z - p0.z)), p0 + Vector3.UP * 0.8)
+		if _vehicle.has_method("reset_state"):
+			_vehicle.reset_state()
+		_sc_i = i
+		return
+	var target := _sc_point(pts, _sc_i + 2 + int(speed / 8.0))
+	var to_t := target - pos
+	var fwd := _vehicle.global_transform.basis.z
+	var right := _vehicle.global_transform.basis.x
+	var steer := clampf(atan2(to_t.dot(right), maxf(to_t.dot(fwd), 0.1)) * 1.5, -1.0, 1.0)
+	var a: Vector3 = pts[_sc_i]; var b: Vector3 = pts[mini(_sc_i + 1, pts.size() - 1)]
+	var c: Vector3 = pts[mini(_sc_i + 8, pts.size() - 2)]; var e: Vector3 = pts[mini(_sc_i + 9, pts.size() - 1)]
+	var turn := absf(wrapf(atan2(e.x - c.x, e.z - c.z) - atan2(b.x - a.x, b.z - a.z), -PI, PI))
+	var top := lerpf(30.0, 40.0, skill)
+	var safe := clampf(top - turn * 70.0, 11.0, top)
+	var gap := _blocked(pos, fwd)
+	if gap > 0.0 and gap < 4.0 + speed * 0.35:
+		safe = minf(safe, maxf(gap - 3.0, 0.0) * 0.8)
+	var throttle := 1.0 if speed < safe else 0.0
+	var brake := clampf((speed - safe) / 10.0, 0.0, 0.8) if speed > safe + 2.0 else 0.0
+	_vehicle.set_driver_input(throttle, brake, steer, false)

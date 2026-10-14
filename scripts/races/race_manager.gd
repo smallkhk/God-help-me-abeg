@@ -390,6 +390,15 @@ func _spawn_rivals() -> void:
 			drv.laps_needed = _laps + 1    # first wrap = crossing the start line
 			if not _lanes.is_empty():
 				drv.lanes.assign(_lanes)
+			# alternative routes through the side streets (chunk "shortcuts")
+			for sc in (_builder.get_chunk().get("shortcuts", []) if _builder else []):
+				var y: float = float(_route[0].get("elev_m", 2.0))
+				var pts: Array = []
+				for sp in sc["samples"]:
+					pts.append(Vector3(sp["x"], y, sp["z"]))
+				if pts.size() > 4:
+					drv.shortcuts.append({"from": _nearest_sample(pts[0], 0, _route.size()),
+						"to": _nearest_sample(pts[pts.size() - 1], 0, _route.size()), "pts": pts})
 		drv.skill = rng.randf_range(0.75, 1.0)
 		drv.aggression = [0.85, 0.35, 0.6, 0.2, 0.7][i % 5]   # Tunde dirty, Bisi clean...
 		drv.road_half = float(_builder.get_chunk()["road"]["half_width_m"]) if _builder else 8.0

@@ -20,6 +20,20 @@
 > - Data: 25 OSM API tiles (lat 6.444–6.469, lon 3.378–3.408) parsed to
 >   `tools/lagos_map_pipeline/work/island_osm.json` (not committed; re-fetch the
 >   tiles from api.openstreetmap.org and parse to regenerate).
+> - **Alternative routes (designed).** Two real side streets through the Balogun
+>   market area can be raced as shortcuts: Breadfruit Street (leaves Nnamdi
+>   Azikiwe St at 3.51 km, rejoins Balogun St at 4.26 km, 431 m, saves ~310 m) and
+>   a Martin Street back lane (3.67 → 4.10 km, 304 m, saves ~106 m). The street
+>   geometry is OSM (`"street_verified": true`); using it as a racing line is a
+>   design choice, so each entry in the chunk's `shortcuts` is `"verified": false,
+>   "designed": true`. They are 8 m wide (vs 14 m), slower to drive, signed with a
+>   yellow SHORTCUT board at the entrance, and drawn as orange dashes on the track
+>   preview. The generator finds them in the street graph (60–500 m long, saving
+>   60–350 m — the Marina↔Broad cross streets would skip half the lap and are
+>   left out). Kerb, pavement and roadside props leave their mouths open, OSM
+>   buildings on the carriageway are dropped, and no checkpoint sits on a stretch
+>   a shortcut skips. Rivals take them too (more often the more aggressive
+>   they are).
 > - The procedural layout below (`generate_island_district.py`) is kept as the
 >   designed alternative; the rendering, collision and performance work it
 >   describes applies to the real-street version too.

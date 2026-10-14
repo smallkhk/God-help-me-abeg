@@ -304,6 +304,165 @@ for ci, frac in enumerate([0.11, 0.24, 0.37, 0.5, 0.63, 0.76, 0.89]):
 cps.append({"index": len(cps), "x": round(float(R[0, 0]), 3), "z": round(float(R[0, 1]), 3), "y": ELEV,
             "heading_rad": round(float(heading[0]), 6), "dist_m": round(float(LOOP), 2), "finish": True})
 
+# --- 7. alternative racing routes -------------------------------------------------
+# Real side streets (OSM geometry) that leave the circuit and rejoin it further
+# on. The street is real ("street_verified": true); racing through it is a
+# designed choice, so the route itself is "verified": false, "designed": true.
+# Chosen by searching the street graph: a real street path of 60-500 m between
+# two circuit junctions that saves 60-350 m (bigger cuts would skip half a lap).
+SC_HW = 4.0
+SC_TYPES = {"residential", "unclassified", "tertiary", "secondary", "primary", "pedestrian", "service",
+            "secondary_link", "primary_link"}
+sc_adj = {}
+for r in d["roads"]:
+    if r["type"] not in SC_TYPES:
+        continue
+    for a, b in zip(r["nds"], r["nds"][1:]):
+        w = float(np.linalg.norm(loc(nodes[a]) - loc(nodes[b])))
+        sc_adj.setdefault(a, []).append((b, w, r["name"]))
+        sc_adj.setdefault(b, []).append((a, w, r["name"]))
+
+
+def on_route(n):
+    p = loc(nodes[n]); dd = np.sqrt(((R - p) ** 2).sum(1)); k = int(dd.argmin())
+    return k * LOOP / N, float(dd[k])
+
+
+cands = []
+for u in route_set:
+    if u not in sc_adj:
+        continue
+    du, eu = on_route(u)
+    if eu > 10.0:
+        continue
+    best = {u: 0.0}; prev = {}; pq = [(0.0, u)]
+    while pq:
+        c, n = heapq.heappop(pq)
+        if c > best[n] or (n != u and n in route_set):
+            continue
+        for m, w, nm in sc_adj.get(n, []):
+            if c + w > 500.0 or (n == u and m in route_set):
+                continue
+            if c + w < best.get(m, 1e18):
+                best[m] = c + w; prev[m] = (n, nm); heapq.heappush(pq, (c + w, m))
+    for v, L in best.items():
+        if v == u or v not in route_set:
+            continue
+        dv, ev = on_route(v)
+        gap = dv - du
+        if ev > 10.0 or gap <= 0 or L < 60.0 or not (60.0 <= gap - L <= 350.0) or du < 150.0 or dv > LOOP - 100.0:
+            continue
+        chain = [v]; snames = []
+        while chain[-1] != u:
+            n, nm = prev[chain[-1]]
+            if nm and nm not in snames:
+                snames.append(nm)
+            chain.append(n)
+        chain = chain[::-1]
+        if min(road_dist(np.array([loc(nodes[n]) for n in chain[1:-1]]))) < 12.0:
+            continue          # runs alongside the circuit, not a real alternative
+        cands.append((gap - L, du, dv, L, chain, snames))
+cands.sort(key=lambda c: -c[0])
+shortcuts, used = [], set()
+for sav, du, dv, L, chain, snames in cands:
+    inner = set(chain[1:-1])
+    if inner & used or any(abs(du - s["from_m"]) < 40 or abs(dv - s["to_m"]) < 40 for s in shortcuts):
+        continue
+    used |= inner
+    # dense centre line; keep the part outside the circuit's carriageway (starts
+    # just under the main road's edge so the two surfaces meet without a gap)
+    P0 = np.array([loc(nodes[n]) for n in chain])
+    dense = [P0[0]]
+    for a, b in zip(P0, P0[1:]):
+        k = max(1, int(np.linalg.norm(b - a) / 0.5))
+        dense += [a + (b - a) * (t / k) for t in range(1, k + 1)]
+    dense = np.array(dense)
+    rdd = road_dist(dense)
+    out_i = np.where(rdd >= HW - 1.5)[0]
+    dense = dense[out_i[0]:out_i[-1] + 1]
+    # Douglas-Peucker on the open line (simplify() above is for the closed loop)
+    def rdp(S):
+        if len(S) < 3:
+            return S
+        a, b = S[0], S[-1]; ab = b - a; Ln = np.linalg.norm(ab) + 1e-9
+        dd = np.abs((S[:, 0] - a[0]) * ab[1] - (S[:, 1] - a[1]) * ab[0]) / Ln
+        k = int(dd.argmax())
+        if dd[k] <= 1.0:
+            return np.vstack([a, b])
+        return np.vstack([rdp(S[:k + 1])[:-1], rdp(S[k:])])
+    Q = rdp(dense)
+    # round the corners (open line: ends stay put)
+    F = [Q[0]]
+    for i in range(1, len(Q) - 1):
+        a, b, c = Q[i - 1], Q[i], Q[i + 1]
+        uu = a - b; vv = c - b; lu, lv = np.linalg.norm(uu), np.linalg.norm(vv)
+        uu /= lu; vv /= lv
+        ang = math.acos(max(-1.0, min(1.0, float(np.dot(uu, vv)))))
+        if ang > math.radians(165):
+            F.append(b); continue
+        t = min(9.0 / math.tan(ang / 2), lu * 0.45, lv * 0.45)
+        p0 = b + uu * t; p1 = b + vv * t
+        for s in np.linspace(0, 1, 7):
+            F.append((1 - s) ** 2 * p0 + 2 * (1 - s) * s * b + s ** 2 * p1)
+    F.append(Q[-1]); F = np.array(F)
+    dd = np.r_[0, np.cumsum(np.linalg.norm(np.diff(F, axis=0), axis=1))]
+    sl = np.linspace(0, dd[-1], max(3, int(dd[-1] / STEP) + 1))
+    S = np.c_[np.interp(sl, dd, F[:, 0]), np.interp(sl, dd, F[:, 1])]
+    fw = np.gradient(S, axis=0); hd = np.arctan2(fw[:, 0], fw[:, 1])
+    shortcuts.append({
+        "name": " / ".join(snames) if snames else "Market lane", "hw": SC_HW,
+        "from_m": round(float(du), 1), "to_m": round(float(dv), 1), "length_m": round(float(dd[-1]), 1),
+        "saves_m": round(float(sav), 1), "street_verified": True, "verified": False, "designed": True,
+        "samples": [{"x": round(float(S[i, 0]), 3), "z": round(float(S[i, 1]), 3), "heading_rad": round(float(hd[i]), 5)}
+                    for i in range(len(S))],
+    })
+    if len(shortcuts) >= 3:
+        break
+
+if shortcuts:
+    SCP = np.vstack([np.array([[s["x"], s["z"]] for s in sc["samples"]]) for sc in shortcuts])
+
+    def sc_dist(pts):
+        pts = np.atleast_2d(pts)
+        return np.sqrt(((pts[:, None, :] - SCP[None, :, :]) ** 2).sum(-1).min(1))
+
+    def seg_clear(poly):
+        # distance from the shortcut centre line to a footprint's edges
+        best_d = 1e9
+        for a, b in zip(poly, np.roll(poly, -1, 0)):
+            ab = b - a; L2 = float(ab @ ab) + 1e-9
+            t = np.clip(((SCP - a) @ ab) / L2, 0, 1)
+            best_d = min(best_d, float(np.sqrt((((a + t[:, None] * ab) - SCP) ** 2).sum(1)).min()))
+        return best_d
+
+    kept = []
+    for b in blds:
+        poly = np.array(b["pts"])
+        if seg_clear(poly) < SC_HW + 0.8:
+            dropped += 1
+            continue
+        if "fe" not in b and b["h"] < 18.0:
+            mids = (poly + np.roll(poly, -1, 0)) * 0.5
+            md = sc_dist(mids)
+            if md.min() < 20.0:
+                b["fe"] = int(md.argmin())      # shopfront faces the shortcut
+        kept.append(b)
+    blds = kept
+    side_streets = [ss for ss in side_streets if sc_dist(np.array(ss["pts"])).min() > SC_HW + 2.0]
+    for q in SCP:
+        for ox in range(-15, 16, 5):
+            for oz in range(-15, 16, 5):
+                cells.add((int(np.floor((q[0] + ox) / CELL)), int(np.floor((q[1] + oz) / CELL))))
+    # checkpoints must not sit on a stretch a shortcut skips
+    for cp in cps[:-1]:
+        for sc in shortcuts:
+            if sc["from_m"] - 20.0 < cp["dist_m"] < sc["to_m"] + 20.0:
+                i = int((max(s2["to_m"] for s2 in shortcuts if s2["from_m"] - 20.0 < cp["dist_m"] < s2["to_m"] + 20.0) + 30.0) / LOOP * N) % N
+                cp.update({"x": round(float(R[i, 0]), 3), "z": round(float(R[i, 1]), 3),
+                           "heading_rad": round(float(heading[i]), 6), "dist_m": round(float(i * LOOP / N), 2)})
+    for sc in shortcuts:
+        print("shortcut %s: %.0f m -> %.0f m, %.0f m long, saves %.0f m" % (sc["name"], sc["from_m"], sc["to_m"], sc["length_m"], sc["saves_m"]))
+
 chunk = {
     "chunk_id": "lagos_island", "description": "Lagos Island street circuit on real OSM streets (Marina, Campbell, Broad, Nnamdi Azikiwe, Balogun)",
     "approximate": False, "no_landmarks": True, "district": True, "loop": True, "pavement_m": PAVE,
@@ -319,6 +478,7 @@ chunk = {
     "back_cells": {"cell_m": BACK, "cells": sorted([list(c) for c in back])},
     "spawn": {"x": round(float(sp[0]), 3), "y": ELEV + 0.5, "z": round(float(sp[1]), 3), "heading_rad": round(float(heading[sp_i]), 6)},
     "checkpoints": cps,
+    "shortcuts": shortcuts,
     "source": {"type": "osm", "license": "ODbL — © OpenStreetMap contributors", "fetched": "2026-10-14"},
 }
 os.makedirs(OUT, exist_ok=True)
@@ -349,6 +509,10 @@ def write_ui_assets():
     glow = Image.new("RGB", (W, H), (0, 0, 0)); ImageDraw.Draw(glow).line(pts, fill=(250, 190, 30), width=12, joint="curve")
     img = Image.blend(img, Image.composite(glow.filter(ImageFilter.GaussianBlur(6)), img, glow.convert("L").point(lambda v: 255 if v else 0)), 0.45)
     dr = ImageDraw.Draw(img); dr.line(pts, fill=(250, 196, 40), width=5, joint="curve")
+    for sc_ in shortcuts:      # designed alternative routes: thinner orange dashes
+        sp_ = [px((q["x"], q["z"])) for q in sc_["samples"]]
+        for k in range(0, len(sp_) - 1, 2):
+            dr.line(sp_[k:k + 2], fill=(255, 120, 40), width=3)
     sx, sy = px(R[0])
     for k in range(4):
         for j in range(4):

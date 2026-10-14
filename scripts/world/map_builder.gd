@@ -75,6 +75,7 @@ func _build() -> void:
 		_build_district(root)
 		_build_district_markings(root)
 		_build_pavements(root)
+		_build_shortcuts(root)
 	else:
 		_build_osm_buildings(root)
 	_build_street_props(root)
@@ -130,14 +131,20 @@ func _build_road(root: Node3D) -> void:
 		if barrier_h <= 0.01:
 			continue
 		var up := Vector3.UP * barrier_h
+		var kerb_mid: Vector3 = (a["c"] + b["c"]) * 0.5
+		var mp: Vector3 = a["p"]
+		var gap_l := _in_mouth(kerb_mid - mp * hw)
+		var gap_r := _in_mouth(kerb_mid + mp * hw)
 		# Road surface quad (two tris, CCW so the normal faces up), then raised
 		# barriers on each edge. Visual tris go to SurfaceTool; the same tris go
 		# to the collision soup (soup must be appended here, not inside a helper —
 		# PackedVector3Array passes by value in GDScript).
 		for q in [
-			[al, al + up, bl + up, bl],  # left barrier
-			[ar, br, br + up, ar + up],  # right barrier
+			[al, al + up, bl + up, bl, gap_l],  # left barrier
+			[ar, br, br + up, ar + up, gap_r],  # right barrier
 		]:
+			if q[4]:
+				continue   # opening onto a shortcut
 			_quad(st, q[0], q[1], q[2], q[3])
 			soup.push_back(q[0]); soup.push_back(q[1]); soup.push_back(q[2])
 			soup.push_back(q[0]); soup.push_back(q[2]); soup.push_back(q[3])
@@ -789,6 +796,8 @@ func _build_street_props(root: Node3D) -> void:
 	# real CC0 3D models (Poly Haven), instanced: model name -> Array[Transform3D]
 	var inst := {}
 	var put := func(model: String, pos: Vector3, yaw: float, sc: float) -> void:
+		if _in_mouth(pos):
+			return    # keep shortcut entrances clear
 		if not inst.has(model):
 			inst[model] = []
 		inst[model].append(Transform3D(Basis(Vector3.UP, yaw).scaled(Vector3.ONE * sc), pos))
@@ -812,6 +821,8 @@ func _build_street_props(root: Node3D) -> void:
 			for side in [-1.0, 1.0]:
 				var base: Vector3 = c + p * side * (hw + 2.5)
 				base.y = GROUND_Y if is_land.call(base) else c.y
+				if _in_mouth(base):
+					continue
 				var top: Vector3 = base + Vector3(0, 9.0, 0)
 				_obox(st, base + Vector3(0, 4.5, 0), Vector3(0.28, 9.0, 0.28), Basis(), Color(0.36, 0.26, 0.18))
 				_obox(st, top + Vector3(0, -0.6, 0), Vector3(1.8, 0.12, 0.12), Basis(Vector3.UP, atan2(p.x, p.z)), Color(0.3, 0.22, 0.15))
@@ -849,7 +860,10 @@ func _build_street_props(root: Node3D) -> void:
 			var side: float = -1.0 if rng.randf() < 0.5 else 1.0
 			var pos: Vector3 = c + p * side * (hw + lim.call(4.0))
 			pos.y = GROUND_Y if is_land.call(pos) else c.y
-			_bus_stop(st, pos, Basis(Vector3.UP, atan2(p.x, p.z)))
+			if _in_mouth(pos) or _in_mouth(pos + fwd * 3.0) or _in_mouth(pos - fwd * 3.0):
+				pos.y = -100.0   # no shelter across a shortcut entrance
+			else:
+				_bus_stop(st, pos, Basis(Vector3.UP, atan2(p.x, p.z)))
 			# people waiting at the stop + an agbero calling passengers
 			if pos.y == GROUND_Y:
 				for k in rng.randi_range(2, 4):
@@ -2213,6 +2227,8 @@ func _build_pavements(root: Node3D) -> void:
 			var wa: float = width_at.call(i, side); var wb: float = width_at.call(i + 1, side)
 			var ai: Vector3 = a["c"] + a["p"] * side * hw; var ao: Vector3 = a["c"] + a["p"] * side * (hw + wa)
 			var bi: Vector3 = b["c"] + b["p"] * side * hw; var bo: Vector3 = b["c"] + b["p"] * side * (hw + wb)
+			if _in_mouth((ai + bo) * 0.5) or _in_mouth(ai) or _in_mouth(bi):
+				continue   # the shortcut road runs through here
 			ai.y = top; ao.y = top; bi.y = top; bo.y = top
 			var q := [ai, bi, bo, ao] if side > 0.0 else [ai, ao, bo, bi]
 			var uv := [Vector2(0, run), Vector2(0, run + seg), Vector2(wb, run + seg), Vector2(wa, run)] if side > 0.0 else [Vector2(0, run), Vector2(wa, run), Vector2(wb, run + seg), Vector2(0, run + seg)]
@@ -2344,3 +2360,139 @@ func _street_name_signs(root: Node3D) -> void:
 	mi.visibility_range_end = 150.0
 	root.add_child(mi)
 	_own(mi)
+
+
+
+# ───────────────────────── alternative racing routes ─────────────────────────
+## Chunk "shortcuts": real side streets (OSM geometry) that leave the circuit and
+## rejoin it further on. Racing through them is a designed choice ("designed":
+## true, "verified": false); they are narrower, with yellow SHORTCUT boards at
+## the entrance. The kerb, pavement and roadside props leave their mouths open.
+var _mouths: Array = []
+var _mouths_done := false
+
+
+func _shortcut_mouths() -> Array:
+	if _mouths_done:
+		return _mouths
+	_mouths_done = true
+	for sc in chunk.get("shortcuts", []):
+		var s: Array = sc["samples"]
+		var r: float = float(sc.get("hw", 4.0)) + 1.2
+		for k in mini(5, s.size()):
+			_mouths.append([Vector2(s[k]["x"], s[k]["z"]), r])
+			var e = s[s.size() - 1 - k]
+			_mouths.append([Vector2(e["x"], e["z"]), r])
+	return _mouths
+
+
+func _in_mouth(p: Vector3) -> bool:
+	for m in _shortcut_mouths():
+		if Vector2(p.x, p.z).distance_to(m[0]) < m[1]:
+			return true
+	return false
+
+
+func _build_shortcuts(root: Node3D) -> void:
+	var scs: Array = chunk.get("shortcuts", [])
+	if scs.is_empty():
+		return
+	var road: Dictionary = chunk["road"]
+	# a hair under the circuit so the two surfaces don't fight where they overlap
+	var y: float = float(road["samples"][0].get("elev_m", GROUND_Y + 0.1)) - 0.012
+	var kerb := 0.15
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PrimitiveType.PRIMITIVE_TRIANGLES)
+	var soup := PackedVector3Array()
+	var hw := 4.0
+	for sc in scs:
+		var s: Array = sc["samples"]
+		hw = float(sc.get("hw", 4.0))
+		var run := 0.0
+		for i in s.size() - 1:
+			var ha: float = s[i]["heading_rad"]; var hb: float = s[i + 1]["heading_rad"]
+			var a := Vector3(s[i]["x"], y, s[i]["z"]); var b := Vector3(s[i + 1]["x"], y, s[i + 1]["z"])
+			var pa := Vector3(cos(ha), 0, -sin(ha)); var pb := Vector3(cos(hb), 0, -sin(hb))
+			var al := a - pa * hw; var ar := a + pa * hw; var bl := b - pb * hw; var br := b + pb * hw
+			var seg := a.distance_to(b)
+			_quad_uv(st, al, bl, br, ar, [Vector2(-hw, run), Vector2(-hw, run + seg), Vector2(hw, run + seg), Vector2(hw, run)])
+			for v in [al, bl, br, al, br, ar]:
+				soup.push_back(v)
+			run += seg
+			# kerbs (not where it meets the circuit)
+			if i < 2 or i >= s.size() - 3:
+				continue
+			for e in [[al, bl], [ar, br]]:
+				var p0: Vector3 = e[0]; var p1: Vector3 = e[1]
+				var lo := Vector3.UP * (GROUND_Y - 0.05 - y); var hi := Vector3.UP * kerb
+				var q := [p0 + lo, p1 + lo, p1 + hi, p0 + hi]
+				for k in [0, 1, 2, 0, 2, 3]:
+					st.set_uv(Vector2(hw, run)); st.add_vertex(q[k]); soup.push_back(q[k])
+	st.generate_normals()
+	var mi := MeshInstance3D.new()
+	mi.name = "Shortcuts"
+	mi.mesh = st.commit()
+	var mat := _road_material() as ShaderMaterial
+	mat.set_shader_parameter("half_width", hw)
+	mat.set_shader_parameter("lane_width", hw - 0.2)
+	mat.set_shader_parameter("median_half", 0.2)
+	mi.material_override = mat
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	root.add_child(mi)
+	_own(mi)
+	var shape := ConcavePolygonShape3D.new()
+	shape.set_faces(soup)
+	shape.backface_collision = true
+	var body := StaticBody3D.new()
+	body.name = "ShortcutCollision"
+	var cs := CollisionShape3D.new()
+	cs.shape = shape
+	body.add_child(cs)
+	root.add_child(body)
+	_shortcut_boards(root, scs)
+
+
+## Yellow "SHORTCUT" board beside each entrance, facing traffic on the circuit.
+func _shortcut_boards(root: Node3D, scs: Array) -> void:
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PrimitiveType.PRIMITIVE_TRIANGLES)
+	var samples: Array = chunk["road"]["samples"]
+	var step: float = float(chunk["road"].get("length_m", 1.0)) / maxf(samples.size() - 1, 1)
+	for sc in scs:
+		var s: Array = sc["samples"]
+		if s.size() < 4:
+			continue
+		var hw: float = float(sc.get("hw", 4.0))
+		var mi: int = clampi(int(float(sc["from_m"]) / step), 0, samples.size() - 1)
+		var mh: float = samples[mi]["heading_rad"]
+		var main_fwd := Vector3(sin(mh), 0, cos(mh))
+		var h: float = s[2]["heading_rad"]
+		var sp := Vector3(cos(h), 0, -sin(h))
+		var side := 1.0 if sp.dot(-main_fwd) > 0.0 else -1.0     # the side traffic comes from
+		var pos := Vector3(s[2]["x"], GROUND_Y, s[2]["z"]) + sp * side * (hw + 0.9)
+		var face := -main_fwd
+		var bas := Basis(Vector3.UP, atan2(face.x, face.z))
+		_obox(st, pos + Vector3(0, 1.3, 0), Vector3(0.1, 2.6, 0.1), bas, Color(0.3, 0.3, 0.32))
+		_obox(st, pos + Vector3(0, 2.7, 0), Vector3(2.4, 1.0, 0.06), bas, Color(0.98, 0.78, 0.1))
+		var lb := Label3D.new()
+		lb.text = "SHORTCUT\n" + String(sc.get("name", "")).to_upper()
+		lb.font_size = 56
+		lb.pixel_size = 0.0075
+		lb.outline_size = 0
+		lb.modulate = Color(0.05, 0.05, 0.06)
+		lb.double_sided = true
+		lb.position = pos + Vector3(0, 2.7, 0) + face * 0.05
+		lb.rotation.y = atan2(face.x, face.z)
+		lb.visibility_range_end = 120.0
+		root.add_child(lb)
+		_own(lb)
+	var m := MeshInstance3D.new()
+	m.name = "ShortcutBoards"
+	m.mesh = st.commit()
+	var mat := StandardMaterial3D.new()
+	mat.vertex_color_use_as_albedo = true
+	mat.roughness = 0.6
+	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+	m.material_override = mat
+	root.add_child(m)
+	_own(m)
