@@ -240,9 +240,11 @@ func _consider_shortcuts() -> void:
 
 
 func _sc_point(pts: Array, i: int) -> Vector3:
-	var a: Vector3 = pts[mini(i, pts.size() - 1)]
-	var b: Vector3 = pts[mini(i + 1, pts.size() - 1)] if i + 1 < pts.size() else a + (a - pts[maxi(i - 1, 0)])
+	var k := clampi(i, 0, pts.size() - 2)
+	var a: Vector3 = pts[k]
+	var b: Vector3 = pts[k + 1]
 	var d := (b - a).normalized()
+	a = pts[mini(i, pts.size() - 1)]
 	return a + Vector3(d.z, 0.0, -d.x) * _sc_lane
 
 
