@@ -75,11 +75,12 @@ func apply(preset: int) -> void:
 	var vp := get_viewport()
 	# 2x MSAA on High (4x was the biggest GPU cost at native phone resolution),
 	# FXAA only on Low. Phones render 3D at 85 % of native res (UI stays sharp).
-	vp.msaa_3d = Viewport.MSAA_2X if high else Viewport.MSAA_DISABLED
+	var mobile := OS.has_feature("mobile")
+	vp.msaa_3d = Viewport.MSAA_2X if high and not mobile else Viewport.MSAA_DISABLED
 	vp.screen_space_aa = Viewport.SCREEN_SPACE_AA_FXAA
 	if OS.has_feature("mobile"):
 		vp.scaling_3d_mode = Viewport.SCALING_3D_MODE_BILINEAR
-		vp.scaling_3d_scale = 0.85
+		vp.scaling_3d_scale = 0.75
 	if _env and _env.sky:
 		var hdri := "res://assets/sky/%s.hdr" % c["hdri"]
 		if high and ResourceLoader.exists(hdri):
@@ -91,7 +92,9 @@ func apply(preset: int) -> void:
 			_env.sky.sky_material = _sky
 	if _sun:
 		_sun.shadow_enabled = true
-		_sun.directional_shadow_max_distance = (150.0 if OS.has_feature("mobile") else 250.0) if high else 120.0
+		_sun.directional_shadow_max_distance = (80.0 if mobile else 250.0) if high else (50.0 if mobile else 120.0)
+		# phones: one shadow pass instead of four cascades
+		_sun.directional_shadow_mode = DirectionalLight3D.SHADOW_ORTHOGONAL if mobile else DirectionalLight3D.SHADOW_PARALLEL_4_SPLITS
 	if _sky:
 		_sky.sky_top_color = c["top"]
 		_sky.sky_horizon_color = c["hor"]
@@ -109,7 +112,7 @@ func apply(preset: int) -> void:
 		_env.adjustment_saturation = 1.15 if preset == Preset.DAY else 1.05
 		_env.adjustment_contrast = 1.05
 		# bloom: lit windows, streetlights and car lights glow (High only)
-		_env.glow_enabled = high
+		_env.glow_enabled = high and not mobile
 		_env.glow_intensity = 0.6 if preset == Preset.NIGHT else 0.3
 		_env.glow_bloom = 0.05
 		_env.glow_hdr_threshold = 1.0

@@ -1159,7 +1159,7 @@ func _spawn_model_instances(root: Node3D, inst: Dictionary, cell_fixed := 0.0, e
 				var mmi := MultiMeshInstance3D.new()
 				mmi.name = "%s_%s_%d_%d" % [model.replace("/", "_"), mesh_i.name, key.x, key.y]
 				mmi.multimesh = mm
-				mmi.visibility_range_end = end_fixed if end_fixed > 0.0 else far + cell_m * 0.7
+				mmi.visibility_range_end = end_fixed if end_fixed > 0.0 else (far * (0.7 if OS.has_feature("mobile") else 1.0) + cell_m * 0.7)
 				mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if far > 200.0 else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 				root.add_child(mmi)
 				_own(mmi)
@@ -1831,7 +1831,7 @@ func _build_district(root: Node3D) -> void:
 		mi.name = "Block_%d_%d" % [k.x, k.y]
 		mi.mesh = st.commit()
 		mi.material_override = mat
-		mi.visibility_range_end = DISTRICT_FAR
+		mi.visibility_range_end = _dfar()
 		mi.visibility_range_end_margin = 40.0
 		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if shadows else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		root.add_child(mi)
@@ -1843,13 +1843,13 @@ func _build_district(root: Node3D) -> void:
 		mi.name = "FarBlock_%d_%d" % [k.x, k.y]
 		mi.mesh = st.commit()
 		mi.material_override = mat
-		mi.visibility_range_begin = DISTRICT_LOD
-		mi.visibility_range_end = DISTRICT_FAR
+		mi.visibility_range_begin = _dlod()
+		mi.visibility_range_end = _dfar()
 		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		root.add_child(mi)
 		_own(mi)
 	if not near_models.is_empty():
-		_spawn_model_instances(root, near_models, DISTRICT_CELL, DISTRICT_LOD)
+		_spawn_model_instances(root, near_models, DISTRICT_CELL, _dlod())
 	_district_towers(root, mat)
 	_district_signs(root, signs, rng)
 	for t in chunk.get("trees", []):
@@ -1871,6 +1871,15 @@ func _build_district(root: Node3D) -> void:
 		body.add_child(cs)
 		root.add_child(body)
 	_build_back_ground(root)
+
+
+## Phones draw less far (their GPU is the bottleneck, not the CPU).
+func _dfar() -> float:
+	return 300.0 if OS.has_feature("mobile") else DISTRICT_FAR
+
+
+func _dlod() -> float:
+	return 90.0 if OS.has_feature("mobile") else DISTRICT_LOD
 
 
 func _hi_gfx() -> bool:

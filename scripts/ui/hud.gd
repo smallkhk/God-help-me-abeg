@@ -30,6 +30,16 @@ func _ready() -> void:
 	_vehicle = get_node_or_null(vehicle_path) as VehicleController
 	_debug_panel.visible = _debug_visible
 	_timer_label.visible = false
+	# race time: top right under the position, not cut off at the top left
+	_timer_label.anchor_left = 1.0; _timer_label.anchor_right = 1.0
+	_timer_label.offset_left = -360; _timer_label.offset_right = -24
+	_timer_label.offset_top = 68; _timer_label.offset_bottom = 110
+	_timer_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_timer_label.add_theme_font_size_override("font_size", 30)
+	# keyboard hints mean nothing on a phone
+	var help := get_node_or_null("HelpLabel")
+	if help and OS.has_feature("mobile"):
+		help.visible = false
 	add_child(TouchControls.new())
 	# nitro tank bar (bottom-left, above the speed)
 	_nitro_bar = ProgressBar.new()
@@ -68,10 +78,10 @@ func set_vehicle(v: VehicleController) -> void:
 	_vehicle = v
 
 
-func start_timer() -> void:
+func start_timer(show := true) -> void:
 	_race_time = 0.0
 	_race_running = true
-	_timer_label.visible = true
+	_timer_label.visible = show
 
 
 func stop_timer() -> float:

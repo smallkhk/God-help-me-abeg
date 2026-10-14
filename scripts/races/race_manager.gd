@@ -286,7 +286,7 @@ func _begin_run() -> void:
 		var d := r.get_node("RivalDriver") as RivalDriver
 		d.active = true
 	if _hud and _hud.has_method("start_timer"):
-		_hud.start_timer()
+		_hud.start_timer(not _loop)   # lap races show the lap time instead
 
 
 func _on_checkpoint_passed(index: int) -> void:
