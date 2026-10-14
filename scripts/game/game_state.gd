@@ -45,6 +45,11 @@ func _ready() -> void:
 		high_graphics = true
 		settings["high_graphics"] = true
 		settings["gfx_profile"] = 2
+	# back on Compatibility after the Mobile-renderer test build: phone default (Low) again
+	elif OS.has_feature("mobile") and RenderingServer.get_current_rendering_method() == "gl_compatibility" and int(settings.get("gfx_profile", 0)) == 2:
+		high_graphics = false
+		settings["high_graphics"] = false
+		settings["gfx_profile"] = 3
 	AudioServer.set_bus_volume_db(0, linear_to_db(float(settings.get("volume", 0.8))))
 	money = int(data.get("money", START_MONEY))
 	# owner's request: plenty money to buy every car and upgrade

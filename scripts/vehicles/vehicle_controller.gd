@@ -664,6 +664,25 @@ const _NOT_PAINT := ["glass", "window", "windscreen", "windshield", "screen", "t
 const _IS_PAINT := ["paint", "body", "carpaint", "car_paint", "exterior"]
 
 
+static var _area_cache := {}   # Mesh -> per-surface area (models share meshes)
+
+
+static func _surface_areas(mesh: Mesh) -> PackedFloat32Array:
+	if _area_cache.has(mesh):
+		return _area_cache[mesh]
+	var out := PackedFloat32Array()
+	for si in mesh.get_surface_count():
+		var a := 0.0
+		var arr: Array = mesh.surface_get_arrays(si)
+		var v: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
+		var idx: PackedInt32Array = arr[Mesh.ARRAY_INDEX]
+		for k in range(0, idx.size() - 2, 3):
+			a += (v[idx[k + 1]] - v[idx[k]]).cross(v[idx[k + 2]] - v[idx[k]]).length()
+		out.append(a)
+	_area_cache[mesh] = out
+	return out
+
+
 static func paint_targets(m: Node) -> Array:
 	var area := {}
 	var mats := {}
@@ -671,17 +690,12 @@ static func paint_targets(m: Node) -> Array:
 		var mesh: Mesh = (mi as MeshInstance3D).mesh
 		if mesh == null:
 			continue
+		var areas := _surface_areas(mesh)
 		for si in mesh.get_surface_count():
 			var mat := mesh.surface_get_material(si) as BaseMaterial3D
 			if mat == null:
 				continue
-			var a := 0.0
-			var arr: Array = mesh.surface_get_arrays(si)
-			var v: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
-			var idx: PackedInt32Array = arr[Mesh.ARRAY_INDEX]
-			for k in range(0, idx.size() - 2, 3):
-				a += (v[idx[k + 1]] - v[idx[k]]).cross(v[idx[k + 2]] - v[idx[k]]).length()
-			area[mat] = area.get(mat, 0.0) + a
+			area[mat] = area.get(mat, 0.0) + areas[si]
 			mats[mat] = true
 	if mats.size() <= 1:
 		return []
