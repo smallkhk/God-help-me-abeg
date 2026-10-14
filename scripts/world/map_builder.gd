@@ -796,6 +796,7 @@ func _build_street_props(root: Node3D) -> void:
 	var next_extra := {}
 	var next_row := 10.0
 	var next_brtb := 300.0; var next_check := 900.0; var next_fb := 700.0
+	var row_lots: Array = []
 
 	for i in frames.size():
 		if i > 0:
@@ -939,15 +940,14 @@ func _build_street_props(root: Node3D) -> void:
 				var rp: Vector3 = c + p * rs * (hw + rng.randf_range(9.6, 10.4))
 				if not is_land.call(rp):
 					continue
-				var face: Vector3 = -p * rs
-				var yawb := atan2(-face.z, face.x)
-				var roll := rng.randf()
-				var mdl := "lagos_house/house"; var sc := rng.randf_range(1.1, 1.35); var lift := 3.0
-				if roll < 0.25:
-					mdl = "plaza/plaza"; sc = 2.8; lift = 1.25
-				elif roll < 0.4:
-					mdl = "unfinished/unfinished"; sc = 1.0; lift = 3.0
-				put.call(mdl, Vector3(rp.x, GROUND_Y - 0.1 + lift * sc, rp.z), yawb, sc)
+				# front wall ~6 m from the kerb, lot runs back away from the road
+				var out2: Vector2 = Vector2(p.x, p.z) * rs
+				var along := Vector2(fwd.x, fwd.z).normalized()
+				var w := rng.randf_range(8.0, 11.5); var dpt := rng.randf_range(8.0, 12.0)
+				var f0: Vector2 = Vector2(rp.x, rp.z) - out2 * 4.0 - along * w * 0.5
+				var f1: Vector2 = f0 + along * w
+				var lot := PackedVector2Array([f0, f1, f1 + out2 * dpt, f0 + out2 * dpt])
+				row_lots.append([lot, rng.randf_range(6.6, 12.0)])
 
 		# AI-generated Lagos roadside life (models normalised: base at y=0, front +X)
 		if not on_bridge:
@@ -1046,6 +1046,7 @@ func _build_street_props(root: Node3D) -> void:
 	_own(mi)
 
 	_spawn_model_instances(root, inst)
+	_build_row_lots(root, row_lots)
 	_roadside_grass(root, frames, hw, is_land)
 
 	var bb_xf: Array = []
@@ -1705,12 +1706,18 @@ func _build_terrain(root: Node3D) -> void:
 ## 6.4 m wide, 6 m tall, centred on its middle. Fit it to a house-sized footprint,
 ## turn its front to the road. Returns false if the footprint isn't house-like.
 ## AI-generated (fal/Tripo) buildings: model -> size (Godot X depth, Y height, Z width), front at +X
+## The AI-generated house / shop-row / uncompleted-building models look torn and
+## half-demolished up close, so every building is procedural (clean walls,
+## windows, doors, shop shutters, roofs) unless this is switched back on.
+const USE_BUILDING_MODELS := false
 const _BLD := {
 	"lagos_house/house": Vector3(6.1, 6.0, 6.4),
 	"unfinished/unfinished": Vector3(7.0, 6.0, 8.76),
 	"plaza/plaza": Vector3(2.62, 2.5, 7.88),
 }
 func _try_place_model(poly: PackedVector2Array, h: float, out: Dictionary, route_pts: Array, seed_i: int) -> bool:
+	if not USE_BUILDING_MODELS:
+		return false
 	if poly.size() < 4 or poly.size() > 12:
 		return false
 	var ob := _obb(poly)
@@ -1808,8 +1815,8 @@ func _build_district(root: Node3D) -> void:
 			continue
 		var st := _cell_tool(tools, cen)
 		_procedural_building(st, poly, h, base, rng, int(b.get("fe", -1)))
-		if b.has("fe") and rng.randf() < 0.3 and h < 17.0:
-			signs.append([poly, int(b["fe"])])
+		if b.has("fe") and h < 17.0 and (b.has("name") or rng.randf() < 0.5):
+			signs.append([poly, int(b["fe"]), String(b.get("name", ""))])
 	# compound walls, gates, Marina railing
 	for w in chunk.get("walls", []):
 		var a := Vector2(w["a"][0], w["a"][1]); var e := Vector2(w["b"][0], w["b"][1])
@@ -1852,6 +1859,7 @@ func _build_district(root: Node3D) -> void:
 		_spawn_model_instances(root, near_models, DISTRICT_CELL, _dlod())
 	_district_towers(root, mat)
 	_district_signs(root, signs, rng)
+	_street_name_signs(root)
 	for t in chunk.get("trees", []):
 		var key: String = "trees/" + String(t[2])
 		if not models.has(key):
@@ -1907,6 +1915,8 @@ func _wall_faces(faces: PackedVector3Array, poly: PackedVector2Array, y0: float,
 ## Real Lagos model (house / shop row / uncompleted block) fitted to its lot,
 ## scaled uniformly from its true size so windows and doors keep their scale.
 func _put_model_hint(out: Dictionary, b: Dictionary, cen: Vector2) -> bool:
+	if not USE_BUILDING_MODELS:
+		return false
 	var model: String = b["m"]
 	if not _BLD.has(model):
 		return false
@@ -2038,7 +2048,7 @@ func _district_signs(root: Node3D, signs: Array, rng: RandomNumberGenerator) -> 
 		if out.dot(mid - cen) < 0.0:
 			out = -out
 		var lb := Label3D.new()
-		lb.text = names[rng.randi() % names.size()]
+		lb.text = String(sg[2]).to_upper() if sg.size() > 2 and String(sg[2]) != "" else names[rng.randi() % names.size()]
 		lb.font_size = 64
 		lb.pixel_size = 0.012
 		lb.outline_size = 0
@@ -2235,3 +2245,102 @@ func _build_pavements(root: Node3D) -> void:
 	cs.shape = shape
 	body.add_child(cs)
 	root.add_child(body)
+
+
+
+## Roadside building row on the open-road maps: procedural shop/house blocks
+## (awning + shopfront on the road side), merged per cell, simple collision.
+func _build_row_lots(root: Node3D, lots: Array) -> void:
+	if lots.is_empty():
+		return
+	var tools := {}
+	var faces := PackedVector3Array()
+	var rng := RandomNumberGenerator.new()
+	for i in lots.size():
+		rng.seed = 5000 + i
+		var poly: PackedVector2Array = lots[i][0]
+		var h: float = lots[i][1]
+		var cen := (poly[0] + poly[2]) * 0.5
+		var sa := 0.0
+		for k in 4:
+			sa += poly[k].x * poly[(k + 1) % 4].y - poly[(k + 1) % 4].x * poly[k].y
+		var fe := 0
+		if sa < 0.0:
+			poly = PackedVector2Array([poly[3], poly[2], poly[1], poly[0]])
+			fe = 2
+		_procedural_building(_cell_tool(tools, cen), poly, h, GROUND_Y - 0.6, rng, fe)
+		_wall_faces(faces, poly, GROUND_Y - 0.3, GROUND_Y + minf(h, 5.0))
+	var mat := _building_material()
+	for k in tools:
+		var st: SurfaceTool = tools[k]
+		st.generate_normals()
+		var mi := MeshInstance3D.new()
+		mi.name = "RowBlock_%d_%d" % [k.x, k.y]
+		mi.mesh = st.commit()
+		mi.material_override = mat
+		mi.visibility_range_end = _dfar()
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if _hi_gfx() else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		root.add_child(mi)
+		_own(mi)
+	var shape := ConcavePolygonShape3D.new()
+	shape.set_faces(faces)
+	shape.backface_collision = true
+	var body := StaticBody3D.new()
+	body.name = "RowCollision"
+	var cs := CollisionShape3D.new()
+	cs.shape = shape
+	body.add_child(cs)
+	root.add_child(body)
+
+
+
+## Green Lagos street-name signposts at real junctions (side streets that carry
+## an OSM name), readable from both directions of the main road.
+func _street_name_signs(root: Node3D) -> void:
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PrimitiveType.PRIMITIVE_TRIANGLES)
+	var n := 0
+	var seen := {}
+	for ss in chunk.get("side_streets", []):
+		var name: String = String(ss.get("name", ""))
+		if name == "":
+			continue
+		var pts: Array = ss["pts"]
+		var a := Vector2(pts[0][0], pts[0][1]); var b := Vector2(pts[1][0], pts[1][1])
+		var key := "%s_%d_%d" % [name, int(a.x / 30.0), int(a.y / 30.0)]
+		if seen.has(key):
+			continue
+		seen[key] = true
+		var d := (b - a).normalized()
+		var side := Vector2(-d.y, d.x)
+		var base := a + d * 2.0 + side * (float(ss.get("w", 6.0)) * 0.5 + 0.8)
+		var bas := Basis(Vector3.UP, atan2(d.x, d.y))
+		_obox(st, Vector3(base.x, GROUND_Y + 1.5, base.y), Vector3(0.08, 3.0, 0.08), bas, Color(0.25, 0.27, 0.3))
+		_obox(st, Vector3(base.x, GROUND_Y + 2.85, base.y), Vector3(0.05, 0.36, 1.9), bas, Color(0.05, 0.42, 0.22))
+		for sd in [1.0, -1.0]:
+			var lb := Label3D.new()
+			lb.text = name.to_upper()
+			lb.font_size = 48
+			lb.pixel_size = 0.0055
+			lb.outline_size = 0
+			lb.modulate = Color(1, 1, 1)
+			lb.double_sided = false
+			var off: Vector3 = Vector3(side.x, 0, side.y) * 0.035 * sd
+			lb.position = Vector3(base.x, GROUND_Y + 2.85, base.y) + off
+			lb.rotation.y = atan2(side.x, side.y) + (0.0 if sd > 0.0 else PI)
+			lb.visibility_range_end = 70.0
+			root.add_child(lb)
+			_own(lb)
+		n += 1
+	if n == 0:
+		return
+	var mi := MeshInstance3D.new()
+	mi.name = "StreetSigns"
+	mi.mesh = st.commit()
+	var mat := StandardMaterial3D.new()
+	mat.vertex_color_use_as_albedo = true
+	mat.roughness = 0.6
+	mi.material_override = mat
+	mi.visibility_range_end = 150.0
+	root.add_child(mi)
+	_own(mi)

@@ -48,20 +48,31 @@ func _ready() -> void:
 		t.material_override = _tail_mat
 		t.position = Vector3(sx * (half_w - 0.3), 0.75, rear_z - 0.95)
 		vehicle.add_child(t)
-	# nitro exhaust flames
+	# nitro exhaust flames: soft round glow sprites (a bare quad drew as a white box)
+	var glow := GradientTexture2D.new()
+	glow.width = 64; glow.height = 64
+	glow.fill = GradientTexture2D.FILL_RADIAL
+	glow.fill_from = Vector2(0.5, 0.5); glow.fill_to = Vector2(0.5, 0.0)
+	var gg := Gradient.new()
+	gg.set_color(0, Color(1, 1, 1, 1)); gg.set_color(1, Color(1, 1, 1, 0))
+	gg.add_point(0.35, Color(1, 1, 1, 0.55))
+	glow.gradient = gg
 	for sx in [-0.35, 0.35]:
 		var f := CPUParticles3D.new()
-		f.amount = 60
-		f.lifetime = 0.25
+		f.amount = 48
+		f.lifetime = 0.22
 		f.emitting = false
 		f.local_coords = false
 		f.direction = Vector3(0, 0, -1)
 		f.spread = 8.0
 		f.initial_velocity_min = 6.0; f.initial_velocity_max = 10.0
 		f.gravity = Vector3.ZERO
-		f.scale_amount_min = 0.25; f.scale_amount_max = 0.5
-		var fq := QuadMesh.new(); fq.size = Vector2(0.5, 0.5)
+		f.scale_amount_min = 0.35; f.scale_amount_max = 0.7
+		var fcurve := Curve.new(); fcurve.add_point(Vector2(0, 1.0)); fcurve.add_point(Vector2(1, 0.25))
+		f.scale_amount_curve = fcurve
+		var fq := QuadMesh.new(); fq.size = Vector2(0.45, 0.45)
 		var fm := StandardMaterial3D.new()
+		fm.albedo_texture = glow
 		fm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 		fm.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
 		fm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
@@ -70,7 +81,8 @@ func _ready() -> void:
 		fq.material = fm
 		f.mesh = fq
 		var fg := Gradient.new()
-		fg.set_color(0, Color(0.6, 0.8, 1.0, 1.0)); fg.set_color(1, Color(1.0, 0.4, 0.1, 0.0))
+		fg.set_color(0, Color(0.35, 0.55, 1.0, 0.9)); fg.set_color(1, Color(1.0, 0.35, 0.05, 0.0))
+		fg.add_point(0.35, Color(0.55, 0.75, 1.0, 0.7))
 		f.color_ramp = fg
 		f.position = Vector3(sx, 0.45, rear_z - 1.0)
 		vehicle.add_child(f)

@@ -202,7 +202,7 @@ func _reset_to_idle() -> void:
 	_results.visible = false
 	for g in _gates:
 		g.set_target(g.index == 0)
-	_center_label.text = "Press W / Accelerate to start"
+	_center_label.text = ""
 	if _player:
 		_player.linear_velocity = Vector3.ZERO
 		_player.angular_velocity = Vector3.ZERO
@@ -212,6 +212,9 @@ func _reset_to_idle() -> void:
 	_finish_order.clear()
 	_player_prog = _start_idx
 	_place_rivals()
+	# no "press to start" wait: the short countdown starts right away
+	if not _free:
+		_start_countdown.call_deferred()
 
 
 func _unhandled_input(ev: InputEvent) -> void:
@@ -226,7 +229,7 @@ func _unhandled_input(ev: InputEvent) -> void:
 
 func _start_countdown() -> void:
 	_state = State.COUNTDOWN
-	_countdown = event.countdown if event else 3.0
+	_countdown = event.countdown if event else 1.5
 
 
 func _process(delta: float) -> void:
