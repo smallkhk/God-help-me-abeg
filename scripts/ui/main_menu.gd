@@ -543,6 +543,12 @@ func _build_settings() -> Control:
 		Game.set_setting("high_graphics", on))
 	UIStyle.juice(gfx)
 	v.add_child(gfx)
+	var fps := CheckButton.new()
+	fps.text = "Show FPS (frame rate counter in races)"
+	fps.button_pressed = bool(Game.get_setting("show_fps", false))
+	fps.toggled.connect(func(on: bool): Game.set_setting("show_fps", on))
+	UIStyle.juice(fps)
+	v.add_child(fps)
 	var fs := CheckButton.new()
 	fs.text = "Fullscreen"
 	fs.button_pressed = DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_FULLSCREEN

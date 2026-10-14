@@ -17,6 +17,11 @@ var _debug_visible: bool = false
 @onready var _debug_label: Label = %DebugLabel
 
 var _nitro_bar: ProgressBar
+var _fps_label: Label
+var _fps_t := 0.0
+var _frames := 0
+var _worst := 0.0
+var _sum := 0.0
 var _race_time: float = 0.0
 var _race_running: bool = false
 
@@ -47,6 +52,16 @@ func _ready() -> void:
 	nl.anchor_top = 1.0; nl.anchor_bottom = 1.0
 	nl.offset_left = 24; nl.offset_top = -172; nl.offset_right = 200; nl.offset_bottom = -152
 	add_child(nl)
+	# frame-rate counter (Settings → Show FPS), readable on a phone
+	_fps_label = Label.new()
+	_fps_label.add_theme_font_size_override("font_size", 22)
+	_fps_label.add_theme_color_override("font_outline_color", Color.BLACK)
+	_fps_label.add_theme_constant_override("outline_size", 6)
+	_fps_label.anchor_left = 0.5; _fps_label.anchor_right = 0.5
+	_fps_label.offset_left = -220; _fps_label.offset_right = 220; _fps_label.offset_top = 8
+	_fps_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_fps_label.visible = false
+	add_child(_fps_label)
 
 
 func set_vehicle(v: VehicleController) -> void:
@@ -70,7 +85,24 @@ func _unhandled_input(event: InputEvent) -> void:
 		_debug_panel.visible = _debug_visible
 
 
+func _update_fps(delta: float) -> void:
+	_frames += 1
+	_sum += delta
+	_worst = maxf(_worst, delta)
+	_fps_t += delta
+	if _fps_t < 0.5:
+		return
+	_fps_label.visible = bool(Game.get_setting("show_fps", false))
+	if _fps_label.visible:
+		var avg := _sum / maxf(_frames, 1)
+		var fps := 1.0 / maxf(avg, 0.0001)
+		_fps_label.text = "FPS %d   ·   %.1f ms   ·   worst %.0f ms" % [roundi(fps), avg * 1000.0, _worst * 1000.0]
+		_fps_label.add_theme_color_override("font_color", Color(0.4, 1, 0.5) if fps >= 55.0 else (Color(1, 0.85, 0.3) if fps >= 40.0 else Color(1, 0.4, 0.35)))
+	_fps_t = 0.0; _frames = 0; _sum = 0.0; _worst = 0.0
+
+
 func _process(delta: float) -> void:
+	_update_fps(delta)
 	if _race_running:
 		_race_time += delta
 		_timer_label.text = _format_time(_race_time)

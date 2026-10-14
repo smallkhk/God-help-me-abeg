@@ -94,6 +94,10 @@ func _build() -> void:
 		Game.high_graphics = on
 		Game.set_setting("high_graphics", on))
 	_settings.add_child(gfx)
+	var fps := CheckButton.new(); fps.text = "Show FPS"
+	fps.button_pressed = bool(Game.get_setting("show_fps", false))
+	fps.toggled.connect(func(on: bool): Game.set_setting("show_fps", on))
+	_settings.add_child(fps)
 	var back := Button.new(); back.text = "‹  BACK"; back.custom_minimum_size = Vector2(200, 50)
 	back.pressed.connect(_close_settings); UIStyle.juice(back)
 	_settings.add_child(back)
