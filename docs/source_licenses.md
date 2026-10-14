@@ -130,3 +130,4 @@ heights applied to footprints by tools/lagos_map_pipeline/apply_google_25d_heigh
   - assets/ui/tiles/*.jpg — FLUX.1 [dev]/[schnell] via fal.ai, generated for this project.
   - assets/ui/menu_home.jpg — key-art image supplied by the project owner (painted buttons removed, edges extended, 2x upscale).
   - assets/ui/lagos_map.json — route lines traced from this project's map data (OpenStreetMap-derived, ODbL).
+- data/map/island/lagos_island.json — Lagos Island streets and building footprints from OpenStreetMap, © OpenStreetMap contributors, ODbL 1.0 (fetched 2026-10-14).

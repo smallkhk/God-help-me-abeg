@@ -11,7 +11,7 @@ const RACES := [
 		"scene": "res://scenes/world/maps/lagos_bridge/lagos_bridge.tscn", "id": "bridge_test_sprint", "event": "res://data/events/bridge_sprint.tres", "map": "bridge"},
 	{"name": "Lekki Expressway", "type": "Street Race", "loc": "Lekki Phase 1 → East", "km": 1.6, "tile": "freeroam", "track": "lekki_sprint",
 		"scene": "res://scenes/world/maps/lekki/lekki.tscn", "id": "lekki_sprint", "event": "res://data/events/lekki_sprint.tres", "map": "lekki"},
-	{"name": "Lagos Island", "type": "Circuit Race", "loc": "Broad Street · Marina waterfront · Balogun · 2 laps", "km": 2.9, "tile": "circuit", "track": "island_circuit",
+	{"name": "Lagos Island", "type": "Circuit Race", "loc": "Real streets: Old Marina · Campbell · Broad St · Nnamdi Azikiwe · Balogun · 2 laps", "km": 4.6, "tile": "circuit", "track": "island_circuit",
 		"scene": "res://scenes/world/maps/island/island.tscn", "id": "island_circuit", "event": "res://data/events/island_circuit.tres", "map": "island"},
 	{"name": "Hills Loop", "type": "Circuit Race", "loc": "Hills outside Lagos", "km": 1.8, "tile": "hills", "track": "hills_sprint",
 		"scene": "res://scenes/world/maps/hills/hills.tscn", "id": "hills_sprint", "event": "res://data/events/hills_sprint.tres"},
