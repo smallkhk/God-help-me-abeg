@@ -390,7 +390,9 @@ func _apply_tyre_force(w: Wheel, offset: Vector3, up: Vector3, driven_count: int
 		var ratio := data.get_gear_ratio(transmission.gear)
 		var first := data.get_gear_ratio(1)
 		var gear_mult := absf(ratio) / maxf(absf(first), 0.001)
-		var drive := data.max_drive_force * SPEED_SCALE * transmission.torque_factor() * throttle_input * gear_mult / driven_count
+		# reverse: holding BRAKE alone backs the car up (no gas needed)
+		var pedal := maxf(throttle_input, brake_input) if transmission.gear == -1 else throttle_input
+		var drive := data.max_drive_force * SPEED_SCALE * transmission.torque_factor() * pedal * gear_mult / driven_count
 		if nitro_active and transmission.gear > 0:
 			drive *= 1.0 + nitro_power
 		if transmission.gear == -1:
@@ -632,7 +634,20 @@ func _update_wheel_visuals(delta: float, hit_info: Dictionary) -> void:
 
 ## Tint a car model's paint (multiplies the texture, so white/silver bodies take
 ## the colour fully; tyres/glass stay dark). Shared with the garage preview.
-static func paint_model(m: Node, col: Color) -> void:
+## Which surfaces are body paint. Named paint/body materials win; otherwise the
+## biggest non-dark, opaque surface that isn't glass / interior / trim / tyres.
+## Cars with one texture for everything (AI models) get none: their windows
+## are in the same texture, so painting would cover the glass.
+const _NOT_PAINT := ["glass", "window", "windscreen", "windshield", "screen", "tint", "light", "lamp", "reflector",
+	"chrome", "mirror", "tyre", "tire", "rubber", "rim", "wheel", "disc", "brake", "caliper", "interior", "inside",
+	"seat", "leather", "carpet", "dash", "steering", "fabric", "plastic", "black", "dark", "grill", "plate", "logo",
+	"badge", "bottom", "under", "alu", "carbon", "exhaust", "invisible", "shield"]
+const _IS_PAINT := ["paint", "body", "carpaint", "car_paint", "exterior"]
+
+
+static func paint_targets(m: Node) -> Array:
+	var area := {}
+	var mats := {}
 	for mi in m.find_children("*", "MeshInstance3D", true, false):
 		var mesh: Mesh = (mi as MeshInstance3D).mesh
 		if mesh == null:
@@ -641,12 +656,53 @@ static func paint_model(m: Node, col: Color) -> void:
 			var mat := mesh.surface_get_material(si) as BaseMaterial3D
 			if mat == null:
 				continue
-			var nm := mat.resource_name.to_lower()
-			if nm.contains("glass") or nm.contains("window") or nm.contains("tyre") or nm.contains("tire") or nm.contains("rubber") or nm.contains("rim"):
+			var a := 0.0
+			var arr: Array = mesh.surface_get_arrays(si)
+			var v: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
+			var idx: PackedInt32Array = arr[Mesh.ARRAY_INDEX]
+			for k in range(0, idx.size() - 2, 3):
+				a += (v[idx[k + 1]] - v[idx[k]]).cross(v[idx[k + 2]] - v[idx[k]]).length()
+			area[mat] = area.get(mat, 0.0) + a
+			mats[mat] = true
+	if mats.size() <= 1:
+		return []
+	var named: Array = []
+	for mat in mats:
+		var nm: String = (mat as BaseMaterial3D).resource_name.to_lower()
+		if _IS_PAINT.any(func(k): return nm.contains(k)) and not _NOT_PAINT.any(func(k): return nm.contains(k) and k != "body"):
+			named.append(mat)
+	if not named.is_empty():
+		return named
+	var best: BaseMaterial3D = null
+	for mat in mats:
+		var bm := mat as BaseMaterial3D
+		var nm := bm.resource_name.to_lower()
+		if bm.transparency != BaseMaterial3D.TRANSPARENCY_DISABLED or bm.albedo_color.a < 0.95:
+			continue
+		# dark + non-metallic is trim / tyres / tinted glass; a black car's paint is metallic
+		if bm.albedo_color.get_luminance() < 0.15 and bm.albedo_texture == null and bm.metallic < 0.5:
+			continue
+		if _NOT_PAINT.any(func(k): return nm.contains(k)):
+			continue
+		if best == null or area[mat] > area[best]:
+			best = bm
+	return [best] if best else []
+
+
+static func paint_model(m: Node, col: Color) -> void:
+	var targets := paint_targets(m)
+	if targets.is_empty():
+		return
+	for mi in m.find_children("*", "MeshInstance3D", true, false):
+		var mesh: Mesh = (mi as MeshInstance3D).mesh
+		if mesh == null:
+			continue
+		for si in mesh.get_surface_count():
+			var mat := mesh.surface_get_material(si) as BaseMaterial3D
+			if mat == null or not targets.has(mat):
 				continue
 			var dup := mat.duplicate() as BaseMaterial3D
 			dup.albedo_color = col
-
 			(mi as MeshInstance3D).set_surface_override_material(si, dup)
 
 

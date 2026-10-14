@@ -450,6 +450,11 @@ func _tab_customize() -> void:
 func _tab_paint() -> void:
 	var d := _cars[_index]
 	_section("PAINT")
+	if _current_model and VehicleController.paint_targets(_current_model).is_empty():
+		var note := UIStyle.label("This car's paint is part of its texture (windows included), so it keeps its original colour.", 15, UIStyle.MUTED)
+		note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		_content.add_child(note)
+		return
 	var grid := GridContainer.new(); grid.columns = 6
 	grid.add_theme_constant_override("h_separation", 8); grid.add_theme_constant_override("v_separation", 8)
 	for c in PAINTS:

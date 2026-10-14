@@ -19,11 +19,11 @@ const SCENE_BRIDGE := "res://scenes/world/maps/lagos_bridge/lagos_bridge.tscn"
 const SCENE_LEKKI := "res://scenes/world/maps/lekki/lekki.tscn"
 const SCENE_GARAGE := "res://scenes/ui/menus/garage.tscn"
 
-var selected_car_id: StringName = &"camry_01"
+var selected_car_id: StringName = &"corolla_01"
 
 # --- career / economy ---
 const START_MONEY := 2000000
-const STARTER_CARS := ["camry_01", "keke_01"]
+const STARTER_CARS := ["corolla_01", "keke_01"]
 const UPGRADE_KINDS := ["engine", "tyres", "brakes", "suspension", "nitro"]
 const MAX_UPGRADE := 3
 var money: int = START_MONEY
@@ -51,7 +51,7 @@ func _ready() -> void:
 	if data.has("selected_car") and typeof(data["selected_car"]) == TYPE_STRING:
 		selected_car_id = StringName(data["selected_car"])
 	if not owned.has(String(selected_car_id)) or not CarDatabase.ORDER.has(selected_car_id):
-		selected_car_id = &"camry_01"
+		selected_car_id = &"corolla_01"
 
 
 func save() -> void:
@@ -87,7 +87,87 @@ func goto_free_roam(scene_path: String) -> void:
 func goto(scene_path: String) -> void:
 	# Always unpause before switching, or the next scene loads frozen.
 	get_tree().paused = false
-	get_tree().change_scene_to_file(scene_path)
+	if scene_path.contains("/maps/"):
+		_load_with_screen(scene_path)   # race maps: loading screen, no frozen menu
+	else:
+		get_tree().change_scene_to_file(scene_path)
+
+
+const _TIPS := ["Hold BRAKE when stopped to reverse.", "Nitro works best on the straights.",
+	"Okadas get knocked over — danfos and trucks don't.", "Upgrade tyres in the garage for more grip.",
+	"Rivals have personalities: Tunde fights dirty, Bisi races clean.", "Lagos never sleeps."]
+var _loading := false
+
+
+## Shows a loading screen at once, loads the race scene (models, textures) on a
+## background thread with a progress bar, switches scene, and fades the screen
+## out after the map has been built.
+func _load_with_screen(path: String) -> void:
+	if _loading:
+		return
+	_loading = true
+	var layer := CanvasLayer.new()
+	layer.layer = 200
+	add_child(layer)
+	var bg := ColorRect.new()
+	bg.color = Color(0.03, 0.035, 0.05)
+	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	layer.add_child(bg)
+	var title := Label.new()
+	title.text = "LOADING…"
+	title.add_theme_font_size_override("font_size", 56)
+	title.add_theme_color_override("font_color", Color(0.98, 0.76, 0.12))
+	title.set_anchors_preset(Control.PRESET_CENTER)
+	title.offset_left = -400; title.offset_right = 400; title.offset_top = -90; title.offset_bottom = -20
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	bg.add_child(title)
+	var bar := ProgressBar.new()
+	bar.show_percentage = false
+	bar.set_anchors_preset(Control.PRESET_CENTER)
+	bar.offset_left = -300; bar.offset_right = 300; bar.offset_top = 0; bar.offset_bottom = 14
+	var fill := StyleBoxFlat.new(); fill.bg_color = Color(0.98, 0.76, 0.12); fill.set_corner_radius_all(7)
+	var back := StyleBoxFlat.new(); back.bg_color = Color(1, 1, 1, 0.1); back.set_corner_radius_all(7)
+	bar.add_theme_stylebox_override("fill", fill)
+	bar.add_theme_stylebox_override("background", back)
+	bg.add_child(bar)
+	var tip := Label.new()
+	tip.text = _TIPS[randi() % _TIPS.size()]
+	tip.add_theme_font_size_override("font_size", 22)
+	tip.add_theme_color_override("font_color", Color(1, 1, 1, 0.7))
+	tip.set_anchors_preset(Control.PRESET_CENTER)
+	tip.offset_left = -500; tip.offset_right = 500; tip.offset_top = 40; tip.offset_bottom = 80
+	tip.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	bg.add_child(tip)
+	await get_tree().process_frame
+	await get_tree().process_frame          # make sure the screen is on display
+	var packed: PackedScene = null
+	if ResourceLoader.load_threaded_request(path) == OK:
+		var prog := []
+		while true:
+			var st := ResourceLoader.load_threaded_get_status(path, prog)
+			if st == ResourceLoader.THREAD_LOAD_IN_PROGRESS:
+				bar.value = 80.0 * float(prog[0]) if not prog.is_empty() else bar.value
+				await get_tree().process_frame
+				continue
+			if st == ResourceLoader.THREAD_LOAD_LOADED:
+				packed = ResourceLoader.load_threaded_get(path)
+			break
+	bar.value = 85.0
+	title.text = "BUILDING LAGOS…"
+	await get_tree().process_frame
+	if packed:
+		get_tree().change_scene_to_packed(packed)
+	else:
+		get_tree().change_scene_to_file(path)
+	# the map builds itself in the new scene's _ready; keep the screen up until then
+	for i in 3:
+		await get_tree().process_frame
+	bar.value = 100.0
+	var tw := create_tween()
+	tw.tween_property(bg, "modulate:a", 0.0, 0.35)
+	await tw.finished
+	layer.queue_free()
+	_loading = false
 
 
 func goto_main_menu() -> void:
