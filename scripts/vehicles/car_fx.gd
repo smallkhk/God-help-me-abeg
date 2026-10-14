@@ -8,7 +8,9 @@ const MAX_SKIDS := 1500
 
 var vehicle: VehicleController
 var _heads: Array[SpotLight3D] = []
-var _tail_mat: StandardMaterial3D
+var _tail_mats: Array[BaseMaterial3D] = []
+var _tail_glow: OmniLight3D
+const _TAIL_WORDS := ["tail", "brake", "rear_l", "rearl", "rear l", "backl", "back_l", "back l", "redlight", "red_light", "stop"]
 var _smoke: Array[CPUParticles3D] = []
 const _SMOKE_TEX := preload("res://assets/textures/fx/smoke.png")
 var _skid_mm: MultiMesh
@@ -36,18 +38,16 @@ func _ready() -> void:
 		l.shadow_enabled = false
 		vehicle.add_child(l)
 		_heads.append(l)
-	# tail / brake light strip
-	_tail_mat = StandardMaterial3D.new()
-	_tail_mat.albedo_color = Color(0.4, 0.02, 0.02)
-	_tail_mat.emission_enabled = true
-	_tail_mat.emission = Color(1.0, 0.05, 0.03)
-	for sx in [-1.0, 1.0]:
-		var t := MeshInstance3D.new()
-		var bm := BoxMesh.new(); bm.size = Vector3(0.45, 0.12, 0.05)
-		t.mesh = bm
-		t.material_override = _tail_mat
-		t.position = Vector3(sx * (half_w - 0.3), 0.75, rear_z - 0.95)
-		vehicle.add_child(t)
+	# brake / tail lights: light up the model's own tail-light surfaces (the old
+	# add-on red boxes floated above the boot)
+	_find_tail_lights()
+	if _tail_mats.is_empty():
+		_tail_glow = OmniLight3D.new()
+		_tail_glow.light_color = Color(1.0, 0.08, 0.05)
+		_tail_glow.omni_range = 2.5
+		_tail_glow.light_energy = 0.0
+		_tail_glow.position = Vector3(0, 0.75, rear_z - 1.0)
+		vehicle.add_child(_tail_glow)
 	# nitro exhaust flames: soft round glow sprites (a bare quad drew as a white box)
 	var glow := GradientTexture2D.new()
 	glow.width = 64; glow.height = 64
@@ -156,7 +156,11 @@ func _process(_delta: float) -> void:
 	for l in _heads:
 		l.light_energy = 4.0 * clampf(night * 1.4, 0.0, 1.0)
 	var braking := vehicle.brake_input > 0.1 and vehicle.forward_speed > 0.5
-	_tail_mat.emission_energy_multiplier = 4.0 if braking else (1.2 if night > 0.2 else 0.3)
+	var tail := 3.5 if braking else (1.0 if night > 0.2 else 0.0)
+	for m in _tail_mats:
+		m.emission_energy_multiplier = tail
+	if _tail_glow:
+		_tail_glow.light_energy = 1.5 if braking else (0.5 if night > 0.2 else 0.0)
 
 	var slide := absf(vehicle.lateral_speed) > 4.0 or (vehicle.handbrake_input and absf(vehicle.forward_speed) > 5.0)
 	var grounded := vehicle.wheels_on_ground > 0
@@ -193,3 +197,38 @@ func _physics_process(_delta: float) -> void:
 				if _skid_i == 0:
 					_skid_mm.visible_instance_count = MAX_SKIDS
 		_last_skid[w] = p
+
+
+
+## Tail-light surfaces of the car model: named tail/brake/rear lights, or red
+## light/lamp/lens materials. Never the body paint.
+func _find_tail_lights() -> void:
+	var model := vehicle.get_node_or_null("CarModel")
+	if model == null:
+		return
+	var paint := VehicleController.paint_targets(model)
+	var done := {}
+	for mi in model.find_children("*", "MeshInstance3D", true, false):
+		var mesh: Mesh = (mi as MeshInstance3D).mesh
+		if mesh == null:
+			continue
+		for si in mesh.get_surface_count():
+			var mat := (mi as MeshInstance3D).get_active_material(si) as BaseMaterial3D
+			var src := mesh.surface_get_material(si) as BaseMaterial3D
+			if mat == null or src == null or paint.has(src):
+				continue
+			var nm := src.resource_name.to_lower()
+			var c := src.albedo_color
+			var named := _TAIL_WORDS.any(func(k): return nm.contains(k)) and not nm.contains("head")
+			var red_lens := c.r > 0.45 and c.g < 0.3 and c.b < 0.3 and (nm.contains("light") or nm.contains("lamp") or nm.contains("lens") or nm.contains("glass"))
+			if not (named or red_lens):
+				continue
+			var dup: BaseMaterial3D = done.get(src)
+			if dup == null:
+				dup = mat.duplicate() as BaseMaterial3D
+				dup.emission_enabled = true
+				dup.emission = Color(1.0, 0.06, 0.04)
+				dup.emission_energy_multiplier = 0.0
+				done[src] = dup
+				_tail_mats.append(dup)
+			(mi as MeshInstance3D).set_surface_override_material(si, dup)
