@@ -39,6 +39,12 @@ func _ready() -> void:
 	settings = data.get("settings", {})
 	# phones start on Low graphics (still switchable in Settings)
 	high_graphics = bool(settings.get("high_graphics", not OS.has_feature("mobile")))
+	# phones on the Mobile renderer (Metal on iOS) get the full look once:
+	# photo sky, bloom, car reflections, building shadows
+	if RenderingServer.get_current_rendering_method() == "mobile" and int(settings.get("gfx_profile", 0)) < 2:
+		high_graphics = true
+		settings["high_graphics"] = true
+		settings["gfx_profile"] = 2
 	AudioServer.set_bus_volume_db(0, linear_to_db(float(settings.get("volume", 0.8))))
 	money = int(data.get("money", START_MONEY))
 	# owner's request: plenty money to buy every car and upgrade

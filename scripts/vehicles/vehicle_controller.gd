@@ -171,6 +171,10 @@ func _mount_model() -> void:
 			deg_to_rad(data.model_rotation_deg.y),
 			deg_to_rad(data.model_rotation_deg.z))
 		m.scale = Vector3.ONE * data.model_scale
+		# car bodies live on render layer 2: road decals (contact shadows) and the
+		# car's reflection probe only see layer 1
+		for vi in m.find_children("*", "VisualInstance3D", true, false):
+			(vi as VisualInstance3D).layers = 2
 		var g := get_node_or_null("/root/Game")
 		_finish_materials(m, float(g.call("window_tint", String(data.vehicle_id))) if g else 0.55)
 		if g and is_player:
@@ -242,7 +246,22 @@ func set_driver_input(throttle: float, brake: float, steer: float, handbrake: bo
 	handbrake_input = handbrake
 
 
+var _last_good := Transform3D()
+var _nan_logged := false
+
+
 func _physics_process(delta: float) -> void:
+	# safety net: a physics blow-up (NaN / infinite state) would otherwise fling
+	# the car out of the world and flood every system that reads its position
+	if not (global_transform.origin.is_finite() and linear_velocity.is_finite() and angular_velocity.is_finite()):
+		if not _nan_logged:
+			_nan_logged = true
+			push_warning("VehicleController: invalid physics state on %s, restored" % name)
+		linear_velocity = Vector3.ZERO
+		angular_velocity = Vector3.ZERO
+		global_transform = _last_good
+		return
+	_last_good = global_transform
 	var up := global_transform.basis.y
 	var fwd := global_transform.basis.z
 	var right := global_transform.basis.x

@@ -15,8 +15,8 @@ var _we: WorldEnvironment
 
 const PRESETS := {
 	Preset.DAY: {
-		"sun_rot": Vector3(-50, 35, 0), "sun_col": Color(1.0, 0.95, 0.86), "sun_e": 1.35,
-		"top": Color(0.20, 0.46, 0.90), "hor": Color(0.66, 0.82, 0.96),
+		"sun_rot": Vector3(-42, 35, 0), "sun_col": Color(1.0, 0.93, 0.80), "sun_e": 1.6,
+		"top": Color(0.12, 0.38, 0.88), "hor": Color(0.62, 0.80, 0.97),
 		"amb": Color(0.86, 0.84, 0.80), "amb_e": 0.42, "fog": Color(0.78, 0.86, 0.95), "night": 0.0,
 		"fog_d": 0.0016, "hdri": "day", "sky_e": 1.0,
 	},
@@ -76,9 +76,15 @@ func apply(preset: int) -> void:
 	# 2x MSAA on High (4x was the biggest GPU cost at native phone resolution),
 	# FXAA only on Low. Phones render 3D at 85 % of native res (UI stays sharp).
 	var mobile := OS.has_feature("mobile")
-	vp.msaa_3d = Viewport.MSAA_2X if high and not mobile else Viewport.MSAA_DISABLED
-	vp.screen_space_aa = Viewport.SCREEN_SPACE_AA_FXAA
-	if OS.has_feature("mobile"):
+	# Mobile renderer (Metal on iOS): tile GPUs resolve MSAA almost for free, and
+	# MetalFX / FSR upscale the 80 % render far sharper than bilinear
+	var mob_r := RenderingServer.get_current_rendering_method() == "mobile"
+	vp.msaa_3d = Viewport.MSAA_2X if (high and not mobile) or mob_r else Viewport.MSAA_DISABLED
+	vp.screen_space_aa = Viewport.SCREEN_SPACE_AA_DISABLED if mob_r else Viewport.SCREEN_SPACE_AA_FXAA
+	if mobile and mob_r:
+		vp.scaling_3d_mode = Viewport.SCALING_3D_MODE_METALFX_SPATIAL if OS.get_name() == "iOS" else Viewport.SCALING_3D_MODE_FSR
+		vp.scaling_3d_scale = 0.8
+	elif mobile:
 		vp.scaling_3d_mode = Viewport.SCALING_3D_MODE_BILINEAR
 		vp.scaling_3d_scale = 0.75
 	if _env and _env.sky:
@@ -93,8 +99,12 @@ func apply(preset: int) -> void:
 	if _sun:
 		_sun.shadow_enabled = true
 		_sun.directional_shadow_max_distance = (80.0 if mobile else 250.0) if high else (50.0 if mobile else 120.0)
-		# phones: one shadow pass instead of four cascades
+		# phones: one shadow pass instead of four cascades (two on the Mobile renderer)
 		_sun.directional_shadow_mode = DirectionalLight3D.SHADOW_ORTHOGONAL if mobile else DirectionalLight3D.SHADOW_PARALLEL_4_SPLITS
+		if mobile and mob_r and high:
+			_sun.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS
+			_sun.directional_shadow_max_distance = 130.0
+		_sun.shadow_blur = 1.5
 	if _sky:
 		_sky.sky_top_color = c["top"]
 		_sky.sky_horizon_color = c["hor"]
@@ -115,16 +125,18 @@ func apply(preset: int) -> void:
 			_env.sky.process_mode = Sky.PROCESS_MODE_QUALITY
 		# ACES keeps white paint and bright walls from burning out
 		_env.tonemap_mode = Environment.TONE_MAPPER_ACES
-		_env.tonemap_exposure = 1.0
+		_env.tonemap_exposure = 1.05 if preset == Preset.DAY else 1.0
 		_env.tonemap_white = 6.0
 		_env.adjustment_enabled = true
-		_env.adjustment_saturation = 1.08 if preset == Preset.DAY else 1.02
-		_env.adjustment_contrast = 1.04
+		# racing-game grade: rich but not neon colour, a little extra punch
+		_env.adjustment_saturation = 1.18 if preset == Preset.DAY else 1.08
+		_env.adjustment_contrast = 1.08
 		# bloom: lit windows, streetlights and car lights glow (High only)
-		_env.glow_enabled = high and not mobile
-		_env.glow_intensity = 0.6 if preset == Preset.NIGHT else 0.3
-		_env.glow_bloom = 0.05
-		_env.glow_hdr_threshold = 1.0
+		_env.glow_enabled = high and (not mobile or mob_r)
+		_env.glow_intensity = 0.6 if preset == Preset.NIGHT else 0.35
+		_env.glow_bloom = 0.06
+		_env.glow_hdr_threshold = 0.95
+		_env.glow_blend_mode = Environment.GLOW_BLEND_MODE_SOFTLIGHT if preset == Preset.DAY else Environment.GLOW_BLEND_MODE_ADDITIVE
 		# Forward+ only extras (ignored by the Compatibility renderer):
 		# ambient occlusion, screen-space reflections on the lagoon/road, soft GI
 		var fplus := RenderingServer.get_current_rendering_method() == "forward_plus"

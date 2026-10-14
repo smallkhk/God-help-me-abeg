@@ -56,6 +56,7 @@ void fragment() {
 		alb *= 1.0 - oil * 0.35;
 		float edge = smoothstep(half_width - 1.8, half_width, lat) * (0.6 + noise(wpos.xz * 1.3) * 0.6);
 		alb = mix(alb, vec3(0.50, 0.44, 0.35) * (0.8 + speck * 2.0), clamp(edge, 0.0, 0.85));
+		alb *= 1.0 - 0.3 * smoothstep(half_width - 0.6, half_width, lat);   // baked shade along the kerb
 		float cn = noise(wpos.xz * 0.9 + 11.0);
 		float crack = (1.0 - smoothstep(0.0, 0.025, abs(cn - 0.5))) * smoothstep(0.55, 0.75, noise(wpos.xz * 0.06 + 3.0));
 		alb *= 1.0 - crack * 0.6;

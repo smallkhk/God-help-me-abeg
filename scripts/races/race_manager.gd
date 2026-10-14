@@ -422,6 +422,7 @@ func _spawn_rivals() -> void:
 		tag.outline_size = 10
 		tag.no_depth_test = true
 		car.add_child(tag)
+		CarFX.add_contact_shadow(car)
 		get_parent().add_child.call_deferred(car)
 		_rivals.append(car)
 	_place_rivals.call_deferred()

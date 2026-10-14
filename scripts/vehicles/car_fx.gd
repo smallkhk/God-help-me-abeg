@@ -17,6 +17,8 @@ var _skid_mm: MultiMesh
 var _skid_i := 0
 var _last_skid := {}
 var _flames: Array[CPUParticles3D] = []
+var _probe: ReflectionProbe
+const _PROBE_STEP := 14.0     # re-capture the street after moving this far
 
 
 func _ready() -> void:
@@ -38,6 +40,8 @@ func _ready() -> void:
 		l.shadow_enabled = false
 		vehicle.add_child(l)
 		_heads.append(l)
+	add_contact_shadow(vehicle)
+	_setup_reflections()
 	# brake / tail lights: light up the model's own tail-light surfaces (the old
 	# add-on red boxes floated above the boot)
 	_find_tail_lights()
@@ -152,6 +156,10 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
 	if vehicle == null:
 		return
+	if _probe and _probe.global_position.distance_to(vehicle.global_position + Vector3.UP) > _PROBE_STEP:
+		_probe.global_position = vehicle.global_position + Vector3.UP
+		# nudge a property so the once-only probe captures the new spot
+		_probe.max_distance = 140.0 if _probe.max_distance != 140.0 else 140.01
 	var night: float = Game.night
 	for l in _heads:
 		l.light_energy = 4.0 * clampf(night * 1.4, 0.0, 1.0)
@@ -232,3 +240,47 @@ func _find_tail_lights() -> void:
 				done[src] = dup
 				_tail_mats.append(dup)
 			(mi as MeshInstance3D).set_surface_override_material(si, dup)
+
+
+## Soft dark blob projected under a car (a baked contact shadow): grounds it on
+## the road where the sun shadow is thin or far away. Decals need the Mobile /
+## Forward+ renderer; Compatibility just skips it.
+static func add_contact_shadow(car: Node3D) -> void:
+	if RenderingServer.get_current_rendering_method() == "gl_compatibility" or car.has_node("ContactShadow"):
+		return
+	var tex := GradientTexture2D.new()
+	tex.width = 64; tex.height = 128
+	tex.fill = GradientTexture2D.FILL_RADIAL
+	tex.fill_from = Vector2(0.5, 0.5); tex.fill_to = Vector2(0.5, 0.0)
+	var g := Gradient.new()
+	g.set_color(0, Color(0, 0, 0, 0.85)); g.set_color(1, Color(0, 0, 0, 0))
+	g.add_point(0.55, Color(0, 0, 0, 0.6))
+	tex.gradient = g
+	var d := Decal.new()
+	d.name = "ContactShadow"
+	d.texture_albedo = tex
+	d.size = Vector3(2.5, 1.6, 5.0)
+	d.position = Vector3(0, -0.2, 0)
+	d.upper_fade = 0.2
+	d.lower_fade = 0.6
+	d.cull_mask = 1     # the road / ground only, never the car body
+	car.add_child(d)
+
+
+## Street reflections in the paint and glass (Mobile renderer, High graphics):
+## one box probe that follows the car and re-captures every _PROBE_STEP metres
+## (the capture is spread over several frames). Car bodies are on render
+## layer 2 (see VehicleController._mount_model) so it doesn't reflect itself.
+func _setup_reflections() -> void:
+	if RenderingServer.get_current_rendering_method() == "gl_compatibility" or not Game.high_graphics:
+		return
+	_probe = ReflectionProbe.new()
+	_probe.update_mode = ReflectionProbe.UPDATE_ONCE
+	_probe.size = Vector3(70, 30, 70)
+	_probe.max_distance = 140.0
+	_probe.intensity = 1.0
+	_probe.ambient_mode = ReflectionProbe.AMBIENT_DISABLED
+	_probe.cull_mask = 1
+	_probe.top_level = true
+	add_child(_probe)
+	_probe.global_position = vehicle.global_position + Vector3.UP

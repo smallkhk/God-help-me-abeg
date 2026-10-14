@@ -75,6 +75,9 @@ void fragment() {
 		col = mix(col, gcol, glass);
 		col = mix(col, fcol, bar);
 		col = mix(col, shutter, door);
+		// baked contact shadow: walls darken where they meet the pavement
+		// (UV.y = metres above the footing, which sits 0.6 m below ground)
+		col *= mix(0.58, 1.0, smoothstep(0.5, 2.8, uv.y));
 		rough = mix(0.92, 0.12, glass);
 		nb = bump(wn, tex_plaster_n, uv * 0.35, 0.9 * (1.0 - glass) * (1.0 - frame));
 		float lit = step(0.5, hash(cell + 7.3)) * glass * night_factor;
@@ -112,6 +115,7 @@ void fragment() {
 		float grime = smoothstep(1.0, 0.0, uv.y) * 0.25 + noise(uv * vec2(0.25, 0.08)) * 0.12;
 		vec3 wall = col * detail(tex_plaster, uv * 0.5) * (1.0 - grime);
 		col = mix(wall, wall * (1.0 - joint * 0.28), faded);
+		col *= mix(0.62, 1.0, smoothstep(0.2, 1.4, uv.y));   // baked contact shadow
 		rough = 0.95;
 		nb = bump(wn, tex_plaster_n, uv * 0.5, 0.8);
 	} else if (k < 0.975) {
