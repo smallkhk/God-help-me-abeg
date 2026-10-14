@@ -32,7 +32,10 @@ void fragment() {
 		float v = 0.10 + speck * 0.7 + patches * 0.6;
 		// real asphalt photo (CC0) at 4 m tiling + large-scale wear patches
 		vec3 a = texture(tex_asphalt, wpos.xz * 0.25).rgb;
-		vec3 alb = a * (0.55 + patches * 2.0) + vec3(speck * 0.2);
+		// the photo is very dark (~3 % albedo); sun-bleached Lagos asphalt is ~8-12 %.
+		// A very large-scale tone variation breaks up the 4 m texture repeat.
+		float macro = 0.86 + 0.28 * noise(wpos.xz * 0.012 + 40.0);
+		vec3 alb = a * (2.6 + patches * 3.0) * macro * vec3(0.97, 0.99, 1.02) + vec3(speck * 0.2);
 		// tar patches (darker repair rectangles)
 		vec2 pc = floor(wpos.xz / vec2(6.0, 9.0));
 		vec2 pf = fract(wpos.xz / vec2(6.0, 9.0));

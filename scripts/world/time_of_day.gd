@@ -104,13 +104,22 @@ func apply(preset: int) -> void:
 		_env.ambient_light_energy = c["amb_e"]
 		_env.fog_light_color = c["fog"]
 		_env.fog_density = c["fog_d"]
-		_env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-		_env.reflected_light_source = Environment.REFLECTION_SOURCE_DISABLED
-		_env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
-		_env.tonemap_exposure = 0.95
+		# car paint, glass and wet road reflect the sky (all renderers, also
+		# Compatibility on phones); ambient is part sky, part the preset colour
+		_env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
+		_env.ambient_light_sky_contribution = 0.45
+		_env.reflected_light_source = Environment.REFLECTION_SOURCE_SKY
+		if _env.sky:
+			# static sky: the reflection map is filtered once, small on phones
+			_env.sky.radiance_size = Sky.RADIANCE_SIZE_128 if mobile else Sky.RADIANCE_SIZE_256
+			_env.sky.process_mode = Sky.PROCESS_MODE_QUALITY
+		# ACES keeps white paint and bright walls from burning out
+		_env.tonemap_mode = Environment.TONE_MAPPER_ACES
+		_env.tonemap_exposure = 1.0
+		_env.tonemap_white = 6.0
 		_env.adjustment_enabled = true
-		_env.adjustment_saturation = 1.15 if preset == Preset.DAY else 1.05
-		_env.adjustment_contrast = 1.05
+		_env.adjustment_saturation = 1.08 if preset == Preset.DAY else 1.02
+		_env.adjustment_contrast = 1.04
 		# bloom: lit windows, streetlights and car lights glow (High only)
 		_env.glow_enabled = high and not mobile
 		_env.glow_intensity = 0.6 if preset == Preset.NIGHT else 0.3
@@ -127,8 +136,6 @@ func apply(preset: int) -> void:
 		_env.volumetric_fog_enabled = high and fplus and preset != Preset.DAY
 		_env.volumetric_fog_density = 0.004
 		if fplus and high:
-			_env.reflected_light_source = Environment.REFLECTION_SOURCE_SKY
-			_env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
 			_env.ambient_light_sky_contribution = 0.6
 	RenderingServer.global_shader_parameter_set("night_factor", c["night"])
 	Game.night = c["night"]

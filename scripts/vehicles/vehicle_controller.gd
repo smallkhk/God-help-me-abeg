@@ -701,13 +701,22 @@ static func paint_model(m: Node, col: Color) -> void:
 			var mat := mesh.surface_get_material(si) as BaseMaterial3D
 			if mat == null or not targets.has(mat):
 				continue
-			var dup := mat.duplicate() as BaseMaterial3D
+			# keep the automotive finish set by _finish_materials, only change colour
+			var cur := (mi as MeshInstance3D).get_surface_override_material(si) as BaseMaterial3D
+			var dup := (cur if cur else mat).duplicate() as BaseMaterial3D
 			dup.albedo_color = col
 			(mi as MeshInstance3D).set_surface_override_material(si, dup)
 
 
-## Showroom finish: tinted, mirror-like glass and glossy reflective paint.
+## Automotive finish, applied to runtime copies (the model file is untouched):
+## - body paint: a metallic base coat under a glossy clear coat. Imported paints
+##   are often near-chrome (metallic ~0.9, roughness ~0.02), which looks like
+##   liquid metal once the sky is reflected, or flat grey when it isn't.
+## - glass: dielectric (not metal), very smooth, tinted - reflects the sky at
+##   grazing angles like real glass instead of being a mirror.
+## Chrome trim, lights, tyres and interior keep their original materials.
 static func _finish_materials(m: Node, tint := 0.55) -> void:
+	var paint := paint_targets(m)
 	for mi in m.find_children("*", "MeshInstance3D", true, false):
 		var mesh: Mesh = (mi as MeshInstance3D).mesh
 		if mesh == null:
@@ -718,13 +727,26 @@ static func _finish_materials(m: Node, tint := 0.55) -> void:
 				continue
 			var nm := mat.resource_name.to_lower()
 			var dup := mat.duplicate() as BaseMaterial3D
-			if nm.contains("glass") or nm.contains("window") or nm.contains("mirror"):
+			var lamp := nm.contains("light") or nm.contains("lamp") or nm.contains("klosz") or nm.contains("lens")
+			var see_through := mat.transparency != BaseMaterial3D.TRANSPARENCY_DISABLED and mat.albedo_color.a < 0.9
+			if nm.contains("mirror") or nm.contains("miror"):
+				continue   # real chrome mirror: keep
+			elif nm.contains("glass") or nm.contains("window") or (see_through and not lamp):
 				dup.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-				dup.albedo_color = Color(0.08, 0.14, 0.16, lerpf(0.25, 0.95, tint)) if not nm.contains("mirror") else Color(0.8, 0.82, 0.85)
-				dup.metallic = 0.95
-				dup.roughness = 0.03
+				dup.albedo_color = Color(0.05, 0.08, 0.09, lerpf(0.35, 0.92, tint))
+				dup.metallic = 0.0
+				dup.roughness = 0.04
+				dup.metallic_specular = 0.7
+			elif paint.has(mat):
+				# metallic paint flake, softened; the clear coat carries the gloss
+				dup.metallic = 0.45 if mat.metallic > 0.5 else clampf(mat.metallic, 0.05, 0.3)
+				dup.roughness = clampf(mat.roughness, 0.3, 0.5)
+				dup.metallic_specular = 0.5
+				dup.clearcoat_enabled = true
+				dup.clearcoat = 1.0
+				dup.clearcoat_roughness = 0.08
 			else:
-				continue   # keep the original paint (forced gloss looked plastic)
+				continue
 			(mi as MeshInstance3D).set_surface_override_material(si, dup)
 
 
