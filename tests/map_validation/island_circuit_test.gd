@@ -8,9 +8,12 @@ extends Node3D
 const MAX_SECONDS := 420.0
 
 var _failures: Array[String] = []
+var _last_sp := 0.0
 
 
 func _ready() -> void:
+	if OS.get_environment("V2") != "":
+		VehicleController.handling_v2 = OS.get_environment("V2") == "1"
 	_run.call_deferred()
 
 
@@ -60,6 +63,8 @@ func _run() -> void:
 		_failures.append("circuit not set up as a lap race (loop=%s laps=%d)" % [rm._loop, rm._laps])
 	for pd in car.find_children("*", "PlayerDriver", true, false):
 		pd.queue_free()
+	car.contact_monitor = true
+	car.max_contacts_reported = 6
 	var drv := RivalDriver.new()
 	drv.route = s
 	drv.loop = true
@@ -79,6 +84,16 @@ func _run() -> void:
 		await get_tree().physics_frame
 		t += 1.0 / 60.0
 		lowest = minf(lowest, car.global_position.y)
+		var sp := car.linear_velocity.length() * 3.6
+		if car.global_transform.basis.y.y < 0.7 and int(t * 60.0) % 30 == 0:
+			print("[island_test] TILT t=%.1f up.y=%.2f pos=%s speed=%.0f wheels=%d" % [t, car.global_transform.basis.y.y, car.global_position, sp, car.wheels_on_ground])
+		if int(t * 60.0) % 15 == 0:
+			if _last_sp - sp > 25.0:
+				var hits := []
+				for b in car.get_colliding_bodies():
+					hits.append("%s(%s)" % [b.name, b.get_class()])
+				print("[island_test] CRASH t=%.1f %.0f->%.0f km/h pos=%s up.y=%.2f hit=%s prog=%d steer=%.2f" % [t, _last_sp, sp, car.global_position, car.global_transform.basis.y.y, hits, drv.progress, car.steer_input])
+			_last_sp = sp
 		if int(t * 60.0) % 1800 == 0:
 			print("[island_test] t=%.0f lap=%d gate=%d pos=%s speed=%.0f km/h" % [t, rm._lap, rm._next, car.global_position, car.linear_velocity.length() * 3.6])
 		if rm._state == 2:

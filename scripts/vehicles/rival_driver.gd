@@ -99,17 +99,14 @@ func _physics_process(delta: float) -> void:
 	var to_t := target - pos
 	var fwd := _vehicle.global_transform.basis.z
 	var right := _vehicle.global_transform.basis.x
-	var steer := clampf(atan2(to_t.dot(right), maxf(to_t.dot(fwd), 0.1)) * 1.4, -1.0, 1.0)
+	var steer := _pursuit(to_t, fwd, right)
 	# hands aren't perfectly steady
 	_wobble += delta
 	steer = clampf(steer + sin(_wobble * 1.7) * 0.025 * (1.0 - skill * 0.5), -1.0, 1.0)
 
 	# bend ahead → safe speed
-	var h0: float = route[progress]["heading_rad"]
-	var h1: float = route[_ahead(progress, 25)]["heading_rad"]
-	var turn := absf(wrapf(h1 - h0, -PI, PI))
 	var top := lerpf(46.0, 62.0, skill)
-	var safe := clampf(top - turn * 90.0, 18.0, top)
+	var safe := _planned_speed(top)
 	if _mistake > 0.0:
 		safe += 7.0   # brakes too late for this bend
 
@@ -128,11 +125,12 @@ func _physics_process(delta: float) -> void:
 		if not options.is_empty():
 			lane_offset = options[randi() % options.size()]
 		_lane_timer = 2.5
-	if gap > 0.0 and gap < 4.0 + speed * 0.35:
-		safe = minf(safe, maxf(gap - 3.0, 0.0) * 0.8)
+	if gap > 0.0:
+		# stop behind it at a real braking rate (~0.65 g), leaving 5 m
+		safe = minf(safe, sqrt(maxf(2.0 * 6.4 * (gap - 5.0), 0.0)))
 
 	var throttle := 1.0 if speed < safe else 0.0
-	var brake := clampf((speed - safe) / 10.0, 0.0, 0.8) if speed > safe + 2.0 else 0.0
+	var brake := clampf((speed - safe) / 3.0, 0.35, 1.0) if speed > safe + 1.0 else 0.0
 	_vehicle.set_driver_input(throttle, brake, steer, false)
 
 
@@ -212,7 +210,9 @@ func _blocked(pos: Vector3, fwd: Vector3) -> float:
 	_blocked_by_player = false
 	var space := _vehicle.get_world_3d().direct_space_state
 	var from := pos + fwd * 2.4 + Vector3.UP * 0.5
-	var q := PhysicsRayQueryParameters3D.create(from, from + fwd * 18.0)
+	# look as far as it takes to stop: ~65 m at 130 km/h
+	var reach := 18.0 + _vehicle.linear_velocity.length() * 1.4
+	var q := PhysicsRayQueryParameters3D.create(from, from + fwd * reach)
 	q.exclude = [_vehicle.get_rid()]
 	var hit := space.intersect_ray(q)
 	if hit.is_empty():
@@ -278,7 +278,7 @@ func _drive_shortcut(delta: float, pos: Vector3) -> void:
 	var to_t := target - pos
 	var fwd := _vehicle.global_transform.basis.z
 	var right := _vehicle.global_transform.basis.x
-	var steer := clampf(atan2(to_t.dot(right), maxf(to_t.dot(fwd), 0.1)) * 1.5, -1.0, 1.0)
+	var steer := _pursuit(to_t, fwd, right)
 	var a: Vector3 = pts[_sc_i]; var b: Vector3 = pts[mini(_sc_i + 1, pts.size() - 1)]
 	var c: Vector3 = pts[mini(_sc_i + 8, pts.size() - 2)]; var e: Vector3 = pts[mini(_sc_i + 9, pts.size() - 1)]
 	var turn := absf(wrapf(atan2(e.x - c.x, e.z - c.z) - atan2(b.x - a.x, b.z - a.z), -PI, PI))
@@ -290,3 +290,37 @@ func _drive_shortcut(delta: float, pos: Vector3) -> void:
 	var throttle := 1.0 if speed < safe else 0.0
 	var brake := clampf((speed - safe) / 10.0, 0.0, 0.8) if speed > safe + 2.0 else 0.0
 	_vehicle.set_driver_input(throttle, brake, steer, false)
+
+
+## Braking planner: for each bend in the next ~200 m, the cornering speed its
+## radius allows on this car's grip, and the speed we may carry now and still
+## brake down to it in the distance left. (The old rule - heading change over
+## 75 m - assumed the very short stops of the old handling.)
+func _planned_speed(top: float) -> float:
+	var g := 9.81
+	var a_lat := _vehicle.data.lateral_grip_front * (VehicleController.V2_LAT_MU if VehicleController.handling_v2 else 1.0) * g * lerpf(0.72, 0.85, skill)
+	var a_brk := g * 0.68
+	var safe := top
+	var d0: float = route[progress].get("dist_m", 0.0)
+	var span := 0.0
+	for n in [4, 8, 12, 18, 25, 33, 42, 52, 64]:
+		var j := _ahead(progress, n)
+		var k := _ahead(j, 8)
+		var dh := absf(wrapf(float(route[k]["heading_rad"]) - float(route[j]["heading_rad"]), -PI, PI))
+		var seg := _flat(_lane_point(j)).distance_to(_flat(_lane_point(k)))
+		if dh < 0.02 or seg < 1.0:
+			continue
+		var radius := seg / dh
+		var v_c := sqrt(a_lat * radius)
+		span = _flat(_lane_point(progress)).distance_to(_flat(_lane_point(j)))
+		safe = minf(safe, sqrt(v_c * v_c + 2.0 * a_brk * maxf(span - 4.0, 0.0)))
+	return clampf(safe, 9.0, top)
+
+
+## Pure pursuit: the wheel angle that arcs the car through the target point,
+## as a fraction of the lock the car really has at this speed.
+func _pursuit(to_t: Vector3, fwd: Vector3, right: Vector3) -> float:
+	var alpha := atan2(to_t.dot(right), maxf(to_t.dot(fwd), 0.1))
+	var ld := maxf(Vector2(to_t.x, to_t.z).length(), 4.0)
+	var want := atan(2.0 * _vehicle.data.wheelbase * sin(alpha) / ld)
+	return clampf(want / maxf(_vehicle.steer_lock, 0.01), -1.0, 1.0)

@@ -56,11 +56,11 @@ func _physics_process(_delta: float) -> void:
 	elif speed > target_speed + 1.5:
 		brake = clampf((speed - target_speed) / 8.0, 0.1, 0.7)
 
-	_vehicle.set_driver_input(throttle, brake, steer, false)
+	_vehicle.set_driver_input(throttle, brake, _vehicle.ai_steer(steer), false)
 
 	# Reached the end of the route — stop requesting throttle.
 	if _idx >= route.size() - 1:
-		_vehicle.set_driver_input(0.0, 0.5, steer, false)
+		_vehicle.set_driver_input(0.0, 0.5, _vehicle.ai_steer(steer), false)
 
 
 func _advance_index(pos: Vector3) -> void:

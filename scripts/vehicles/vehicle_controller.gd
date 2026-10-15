@@ -166,8 +166,9 @@ const GRIP_BONUS := 1.3
 const ARB_SCALE := 3.0   # flatter cornering (less body lean)
 const SPEED_SCALE := 0.75
 
-## Handling v2 (simcade), ON in the game (owner testing on iPhone); the lab
-## compares it with the old handling (tests/vehicle_physics/handling_lab.tscn, env V2=1). Replaces the
+## Handling v2 (simcade), OFF in the game: the rival AI can't race with it yet
+## (island test: 16 crashes, lap 326 s vs 9 crashes, 168 s on v1). The lab
+## (V2=1) and the island test (V2=1) run it (tests/vehicle_physics/handling_lab.tscn, env V2=1). Replaces the
 ## quick fixes above with physically based behaviour:
 ## - street-tyre grip: the car data's grip x V2_LAT_MU / V2_LONG_MU (keeps each
 ##   car's relative grip) instead of +30 % for everyone -> ~1 g braking/cornering
@@ -177,7 +178,7 @@ const SPEED_SCALE := 0.75
 ##   instead of ~4 degrees at speed
 ## - stability assist steps back during a handbrake slide (drift window) and
 ##   when the driver countersteers; traction control off in the drift window
-static var handling_v2 := true
+static var handling_v2 := false
 const V2_LAT_MU := 0.70
 const V2_LONG_MU := 0.82
 const V2_DRIFT_WINDOW := 1.4
@@ -264,6 +265,16 @@ func reset_state() -> void:
 		w.slip_angle = 0.0
 		w.normal_load = 0.0
 		w.grounded = false
+
+
+var steer_lock := 0.6       # current full-lock angle (rad), speed dependent
+var _legacy_lock := 0.6
+
+
+## AI drivers were tuned on the old steering lock: give them the same wheel
+## angle for the same command, whatever the current lock is.
+func ai_steer(frac: float) -> float:
+	return clampf(frac * _legacy_lock / maxf(steer_lock, 0.001), -1.0, 1.0)
 
 
 func set_driver_input(throttle: float, brake: float, steer: float, handbrake: bool) -> void:
@@ -374,6 +385,8 @@ func _physics_process(delta: float) -> void:
 
 	_apply_body_aero(delta, speed, fwd, up)
 	_apply_stability_assist(delta, up)
+	if handling_v2:
+		_roll_stabiliser()
 	_update_wheel_visuals(delta, hit_info)
 	prof_us += Time.get_ticks_usec() - _t0
 	prof_steps += 1
@@ -386,6 +399,7 @@ func _update_steering(delta: float, speed: float) -> void:
 	var t := clampf(speed / minf(data.steer_speed_falloff, 22.0), 0.0, 1.0)
 	t = sqrt(t)
 	var max_angle := lerpf(data.max_steer_angle * 0.85, data.max_steer_angle * minf(data.high_speed_steer_fraction, 0.11), t)
+	_legacy_lock = max_angle
 	if handling_v2:
 		# angle that puts the car on its cornering limit at this speed, plus the
 		# front tyre's peak slip: full lock = maximum grip, never far past it
@@ -394,6 +408,7 @@ func _update_steering(delta: float, speed: float) -> void:
 		max_angle = clampf(kin + data.peak_slip_angle * 0.8, data.max_steer_angle * 0.12, data.max_steer_angle * 0.85)
 		if _drift_t > 0.0:
 			max_angle = data.max_steer_angle * 0.85   # sliding: full lock to hold / catch it
+	steer_lock = max_angle
 	var target := steer_input * max_angle
 	var rate := data.steer_rate * 0.65 if absf(steer_input) > 0.01 else data.steer_return_rate
 	if handling_v2:
@@ -608,6 +623,23 @@ func _apply_stability_assist(_delta: float, up: Vector3) -> void:
 		s *= 0.4   # countersteering: help, don't take over
 	var correction := -(excess - signf(excess) * 0.15) * s * data.mass * 1.2
 	apply_torque(up * correction)
+
+
+## v2: with the CoM at its real height a car trips easily over a kerb or a
+## side hit. Real cars resist that with suspension geometry and stability
+## control: normal body lean (< ~7 deg) is left alone, beyond it a strong
+## restoring + damping torque about the car's long axis.
+func _roll_stabiliser() -> void:
+	var fwd := global_transform.basis.z
+	var roll := asin(clampf(global_transform.basis.x.y, -1.0, 1.0))
+	var roll_rate := angular_velocity.dot(fwd)
+	var over := absf(roll) - 0.12
+	var k := mass * 9.81 * 2.5
+	var torque := 0.0
+	if over > 0.0:
+		torque -= signf(roll) * over * k      # +rotation about forward lifts the right side
+	torque -= roll_rate * mass * 0.9 * (1.0 if over > 0.0 or wheels_on_ground < 4 else 0.25)
+	apply_torque(fwd * torque)
 
 
 ## Assist strength per mode (spec §5.6): Assisted strongest, Expert weakest.
