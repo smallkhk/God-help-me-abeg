@@ -11,7 +11,7 @@ extends Camera3D
 @export var rotation_smooth: float = 8.0
 @export var base_fov: float = 72.0
 @export var speed_fov_gain: float = 0.1   # extra FOV per (m/s), capped
-@export var max_extra_fov: float = 7.0
+@export var max_extra_fov: float = 12.0
 
 enum View { CHASE, HOOD, BUMPER }
 var _view: int = View.CHASE
@@ -25,6 +25,11 @@ var _orbit_pitch := 0.0
 var _orbit_idle := 99.0
 var _dragging := false
 var _touch_id := -1
+var _accel := 0.0          # smoothed forward acceleration (m/s²), for camera lag
+var _prev_speed := 0.0
+var _t := 0.0
+var _streaks: ColorRect
+var _streak_k := 0.0
 
 # Local mount offsets for the non-chase views (tuned to the sample car).
 const HOOD_OFFSET := Vector3(0.0, 1.1, 0.6)
@@ -89,23 +94,30 @@ func _physics_process(delta: float) -> void:
 			_orbit_yaw = lerp_angle(_orbit_yaw, 0.0, 1.0 - exp(-3.0 * delta))
 			_orbit_pitch = lerpf(_orbit_pitch, 0.0, 1.0 - exp(-3.0 * delta))
 		behind = Basis(up, _orbit_yaw) * behind
-		var dist := follow_distance * (1.0 + _orbit_pitch * 0.3)
-		var desired := xf.origin + behind * dist * cos(_orbit_pitch) + up * (follow_height + dist * sin(_orbit_pitch))
+		# drop back a little when accelerating, close in under braking, sit a
+		# touch lower and further back at speed
+		var spd0 := _target.linear_velocity.length()
+		_accel = lerpf(_accel, (spd0 - _prev_speed) / maxf(delta, 0.001), 1.0 - exp(-3.0 * delta))
+		_prev_speed = spd0
+		var lag := clampf(_accel * 0.07, -0.5, 0.7) + minf(spd0 * 0.012, 0.8)
+		var dist := (follow_distance + lag) * (1.0 + _orbit_pitch * 0.3)
+		var h := follow_height - minf(spd0 * 0.004, 0.2)
+		var desired := xf.origin + behind * dist * cos(_orbit_pitch) + up * (h + dist * sin(_orbit_pitch))
 		if _cam_pos.distance_to(desired) > 60.0:
 			# teleport (race start / respawn): snap instead of flying across the map
 			_cam_pos = desired
 			global_transform = Transform3D(Basis(), desired).looking_at(xf.origin + fwd * look_ahead, up)
 		_cam_pos = _cam_pos.lerp(desired, 1.0 - exp(-position_smooth * delta))
-		# never trail more than 0.8 m behind the ideal spot (stops the camera
-		# drifting far back when you accelerate)
-		if _cam_pos.distance_to(desired) > 0.8:
-			_cam_pos = desired + (_cam_pos - desired).normalized() * 0.8
+		# soft leash: never more than 1.5 m off the ideal spot
+		if _cam_pos.distance_to(desired) > 1.5:
+			_cam_pos = desired + (_cam_pos - desired).normalized() * 1.5
 		global_position = _cam_pos
-		# speed shake (subtle above ~120 km/h)
-		var spd := _target.linear_velocity.length()
-		if spd > 33.0:
-			var amt := minf((spd - 33.0) * 0.0015, 0.04)
-			global_position += Vector3(randf_range(-amt, amt), randf_range(-amt, amt), 0.0)
+		# road rumble at speed: smooth, small (random per-frame shake looked like jitter)
+		_t += delta
+		var spd := spd0
+		if spd > 30.0:
+			var amt := minf((spd - 30.0) * 0.0009, 0.025) * (1.6 if _target.nitro_active else 1.0)
+			global_position += Vector3(sin(_t * 23.0) + 0.5 * sin(_t * 41.0), sin(_t * 29.0 + 1.3) + 0.5 * sin(_t * 53.0), 0.0) * amt
 
 		var vel := _target.linear_velocity
 		var ahead := xf.origin + fwd * look_ahead
@@ -122,7 +134,53 @@ func _physics_process(delta: float) -> void:
 		look_at(global_position + fwd * 10.0, up)
 
 	# Speed-reactive FOV adds a sense of velocity (spec §7).
-	var extra := minf(_target.linear_velocity.length() * speed_fov_gain, max_extra_fov)
+	var extra := minf(_target.linear_velocity.length() * speed_fov_gain * 0.9, max_extra_fov)
 	if _target.nitro_active:
-		extra += 4.0
+		extra += 8.0
 	fov = lerpf(fov, base_fov + extra, 1.0 - exp(-4.0 * delta))
+	_update_streaks(delta)
+
+
+## Speed streaks at the screen edges (nitro, or above ~150 km/h). Drawn only
+## while visible, so it costs nothing at normal speed.
+const _STREAK_SHADER := """
+shader_type canvas_item;
+uniform float strength = 0.0;
+uniform float time = 0.0;
+float h(float x) { return fract(sin(x * 91.7) * 43758.5453); }
+void fragment() {
+	vec2 p = UV - 0.5;
+	p.x *= 2.0;
+	float r = length(p);
+	float a = atan(p.y, p.x);
+	float lane = floor(a * 40.0);
+	float on = step(0.72, h(lane));
+	float flow = fract(r * 3.0 - time * 3.5 + h(lane + 3.0));
+	float streak = on * smoothstep(0.0, 0.25, flow) * (1.0 - smoothstep(0.25, 0.6, flow));
+	float edge = smoothstep(0.45, 0.85, r);
+	COLOR = vec4(1.0, 1.0, 1.0, streak * edge * strength * 0.45);
+}
+"""
+
+
+func _update_streaks(delta: float) -> void:
+	if _streaks == null:
+		var layer := CanvasLayer.new()
+		layer.layer = 5
+		add_child(layer)
+		_streaks = ColorRect.new()
+		_streaks.set_anchors_preset(Control.PRESET_FULL_RECT)
+		_streaks.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var sm := ShaderMaterial.new()
+		var sh := Shader.new()
+		sh.code = _STREAK_SHADER
+		sm.shader = sh
+		_streaks.material = sm
+		layer.add_child(_streaks)
+	var spd := _target.linear_velocity.length()
+	var want := 1.0 if _target.nitro_active else clampf((spd - 42.0) / 15.0, 0.0, 0.6)
+	var mat := _streaks.material as ShaderMaterial
+	_streak_k = lerpf(_streak_k, want, 1.0 - exp(-5.0 * delta))
+	mat.set_shader_parameter("strength", _streak_k)
+	mat.set_shader_parameter("time", _t)
+	_streaks.visible = _streak_k > 0.02

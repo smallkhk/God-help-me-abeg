@@ -730,9 +730,18 @@ func _awning(st: SurfaceTool, poly: PackedVector2Array, col: Color, base: float)
 	var o0 := i0 + out * 1.8; var o1 := i1 + out * 1.8
 	var y0 := base + 3.3; var y1 := base + 2.8
 	var c := Color(col.r, col.g, col.b, 1.0)
-	_bq(st, Vector3(i0.x, y0, i0.y), Vector3(i1.x, y0, i1.y),
-		Vector3(o1.x, y1, o1.y), Vector3(o0.x, y1, o0.y), c,
-		Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO)
+	var white := Color(0.97, 0.96, 0.93, 1.0)
+	# Lagos shop awning: colour / white stripes, with a short front valance
+	var len_ := i0.distance_to(i1)
+	var n := maxi(1, int(len_ / 0.7))
+	for k in n:
+		var a0 := i0.lerp(i1, float(k) / n); var a1 := i0.lerp(i1, float(k + 1) / n)
+		var b0 := a0 + out * 1.8; var b1 := a1 + out * 1.8
+		var sc := c if k % 2 == 0 else white
+		_bq(st, Vector3(a0.x, y0, a0.y), Vector3(a1.x, y0, a1.y), Vector3(b1.x, y1, b1.y), Vector3(b0.x, y1, b0.y), sc,
+			Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO)
+		_bq(st, Vector3(b0.x, y1, b0.y), Vector3(b1.x, y1, b1.y), Vector3(b1.x, y1 - 0.28, b1.y), Vector3(b0.x, y1 - 0.28, b0.y), sc,
+			Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO)
 
 
 func _box(st: SurfaceTool, c: Vector3, s: Vector3, col: Color) -> void:
@@ -1989,6 +1998,60 @@ func _procedural_building(st: SurfaceTool, poly: PackedVector2Array, h: float, b
 		cen /= poly.size()
 		var mid := (p0 + p1) * 0.5
 		_awning(st, PackedVector2Array([p0, p1, mid + (cen - mid).normalized() * 1.0]), _AWNINGS[rng.randi() % _AWNINGS.size()], base)
+		var run0 := 0.0
+		for k in front_edge:
+			run0 += poly[k].distance_to(poly[(k + 1) % poly.size()])
+		_facade_details(st, p0, p1, (cen - mid).normalized(), h, base, run0, rng)
+
+
+const _SIGN_COLS := [Color(0.85, 0.12, 0.12), Color(0.1, 0.35, 0.8), Color(0.98, 0.78, 0.1), Color(0.1, 0.55, 0.3), Color(0.95, 0.95, 0.95), Color(0.55, 0.15, 0.6)]
+
+
+## Road-side facade: shop signboard above the awning, balconies with railings
+## on the first upper floors (lined up with the shader's 2.8 m window bays),
+## a few AC units. Plain boxes merged into the cell mesh.
+func _facade_details(st: SurfaceTool, p0: Vector2, p1: Vector2, inward: Vector2, h: float, base: float, run0: float, rng: RandomNumberGenerator) -> void:
+	var L := p0.distance_to(p1)
+	if L < 4.0:
+		return
+	var dir := (p1 - p0) / L
+	var out := -inward
+	var yaw := atan2(dir.x, dir.y)
+	var bas := Basis(Vector3.UP, yaw)          # local z along the wall, x across it
+	# signboard
+	var sm := (p0 + p1) * 0.5 + out * 0.08
+	_obox(st, Vector3(sm.x, base + 3.85, sm.y), Vector3(0.1, 0.75, minf(L - 1.0, 7.0)), bas, _SIGN_COLS[rng.randi() % _SIGN_COLS.size()])
+	var floors := int((h - 0.6) / 3.2)
+	if floors < 2:
+		return
+	var rail := Color(0.96, 0.96, 0.94) if rng.randf() < 0.75 else Color(0.2, 0.2, 0.22)
+	var bay := 2.8
+	# first bay centre along this edge, matching the wall shader's window grid
+	var first: float = bay * (floorf(run0 / bay) + 0.5) - run0
+	if first < 0.0:
+		first += bay
+	var t: float = first
+	var i := 0
+	while t < L - 1.0 and i < 8:
+		var c2: Vector2 = p0 + dir * t
+		for f in range(1, mini(floors, 3)):
+			var fy := base + f * 3.2
+			if (i + f) % 2 == 0:
+				# balcony: slab + front railing + side rails
+				var bc: Vector2 = c2 + out * 0.5
+				_obox(st, Vector3(bc.x, fy + 0.6, bc.y), Vector3(1.0, 0.14, 2.1), bas, Color(0.85, 0.84, 0.8))
+				# railing: top + middle rail and thin uprights (a solid panel read as a black box)
+				var rc: Vector2 = c2 + out * 0.97
+				_obox(st, Vector3(rc.x, fy + 1.62, rc.y), Vector3(0.06, 0.06, 2.1), bas, rail)
+				_obox(st, Vector3(rc.x, fy + 1.15, rc.y), Vector3(0.04, 0.04, 2.1), bas, rail)
+				for u in 5:
+					var upr: Vector2 = rc + dir * (-1.0 + u * 0.5)
+					_obox(st, Vector3(upr.x, fy + 1.15, upr.y), Vector3(0.04, 0.95, 0.04), bas, rail)
+			elif rng.randf() < 0.3:
+				var ac: Vector2 = c2 + dir * 1.0 + out * 0.2
+				_obox(st, Vector3(ac.x, fy + 1.0, ac.y), Vector3(0.35, 0.5, 0.8), bas, Color(0.88, 0.88, 0.86))
+		t += bay
+		i += 1
 
 
 ## Wall / gate / railing piece from a to b (UVs in metres for the shader).
