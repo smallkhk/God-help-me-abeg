@@ -10,6 +10,7 @@ vehicle_id = &"keke_01"
 mass = 380.0
 wheelbase = 1.95
 track_width = 1.15
+cg_height_m = 0.5
 center_of_mass_y = -0.25
 drivetrain = 1
 max_drive_force = 2600.0

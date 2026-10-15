@@ -8,6 +8,7 @@ script = ExtResource("1")
 display_name = "Toyota Hilux (Off-road)"
 vehicle_id = &"hilux_01"
 mass = 1950.0
+cg_height_m = 0.6
 center_of_mass_y = -0.4
 drivetrain = 2
 max_drive_force = 11000.0

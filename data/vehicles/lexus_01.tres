@@ -10,6 +10,7 @@ vehicle_id = &"lexus_01"
 mass = 1950.0
 wheelbase = 2.75
 track_width = 1.58
+cg_height_m = 0.58
 center_of_mass_y = -0.4
 drivetrain = 2
 max_drive_force = 10500.0

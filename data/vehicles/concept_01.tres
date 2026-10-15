@@ -10,6 +10,7 @@ vehicle_id = &"concept_01"
 mass = 1450.0
 wheelbase = 2.7
 track_width = 1.6
+cg_height_m = 0.44
 center_of_mass_y = -0.46
 drivetrain = 1
 max_drive_force = 10000.0

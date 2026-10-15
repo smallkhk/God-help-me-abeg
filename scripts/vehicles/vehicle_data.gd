@@ -29,6 +29,9 @@ enum Drivetrain { FWD, RWD, AWD }
 @export var center_of_mass_y: float = -0.4
 ## Centre-of-mass forward offset from body origin (m). +Z is forward.
 @export var center_of_mass_z: float = 0.0
+## Centre-of-mass height above the road (m), used by handling v2 (0 = 0.52 m,
+## a typical sedan). Sets how much weight moves under braking / cornering.
+@export var cg_height_m: float = 0.0
 
 @export_group("Engine & Drivetrain")
 @export var drivetrain: Drivetrain = Drivetrain.FWD

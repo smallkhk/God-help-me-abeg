@@ -8,6 +8,7 @@ script = ExtResource("1")
 display_name = "Mercedes G-Class (Odogwu)"
 vehicle_id = &"gwagon_01"
 mass = 2450.0
+cg_height_m = 0.6
 center_of_mass_y = -0.4
 drivetrain = 2
 max_drive_force = 15500.0

@@ -10,6 +10,7 @@ vehicle_id = &"super_01"
 mass = 1380.0
 wheelbase = 2.7
 track_width = 1.6
+cg_height_m = 0.42
 center_of_mass_y = -0.46
 drivetrain = 1
 max_drive_force = 11500.0

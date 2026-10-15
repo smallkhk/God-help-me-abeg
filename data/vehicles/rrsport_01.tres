@@ -8,6 +8,7 @@ script = ExtResource("1")
 display_name = "Range Rover Sport"
 vehicle_id = &"rrsport_01"
 mass = 2300.0
+cg_height_m = 0.58
 center_of_mass_y = -0.4
 drivetrain = 2
 max_drive_force = 14000.0

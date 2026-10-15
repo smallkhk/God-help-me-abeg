@@ -8,6 +8,7 @@ script = ExtResource("1")
 display_name = "Lexus IS300 'Taz' (NFS MW)"
 vehicle_id = &"is300_01"
 mass = 1450.0
+cg_height_m = 0.47
 center_of_mass_y = -0.4
 drivetrain = 1
 max_drive_force = 10500.0

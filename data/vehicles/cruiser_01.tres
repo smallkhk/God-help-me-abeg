@@ -10,6 +10,7 @@ vehicle_id = &"cruiser_01"
 mass = 2200.0
 wheelbase = 3.0
 track_width = 1.6
+cg_height_m = 0.6
 center_of_mass_y = -0.3
 drivetrain = 2
 max_drive_force = 12500.0

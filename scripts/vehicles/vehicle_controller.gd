@@ -44,6 +44,8 @@ class Wheel:
 	var spin_angle: float = 0.0  # visual wheel roll
 	var omega: float = 0.0       # wheel angular speed (rad/s), drives slip ratio
 	var slip_ratio: float = 0.0
+	var dbg_fx: float = 0.0          # last tyre forces (N), for telemetry
+	var dbg_fy: float = 0.0
 
 var wheels: Array[Wheel] = []
 
@@ -143,6 +145,13 @@ func _ready() -> void:
 
 	transmission = Transmission.new(data)
 	_collect_wheels()
+	if handling_v2 and not wheels.is_empty():
+		# real CoM height above the tyre contact plane (the data's -0.4 put it at
+		# road level, so braking / cornering moved no weight between the tyres)
+		var sag := mass * 9.81 / float(wheels.size()) / maxf(data.suspension_stiffness, 1.0)
+		var contact_y := wheels[0].marker.position.y - (data.suspension_rest_length - sag) - data.wheel_radius
+		var cg := data.cg_height_m if data.cg_height_m > 0.0 else 0.52
+		center_of_mass = Vector3(0.0, contact_y + cg, data.center_of_mass_z)
 	_mount_model()
 
 
@@ -156,6 +165,24 @@ var brake_bias := 0.6   # front share of brake force (garage TUNING)
 const GRIP_BONUS := 1.3
 const ARB_SCALE := 3.0   # flatter cornering (less body lean)
 const SPEED_SCALE := 0.75
+
+## Handling v2 (simcade), OFF in the game until the handling lab results are
+## approved (tests/vehicle_physics/handling_lab.tscn, env V2=1). Replaces the
+## quick fixes above with physically based behaviour:
+## - street-tyre grip: the car data's grip x V2_LAT_MU / V2_LONG_MU (keeps each
+##   car's relative grip) instead of +30 % for everyone -> ~1 g braking/cornering
+## - no fixed "glue" downforce: only the car's own downforce_coefficient
+## - steering lock follows the tyres: enough angle to reach the grip limit at
+##   any speed (kinematic angle for the limit + the front tyre's peak slip),
+##   instead of ~4 degrees at speed
+## - stability assist steps back during a handbrake slide (drift window) and
+##   when the driver countersteers; traction control off in the drift window
+static var handling_v2 := false
+const V2_LAT_MU := 0.70
+const V2_LONG_MU := 0.82
+const V2_DRIFT_WINDOW := 1.4
+const V2_SPEED_SCALE := 0.85
+var _drift_t := 0.0
 
 
 func _mount_model() -> void:
@@ -246,6 +273,8 @@ func set_driver_input(throttle: float, brake: float, steer: float, handbrake: bo
 	handbrake_input = handbrake
 
 
+static var prof_us := 0      # controller cost, summed (handling lab)
+static var prof_steps := 0
 var _last_good := Transform3D()
 var _nan_logged := false
 
@@ -262,6 +291,7 @@ func _physics_process(delta: float) -> void:
 		global_transform = _last_good
 		return
 	_last_good = global_transform
+	var _t0 := Time.get_ticks_usec()
 	var up := global_transform.basis.y
 	var fwd := global_transform.basis.z
 	var right := global_transform.basis.x
@@ -345,6 +375,8 @@ func _physics_process(delta: float) -> void:
 	_apply_body_aero(delta, speed, fwd, up)
 	_apply_stability_assist(delta, up)
 	_update_wheel_visuals(delta, hit_info)
+	prof_us += Time.get_ticks_usec() - _t0
+	prof_steps += 1
 
 
 func _update_steering(delta: float, speed: float) -> void:
@@ -354,8 +386,18 @@ func _update_steering(delta: float, speed: float) -> void:
 	var t := clampf(speed / minf(data.steer_speed_falloff, 22.0), 0.0, 1.0)
 	t = sqrt(t)
 	var max_angle := lerpf(data.max_steer_angle * 0.85, data.max_steer_angle * minf(data.high_speed_steer_fraction, 0.11), t)
+	if handling_v2:
+		# angle that puts the car on its cornering limit at this speed, plus the
+		# front tyre's peak slip: full lock = maximum grip, never far past it
+		var a_lim := data.lateral_grip_front * V2_LAT_MU * 9.81
+		var kin := atan(data.wheelbase * a_lim / maxf(speed * speed, 1.0))
+		max_angle = clampf(kin + data.peak_slip_angle * 0.8, data.max_steer_angle * 0.12, data.max_steer_angle * 0.85)
+		if _drift_t > 0.0:
+			max_angle = data.max_steer_angle * 0.85   # sliding: full lock to hold / catch it
 	var target := steer_input * max_angle
 	var rate := data.steer_rate * 0.65 if absf(steer_input) > 0.01 else data.steer_return_rate
+	if handling_v2:
+		rate *= 2.2 if _drift_t > 0.0 else lerpf(1.0, 0.55, t)   # a flick into a slide, calmer hands at speed
 	current_steer_angle = move_toward(current_steer_angle, target, rate * delta)
 
 
@@ -384,8 +426,10 @@ func _apply_tyre_force(w: Wheel, offset: Vector3, up: Vector3, driven_count: int
 	# GRIP_BONUS: planted, arcade-sim handling (no random sliding); rear a bit
 	# grippier than front so the car understeers slightly instead of spinning
 	var lat_grip := (data.lateral_grip_front * GRIP_BONUS if w.is_front else data.lateral_grip_rear * GRIP_BONUS * 1.08) * grip_scale
+	if handling_v2:
+		lat_grip = (data.lateral_grip_front if w.is_front else data.lateral_grip_rear * 1.04) * V2_LAT_MU * grip_scale
 	if w.is_rear and handbrake_input:
-		lat_grip *= data.handbrake_grip_fraction
+		lat_grip *= data.handbrake_grip_fraction * (0.6 if handling_v2 else 1.0)
 	# Load sensitivity (real tyres): grip coefficient drops as load rises, so
 	# weight transfer in corners/braking actually changes the balance.
 	var nominal := mass * 9.81 / 4.0
@@ -396,7 +440,7 @@ func _apply_tyre_force(w: Wheel, offset: Vector3, up: Vector3, driven_count: int
 	var lat_force := -lat_curve * max_lat  # opposes lateral slip
 
 	# --- Longitudinal (drive / brake / engine-brake) force ---
-	var long_grip := data.longitudinal_grip * grip_scale * clampf(1.0 - 0.12 * (load / maxf(mass * 9.81 / 4.0, 1.0) - 1.0), 0.75, 1.15)
+	var long_grip := data.longitudinal_grip * (V2_LONG_MU if handling_v2 else 1.0) * grip_scale * clampf(1.0 - 0.12 * (load / maxf(mass * 9.81 / 4.0, 1.0) - 1.0), 0.75, 1.15)
 	var max_long := long_grip * load
 	# --- Longitudinal: spinning wheel + Pacejka slip-ratio tyre ------------
 	# (ported from AdvancedPhysicsCar) Torques spin the wheel; the tyre force
@@ -411,20 +455,25 @@ func _apply_tyre_force(w: Wheel, offset: Vector3, up: Vector3, driven_count: int
 		var gear_mult := absf(ratio) / maxf(absf(first), 0.001)
 		# reverse: holding BRAKE alone backs the car up (no gas needed)
 		var pedal := maxf(throttle_input, brake_input) if transmission.gear == -1 else throttle_input
-		var drive := data.max_drive_force * SPEED_SCALE * transmission.torque_factor() * pedal * gear_mult / driven_count
+		var drive := data.max_drive_force * (V2_SPEED_SCALE if handling_v2 else SPEED_SCALE) * transmission.torque_factor() * pedal * gear_mult / driven_count
 		if nitro_active and transmission.gear > 0:
 			drive *= 1.0 + nitro_power
 		if transmission.gear == -1:
 			drive = -drive
 		# Traction control: trim torque while the wheel is already spinning up
 		var tc := _assist(data.traction_control_strength, 0.0, 0.5, 1.0)
-		if tc > 0.0 and w.slip_ratio * signf(drive) > 0.12:
-			drive *= 1.0 - tc * 0.6
+		if handling_v2 and _drift_t > 0.0:
+			tc = 0.0   # let the rear spin up to hold a drift
+		if tc > 0.0 and w.slip_ratio * signf(drive) > (0.16 if handling_v2 else 0.12):
+			drive *= 1.0 - tc * (0.35 if handling_v2 else 0.6)
 		drive_t = drive * r
 	var brake_t := 0.0
 	if brake_input > 0.0 and not (brake_input > 0.1 and forward_speed < 0.5 and transmission.gear == -1):
 		var front_bias := brake_bias if w.is_front else 1.0 - brake_bias
-		brake_t = data.brake_force * brake_input * front_bias * r
+		# v2: brakes always able to give ~0.9 g for the car's weight (heavy SUVs'
+		# data was sized like a sedan's; the old wheel solve hid that)
+		var bf := maxf(data.brake_force, mass * 9.0) if handling_v2 else data.brake_force
+		brake_t = bf * brake_input * front_bias * r
 		# ABS: ease the brake while the tyre is locking (σ well below 0)
 		var abs_s := _assist(data.abs_strength, 0.0, 0.6, 1.0)
 		if w.slip_ratio < -0.12:
@@ -439,10 +488,21 @@ func _apply_tyre_force(w: Wheel, offset: Vector3, up: Vector3, driven_count: int
 	var denom := maxf(absf(vf), 3.0)
 	var k := max_long * LONG_B * LONG_C / denom
 	var dt := _delta
-	w.omega = (w.omega + dt / inertia * (drive_t + k * r * vf)) / (1.0 + dt / inertia * k * r * r)
-	# brakes oppose the spin and can stop it, never reverse it
-	var d_om := brake_t / inertia * dt
-	w.omega = 0.0 if absf(w.omega) <= d_om else w.omega - signf(w.omega) * d_om
+	if handling_v2:
+		# brake torque inside the same implicit solve: it opposes the spin and
+		# can lock the wheel, but can't overshoot into a fake skid (applying it
+		# after the solve turned even light engine braking into a near-maximum
+		# tyre braking force)
+		var sgn := signf(w.omega) if absf(w.omega) > 0.01 else signf(vf)
+		var om := (w.omega + dt / inertia * (drive_t - sgn * brake_t + k * r * vf)) / (1.0 + dt / inertia * k * r * r)
+		if brake_t > 0.0 and sgn != 0.0 and signf(om) != sgn:
+			om = 0.0   # locked
+		w.omega = om
+	else:
+		w.omega = (w.omega + dt / inertia * (drive_t + k * r * vf)) / (1.0 + dt / inertia * k * r * r)
+		# brakes oppose the spin and can stop it, never reverse it
+		var d_om := brake_t / inertia * dt
+		w.omega = 0.0 if absf(w.omega) <= d_om else w.omega - signf(w.omega) * d_om
 	# crawling with no torque: roll freely with the ground (no jitter)
 	if absf(vf) < 1.0 and absf(drive_t) < 1.0 and brake_t <= 0.0:
 		w.omega = vf / r
@@ -464,6 +524,8 @@ func _apply_tyre_force(w: Wheel, offset: Vector3, up: Vector3, driven_count: int
 		fx = demand.x * max_long
 		fy = demand.y * max_lat
 
+	w.dbg_fx = fx
+	w.dbg_fy = fy
 	var force := fwd * fx + right * fy
 	apply_force(force, offset)
 	dbg_long_force += fx
@@ -510,7 +572,7 @@ func _apply_body_aero(_delta: float, speed: float, _fwd: Vector3, up: Vector3) -
 	apply_central_force(-dir * drag)
 	dbg_drag_force = drag
 	# Baseline downforce so bumps/seams at top speed don't launch the car.
-	var df := maxf(data.downforce_coefficient, 0.9)
+	var df := data.downforce_coefficient if handling_v2 else maxf(data.downforce_coefficient, 0.9)
 	apply_central_force(-up * df * speed * speed)
 	# Anti-launch: when wheels leave the deck at speed, kill upward velocity
 	# and pull the car back down quickly.
@@ -528,6 +590,10 @@ func _apply_body_aero(_delta: float, speed: float, _fwd: Vector3, up: Vector3) -
 
 func _apply_stability_assist(_delta: float, up: Vector3) -> void:
 	var s := _assist(data.stability_assist_strength, 0.0, 0.35, 0.8)
+	if handling_v2:
+		_drift_t = V2_DRIFT_WINDOW if handbrake_input else maxf(_drift_t - _delta, 0.0)
+		if _drift_t > 0.0:
+			return   # the driver is drifting on purpose
 	if s <= 0.0:
 		return
 	# Only fight yaw BEYOND what the steering asks for (a spin / snap
@@ -538,6 +604,8 @@ func _apply_stability_assist(_delta: float, up: Vector3) -> void:
 	var excess := yaw_rate - wanted
 	if absf(excess) < 0.15 or absf(forward_speed) < 3.0:
 		return
+	if handling_v2 and current_steer_angle * yaw_rate < 0.0:
+		s *= 0.4   # countersteering: help, don't take over
 	var correction := -(excess - signf(excess) * 0.15) * s * data.mass * 1.2
 	apply_torque(up * correction)
 
