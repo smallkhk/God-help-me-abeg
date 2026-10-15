@@ -17,8 +17,8 @@ const PRESETS := {
 	Preset.DAY: {
 		"sun_rot": Vector3(-42, 35, 0), "sun_col": Color(1.0, 0.93, 0.80), "sun_e": 1.6,
 		"top": Color(0.12, 0.38, 0.88), "hor": Color(0.62, 0.80, 0.97),
-		"amb": Color(0.86, 0.84, 0.80), "amb_e": 0.42, "fog": Color(0.78, 0.86, 0.95), "night": 0.0,
-		"fog_d": 0.0016, "hdri": "day", "sky_e": 1.0,
+		"amb": Color(0.86, 0.84, 0.80), "amb_e": 0.42, "fog": Color(0.68, 0.80, 0.97), "night": 0.0,
+		"fog_d": 0.0007, "hdri": "day", "sky_e": 0.72,
 	},
 	Preset.SUNSET: {
 		"sun_rot": Vector3(-12, -60, 0), "sun_col": Color(1.0, 0.70, 0.45), "sun_e": 1.2,
@@ -89,7 +89,8 @@ func apply(preset: int) -> void:
 		vp.scaling_3d_scale = 0.75
 	if _env and _env.sky:
 		var hdri := "res://assets/sky/%s.hdr" % c["hdri"]
-		if high and ResourceLoader.exists(hdri):
+		# the photo sky (blue sky + clouds) on every device: one 8 MB texture
+		if ResourceLoader.exists(hdri):
 			var pano := PanoramaSkyMaterial.new()
 			pano.panorama = load(hdri)
 			pano.energy_multiplier = c["sky_e"]
@@ -125,12 +126,12 @@ func apply(preset: int) -> void:
 			_env.sky.process_mode = Sky.PROCESS_MODE_QUALITY
 		# ACES keeps white paint and bright walls from burning out
 		_env.tonemap_mode = Environment.TONE_MAPPER_ACES
-		_env.tonemap_exposure = 1.05 if preset == Preset.DAY else 1.0
+		_env.tonemap_exposure = 0.92 if preset == Preset.DAY else 1.0
 		_env.tonemap_white = 6.0
 		_env.adjustment_enabled = true
 		# racing-game grade: rich but not neon colour, a little extra punch
-		_env.adjustment_saturation = 1.18 if preset == Preset.DAY else 1.08
-		_env.adjustment_contrast = 1.08
+		_env.adjustment_saturation = 1.28 if preset == Preset.DAY else 1.1
+		_env.adjustment_contrast = 1.12 if preset == Preset.DAY else 1.08
 		# bloom: lit windows, streetlights and car lights glow (High only)
 		_env.glow_enabled = high and (not mobile or mob_r)
 		_env.glow_intensity = 0.6 if preset == Preset.NIGHT else 0.35

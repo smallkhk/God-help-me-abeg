@@ -33,7 +33,8 @@ var _results: Array = []
 
 func _ready() -> void:
 	_auto = DisplayServer.get_name() == "headless" or OS.get_environment("AUTO") == "1"
-	VehicleController.handling_v2 = OS.get_environment("V2") == "1"
+	if OS.get_environment("V2") != "":
+		VehicleController.handling_v2 = OS.get_environment("V2") == "1"   # V2=0: old handling
 	_build_world()
 	var env := OS.get_environment("CARS")
 	_ids = Array(env.split(",")) if env != "" else Array(CarDatabase.ORDER)

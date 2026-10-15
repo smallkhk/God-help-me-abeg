@@ -549,9 +549,12 @@ func _build_land(root: Node3D) -> void:
 ## Vertex alpha tells the shader the surface type:
 ##   0.0 wall with windows · 0.25 concrete roof · 0.5 zinc · 0.75 clay tile · 1.0 plain colour
 const _WALLS := [
-	Color(0.95, 0.89, 0.74), Color(0.97, 0.84, 0.52), Color(0.96, 0.74, 0.60),
-	Color(0.66, 0.80, 0.90), Color(0.74, 0.88, 0.74), Color(0.96, 0.96, 0.93),
-	Color(0.93, 0.76, 0.78), Color(0.88, 0.62, 0.46), Color(0.90, 0.90, 0.80),
+	# bright Lagos paint: mustard, cream, terracotta, salmon, sky blue, mint,
+	# lavender, white, sunflower, peach
+	Color(0.96, 0.78, 0.28), Color(0.98, 0.92, 0.76), Color(0.90, 0.52, 0.30),
+	Color(0.96, 0.64, 0.58), Color(0.52, 0.74, 0.96), Color(0.58, 0.86, 0.66),
+	Color(0.74, 0.62, 0.90), Color(0.98, 0.98, 0.96), Color(0.99, 0.86, 0.36),
+	Color(0.98, 0.76, 0.56),
 ]
 const _AWNINGS := [
 	Color(0.15, 0.55, 0.35), Color(0.20, 0.40, 0.75), Color(0.80, 0.22, 0.20),
