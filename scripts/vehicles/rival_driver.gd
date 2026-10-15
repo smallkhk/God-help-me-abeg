@@ -25,6 +25,7 @@ var aggression := 0.5     # 0 = clean racer, 1 = dirty: how often it bumps / blo
 var road_half := 8.0      # kerb distance from the centre line (m)
 ## Alternative routes it may take: [{"from": route idx, "to": route idx, "pts": Array[Vector3]}]
 var shortcuts: Array = []
+var dbg_plan := 0.0          # planned corner speed (m/s), for tests
 var _sc := -1             # shortcut being driven, or -1
 var _sc_i := 0
 var _sc_lane := 0.0
@@ -94,7 +95,7 @@ func _physics_process(delta: float) -> void:
 	if _sc >= 0:
 		return
 	_human(delta, pos, speed)
-	var look := 3 + int(speed / 8.0)
+	var look := (2 + int(speed / 10.0)) if VehicleController.handling_v2 else (3 + int(speed / 8.0))
 	var target := _lane_point(_ahead(progress, look))
 	var to_t := target - pos
 	var fwd := _vehicle.global_transform.basis.z
@@ -107,8 +108,9 @@ func _physics_process(delta: float) -> void:
 	# bend ahead → safe speed
 	var top := lerpf(46.0, 62.0, skill)
 	var safe := _planned_speed(top)
+	dbg_plan = safe
 	if _mistake > 0.0:
-		safe += 7.0   # brakes too late for this bend
+		safe += 3.0 if VehicleController.handling_v2 else 7.0   # brakes too late for this bend
 
 	# rubber band: chase when behind the player, ease off a bit when far ahead
 	if player:
@@ -210,8 +212,8 @@ func _blocked(pos: Vector3, fwd: Vector3) -> float:
 	_blocked_by_player = false
 	var space := _vehicle.get_world_3d().direct_space_state
 	var from := pos + fwd * 2.4 + Vector3.UP * 0.5
-	# look as far as it takes to stop: ~65 m at 130 km/h
-	var reach := 18.0 + _vehicle.linear_velocity.length() * 1.4
+	# look as far as it takes to stop: ~130 m at 130 km/h
+	var reach := 25.0 + _vehicle.linear_velocity.length() * 2.8
 	var q := PhysicsRayQueryParameters3D.create(from, from + fwd * reach)
 	q.exclude = [_vehicle.get_rid()]
 	var hit := space.intersect_ray(q)
@@ -298,13 +300,16 @@ func _drive_shortcut(delta: float, pos: Vector3) -> void:
 ## 75 m - assumed the very short stops of the old handling.)
 func _planned_speed(top: float) -> float:
 	var g := 9.81
-	var a_lat := _vehicle.data.lateral_grip_front * (VehicleController.V2_LAT_MU if VehicleController.handling_v2 else 1.0) * g * lerpf(0.72, 0.85, skill)
+	var a_lat := _vehicle.data.lateral_grip_front * (VehicleController.V2_LAT_MU if VehicleController.handling_v2 else 1.0) * g * (lerpf(0.72, 0.84, skill) if VehicleController.handling_v2 else lerpf(0.72, 0.85, skill))
 	var a_brk := g * 0.68
 	var safe := top
 	var d0: float = route[progress].get("dist_m", 0.0)
 	var span := 0.0
-	for n in [4, 8, 12, 18, 25, 33, 42, 52, 64]:
-		var j := _ahead(progress, n)
+	var m := route.size() - 1
+	# include the bend the car is in now (progress runs a little ahead of the
+	# car mid-corner)
+	for n in [-6, -3, 0, 4, 8, 12, 18, 25, 33, 42, 52, 64]:
+		var j := posmod(progress + n, m) if loop else clampi(progress + n, 0, m)
 		var k := _ahead(j, 8)
 		var dh := absf(wrapf(float(route[k]["heading_rad"]) - float(route[j]["heading_rad"]), -PI, PI))
 		var seg := _flat(_lane_point(j)).distance_to(_flat(_lane_point(k)))
@@ -312,7 +317,7 @@ func _planned_speed(top: float) -> float:
 			continue
 		var radius := seg / dh
 		var v_c := sqrt(a_lat * radius)
-		span = _flat(_lane_point(progress)).distance_to(_flat(_lane_point(j)))
+		span = 0.0 if n <= 0 else _flat(_lane_point(progress)).distance_to(_flat(_lane_point(j)))
 		safe = minf(safe, sqrt(v_c * v_c + 2.0 * a_brk * maxf(span - 4.0, 0.0)))
 	return clampf(safe, 9.0, top)
 
@@ -322,5 +327,5 @@ func _planned_speed(top: float) -> float:
 func _pursuit(to_t: Vector3, fwd: Vector3, right: Vector3) -> float:
 	var alpha := atan2(to_t.dot(right), maxf(to_t.dot(fwd), 0.1))
 	var ld := maxf(Vector2(to_t.x, to_t.z).length(), 4.0)
-	var want := atan(2.0 * _vehicle.data.wheelbase * sin(alpha) / ld)
+	var want := atan(2.0 * _vehicle.data.wheelbase * sin(alpha) / ld) * (1.25 if VehicleController.handling_v2 else 1.0)
 	return clampf(want / maxf(_vehicle.steer_lock, 0.01), -1.0, 1.0)

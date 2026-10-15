@@ -166,9 +166,9 @@ const GRIP_BONUS := 1.3
 const ARB_SCALE := 3.0   # flatter cornering (less body lean)
 const SPEED_SCALE := 0.75
 
-## Handling v2 (simcade), OFF in the game: the rival AI can't race with it yet
-## (island test: 16 crashes, lap 326 s vs 9 crashes, 168 s on v1). The lab
-## (V2=1) and the island test (V2=1) run it (tests/vehicle_physics/handling_lab.tscn, env V2=1). Replaces the
+## Handling v2 (simcade), ON in the game. Island two-lap test with the rival
+## AI: PASS, 4 hard hits, best lap 199 s (v1: 6 hits, 192 s). The lab and the
+## island test take V2=0 to run the old handling (tests/vehicle_physics/handling_lab.tscn, env V2=1). Replaces the
 ## quick fixes above with physically based behaviour:
 ## - street-tyre grip: the car data's grip x V2_LAT_MU / V2_LONG_MU (keeps each
 ##   car's relative grip) instead of +30 % for everyone -> ~1 g braking/cornering
@@ -178,7 +178,7 @@ const SPEED_SCALE := 0.75
 ##   instead of ~4 degrees at speed
 ## - stability assist steps back during a handbrake slide (drift window) and
 ##   when the driver countersteers; traction control off in the drift window
-static var handling_v2 := false
+static var handling_v2 := true
 const V2_LAT_MU := 0.70
 const V2_LONG_MU := 0.82
 const V2_DRIFT_WINDOW := 1.4

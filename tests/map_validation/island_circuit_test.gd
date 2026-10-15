@@ -5,10 +5,11 @@ extends Node3D
 ## lap counting, finish) without falling through or getting stuck.
 ## Run: godot --headless --path . res://tests/map_validation/island_circuit_test.tscn
 
-const MAX_SECONDS := 420.0
+const MAX_SECONDS := 500.0   # v2 handling: realistic corner speeds, ~210 s laps
 
 var _failures: Array[String] = []
 var _last_sp := 0.0
+var _hist: Array = []
 
 
 func _ready() -> void:
@@ -88,7 +89,11 @@ func _run() -> void:
 		if car.global_transform.basis.y.y < 0.7 and int(t * 60.0) % 30 == 0:
 			print("[island_test] TILT t=%.1f up.y=%.2f pos=%s speed=%.0f wheels=%d" % [t, car.global_transform.basis.y.y, car.global_position, sp, car.wheels_on_ground])
 		if int(t * 60.0) % 15 == 0:
+			_hist.append("%.0f/%.0f%s" % [sp, drv.dbg_plan * 3.6, "B" if car.brake_input > 0.0 else ""])
+			if _hist.size() > 8:
+				_hist.pop_front()
 			if _last_sp - sp > 25.0:
+				print("[island_test]   history speed/plan: ", " ".join(_hist), " sc=", drv._sc)
 				var hits := []
 				for b in car.get_colliding_bodies():
 					hits.append("%s(%s)" % [b.name, b.get_class()])
