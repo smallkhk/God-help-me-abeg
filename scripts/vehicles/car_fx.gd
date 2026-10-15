@@ -12,7 +12,7 @@ var _tail_mats: Array[BaseMaterial3D] = []
 var _tail_glow: OmniLight3D
 const _TAIL_WORDS := ["tail", "brake", "rear_l", "rearl", "rear l", "backl", "back_l", "back l", "redlight", "red_light", "stop"]
 var _smoke: Array[CPUParticles3D] = []
-const _SMOKE_TEX := preload("res://assets/textures/fx/smoke.png")
+const _SMOKE_TEX := preload("res://assets/textures/fx/smoke_white.png")   # the original puff is near-black: smoke came out black
 var _skid_mm: MultiMesh
 var _skid_i := 0
 var _last_skid := {}

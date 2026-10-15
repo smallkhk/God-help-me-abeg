@@ -18,6 +18,9 @@ var _debug_visible: bool = false
 
 var _nitro_bar: ProgressBar
 var _fps_label: Label
+var _nitro_label: Label
+var _speedo: Speedometer
+var _map: MiniMap
 var _fps_t := 0.0
 var _frames := 0
 var _worst := 0.0
@@ -62,6 +65,7 @@ func _ready() -> void:
 	nl.anchor_top = 1.0; nl.anchor_bottom = 1.0
 	nl.offset_left = 24; nl.offset_top = -172; nl.offset_right = 200; nl.offset_bottom = -152
 	add_child(nl)
+	_nitro_label = nl
 	# frame-rate counter (Settings → Show FPS), readable on a phone
 	_fps_label = Label.new()
 	_fps_label.add_theme_font_size_override("font_size", 22)
@@ -72,10 +76,23 @@ func _ready() -> void:
 	_fps_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_fps_label.visible = false
 	add_child(_fps_label)
+	# analogue speedometer + mini-map replace the old text readouts
+	_speedo = Speedometer.new()
+	add_child(_speedo)
+	_map = MiniMap.new()
+	add_child(_map)
+	for n in [_speed_label, _gear_label, _mode_label, _rpm_bar, _nitro_bar, _nitro_label]:
+		n.visible = false
+	if _vehicle:
+		set_vehicle(_vehicle)
 
 
 func set_vehicle(v: VehicleController) -> void:
 	_vehicle = v
+	if _speedo:
+		_speedo.set_vehicle(v)
+	if _map:
+		_map.vehicle = v
 
 
 func start_timer(show := true) -> void:

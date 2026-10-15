@@ -52,7 +52,7 @@ func _physics_process(delta: float) -> void:
 	if _vehicle == null or route.size() < 2:
 		return
 	if not active or finished:
-		_vehicle.set_driver_input(0.0, 1.0, 0.0, false)
+		_vehicle.set_driver_input(0.0, 0.0, 0.0, true)   # handbrake: brake alone now means reverse
 		return
 	var pos := _vehicle.global_position
 	var m := route.size() - 1   # loops repeat sample 0 as the last sample

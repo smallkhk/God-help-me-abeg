@@ -8,6 +8,7 @@ func _init() -> void:
 	var tag := OS.get_environment("TAG")
 	var sc: Node = load("res://scenes/world/maps/island/island.tscn").instantiate()
 	root.add_child(sc)
+	current_scene = sc
 	for i in 10: await process_frame
 	var car: Node3D = sc.get_node("PlayerCar")
 	var pd = car.get_node_or_null("PlayerDriver")
