@@ -226,6 +226,13 @@ func _run_all() -> void:
 			await _t_accel(StringName(id), r)
 			_results.append(r)
 			continue
+		if OS.get_environment("ONLY") == "flick":
+			await _t_flick(StringName(id), r, 150.0)
+			await _t_flick(StringName(id), r, 100.0)
+			await _t_hit(StringName(id), r)
+			_results.append(r)
+			print("[lab] ", r)
+			continue
 		if OS.get_environment("ONLY") == "quick":
 			await _t_skidpad(StringName(id), r)
 			await _t_handbrake(StringName(id), r)
@@ -410,6 +417,28 @@ func _t_hit(id: StringName, r: Dictionary) -> void:
 			calm = t
 	r["hit_turn_deg"] = int(peak)
 	r["hit_settle_s"] = snappedf(calm, 0.01)
+
+
+## Full steering tap at speed (what a touch-button player does on a straight):
+## full lock for 0.5 s, then let go. Peak body slip (a slide if > ~6 deg) and
+## heading change.
+func _t_flick(id: StringName, r: Dictionary, kmh: float) -> void:
+	_spawn(id, Transform3D(Basis(), Vector3(0, 0.7, 0)), false)
+	await _step(30)
+	var t := 0.0
+	while _speed() < kmh and t < 40.0:
+		car.set_driver_input(1.0, 0.0, _steer_to(Vector3(0, 0, car.global_position.z + 80.0)), false)
+		await _step(); t += 1.0 / 60.0
+	if _speed() < kmh - 5.0:
+		return
+	var h0 := car.global_rotation.y
+	var peak := 0.0
+	for i in 150:
+		car.set_driver_input(1.0, 0.0, 1.0 if i < 30 else 0.0, false)
+		await _step()
+		peak = maxf(peak, absf(rad_to_deg(_beta())))
+	r["flick%d_slip_deg" % int(kmh)] = snappedf(peak, 0.1)
+	r["flick%d_turn_deg" % int(kmh)] = int(absf(rad_to_deg(wrapf(car.global_rotation.y - h0, -PI, PI))))
 
 
 ## 80 km/h over a 12 cm bump: airborne time, peak pitch, time to settle.

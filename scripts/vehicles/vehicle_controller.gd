@@ -405,14 +405,17 @@ func _update_steering(delta: float, speed: float) -> void:
 		# front tyre's peak slip: full lock = maximum grip, never far past it
 		var a_lim := data.lateral_grip_front * V2_LAT_MU * 9.81
 		var kin := atan(data.wheelbase * a_lim / maxf(speed * speed, 1.0))
-		max_angle = clampf(kin * 1.15 + data.peak_slip_angle * 1.3, data.max_steer_angle * 0.18, data.max_steer_angle * 0.85)
+		# extra turn-in for slow bends, shrinking at speed: a full tap at 150+
+		# km/h is a lane change, not a slide
+		var hi := clampf((speed - 15.0) / 30.0, 0.0, 1.0)
+		max_angle = clampf(kin * 1.15 + data.peak_slip_angle * lerpf(1.3, 0.55, hi), data.max_steer_angle * lerpf(0.18, 0.06, hi), data.max_steer_angle * 0.85)
 		if _drift_t > 0.0:
 			max_angle = data.max_steer_angle * 0.85   # sliding: full lock to hold / catch it
 	steer_lock = max_angle
 	var target := steer_input * max_angle
 	var rate := data.steer_rate * 0.65 if absf(steer_input) > 0.01 else data.steer_return_rate
 	if handling_v2:
-		rate *= 2.2 if _drift_t > 0.0 else lerpf(1.3, 0.8, t)   # a flick into a slide, quick but calmer at speed
+		rate *= 2.2 if _drift_t > 0.0 else lerpf(1.3, 0.45, t)   # a flick into a slide, quick but calm hands at speed
 	current_steer_angle = move_toward(current_steer_angle, target, rate * delta)
 
 
@@ -638,6 +641,10 @@ func _v2_stability(up: Vector3) -> void:
 	var s: float = [1.0, 0.85, 0.45][clampi(assist_mode, 0, 2)]
 	var yaw_rate := angular_velocity.dot(up)
 	var wanted := forward_speed * tan(current_steer_angle) / maxf(data.wheelbase, 1.0)
+	# no car can turn faster than its tyres allow (yaw = a_lat / v): at speed
+	# the steering "asks" for far more, which hid snap oversteer from the assist
+	var lim := data.lateral_grip_front * V2_LAT_MU * 9.81 / maxf(absf(forward_speed), 1.0)
+	wanted = clampf(wanted, -lim, lim)
 	var excess := yaw_rate - wanted
 	if current_steer_angle * yaw_rate < 0.0:
 		s *= 0.5   # countersteering: help, don't take over
