@@ -226,6 +226,13 @@ func _run_all() -> void:
 			await _t_accel(StringName(id), r)
 			_results.append(r)
 			continue
+		if OS.get_environment("ONLY") == "quick":
+			await _t_skidpad(StringName(id), r)
+			await _t_handbrake(StringName(id), r)
+			await _t_hit(StringName(id), r)
+			_results.append(r)
+			print("[lab] ", r)
+			continue
 		if OS.get_environment("ONLY") == "hb":
 			await _t_handbrake(StringName(id), r)
 			_results.append(r)
@@ -235,6 +242,7 @@ func _run_all() -> void:
 		await _t_skidpad(StringName(id), r)
 		await _t_step(StringName(id), r)
 		await _t_handbrake(StringName(id), r)
+		await _t_hit(StringName(id), r)
 		await _t_bump(StringName(id), r)
 		_results.append(r)
 		print("[lab] ", r)
@@ -378,6 +386,32 @@ func _t_handbrake(id: StringName, r: Dictionary) -> void:
 	r["hb_recover_s"] = snappedf(rec, 0.01)
 
 
+## 80 km/h, driver holds straight; a small car clips the rear (sideways
+## shove, ~1,800 N·s at the rear bumper). Peak heading change and time until
+## the car runs straight again.
+func _t_hit(id: StringName, r: Dictionary) -> void:
+	_spawn(id, Transform3D(Basis(), Vector3(0, 0.7, 0)), false)
+	await _step(30)
+	var t := 0.0
+	while _speed() < 80.0 and t < 30.0:
+		car.set_driver_input(1.0, 0.0, _steer_to(Vector3(0, 0, car.global_position.z + 50.0)), false)
+		await _step(); t += 1.0 / 60.0
+	var h0 := car.global_rotation.y
+	var b := car.global_transform.basis
+	car.apply_impulse(b.x * 1800.0, b.z * -2.0 + Vector3.UP * 0.3 - (car.global_transform * car.center_of_mass - car.global_position))
+	var peak := 0.0; var calm := -1.0; t = 0.0
+	while t < 5.0:
+		var cr := _cruise(80.0)
+		car.set_driver_input(cr[0], cr[1], 0.0, false)   # hands off: what the car does on its own
+		await _step(); t += 1.0 / 60.0
+		var dh := absf(rad_to_deg(wrapf(car.global_rotation.y - h0, -PI, PI)))
+		peak = maxf(peak, dh)
+		if calm < 0.0 and t > 0.2 and absf(car.angular_velocity.y) < 0.05 and absf(_beta()) < deg_to_rad(2.0):
+			calm = t
+	r["hit_turn_deg"] = int(peak)
+	r["hit_settle_s"] = snappedf(calm, 0.01)
+
+
 ## 80 km/h over a 12 cm bump: airborne time, peak pitch, time to settle.
 func _t_bump(id: StringName, r: Dictionary) -> void:
 	_spawn(id, Transform3D(Basis(Vector3.UP, PI * 0.5), Vector3(BUMP_X - 250.0, 0.7, 0)), false)   # heading +X
@@ -407,7 +441,7 @@ func _t_bump(id: StringName, r: Dictionary) -> void:
 
 
 func _print_table() -> void:
-	var cols := ["id", "0_100_s", "top_kmh", "brake_100_m", "skidpad_g", "us_ratio", "step_t90_s", "step_overshoot_pct", "step_lat_g", "hb_peak_slip_deg", "hb_turned_deg", "hb_recover_s", "bump_air_s", "bump_pitch_deg", "bump_settle_s", "phys_us"]
+	var cols := ["id", "0_100_s", "top_kmh", "brake_100_m", "skidpad_g", "us_ratio", "step_t90_s", "step_overshoot_pct", "step_lat_g", "hb_peak_slip_deg", "hb_turned_deg", "hb_recover_s", "hit_turn_deg", "hit_settle_s", "bump_air_s", "bump_pitch_deg", "bump_settle_s", "phys_us"]
 	print("\n[lab] | " + " | ".join(cols) + " |")
 	for r in _results:
 		var row := []

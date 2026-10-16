@@ -179,8 +179,8 @@ const SPEED_SCALE := 0.75
 ## - stability assist steps back during a handbrake slide (drift window) and
 ##   when the driver countersteers; traction control off in the drift window
 static var handling_v2 := true
-const V2_LAT_MU := 0.70
-const V2_LONG_MU := 0.82
+const V2_LAT_MU := 0.82
+const V2_LONG_MU := 0.90
 const V2_DRIFT_WINDOW := 1.4
 const V2_SPEED_SCALE := 0.85
 var _drift_t := 0.0
@@ -405,14 +405,14 @@ func _update_steering(delta: float, speed: float) -> void:
 		# front tyre's peak slip: full lock = maximum grip, never far past it
 		var a_lim := data.lateral_grip_front * V2_LAT_MU * 9.81
 		var kin := atan(data.wheelbase * a_lim / maxf(speed * speed, 1.0))
-		max_angle = clampf(kin + data.peak_slip_angle * 0.8, data.max_steer_angle * 0.12, data.max_steer_angle * 0.85)
+		max_angle = clampf(kin * 1.15 + data.peak_slip_angle * 1.3, data.max_steer_angle * 0.18, data.max_steer_angle * 0.85)
 		if _drift_t > 0.0:
 			max_angle = data.max_steer_angle * 0.85   # sliding: full lock to hold / catch it
 	steer_lock = max_angle
 	var target := steer_input * max_angle
 	var rate := data.steer_rate * 0.65 if absf(steer_input) > 0.01 else data.steer_return_rate
 	if handling_v2:
-		rate *= 2.2 if _drift_t > 0.0 else lerpf(1.0, 0.55, t)   # a flick into a slide, calmer hands at speed
+		rate *= 2.2 if _drift_t > 0.0 else lerpf(1.3, 0.8, t)   # a flick into a slide, quick but calmer at speed
 	current_steer_angle = move_toward(current_steer_angle, target, rate * delta)
 
 
@@ -609,6 +609,9 @@ func _apply_stability_assist(_delta: float, up: Vector3) -> void:
 		_drift_t = V2_DRIFT_WINDOW if handbrake_input else maxf(_drift_t - _delta, 0.0)
 		if _drift_t > 0.0:
 			return   # the driver is drifting on purpose
+	if handling_v2:
+		_v2_stability(up)
+		return
 	if s <= 0.0:
 		return
 	# Only fight yaw BEYOND what the steering asks for (a spin / snap
@@ -623,6 +626,31 @@ func _apply_stability_assist(_delta: float, up: Vector3) -> void:
 		s *= 0.4   # countersteering: help, don't take over
 	var correction := -(excess - signf(excess) * 0.15) * s * data.mass * 1.2
 	apply_torque(up * correction)
+
+
+## v2 anti-spin (simcade): yaw the steering doesn't ask for - a knock from
+## traffic or a small car, a snap of oversteer - is damped hard, and a car
+## sliding sideways more than ~8 deg is turned back toward where it's going.
+## Off during a handbrake slide (drift window); softer when countersteering.
+func _v2_stability(up: Vector3) -> void:
+	if absf(forward_speed) < 3.0:
+		return
+	var s: float = [1.0, 0.85, 0.45][clampi(assist_mode, 0, 2)]
+	var yaw_rate := angular_velocity.dot(up)
+	var wanted := forward_speed * tan(current_steer_angle) / maxf(data.wheelbase, 1.0)
+	var excess := yaw_rate - wanted
+	if current_steer_angle * yaw_rate < 0.0:
+		s *= 0.5   # countersteering: help, don't take over
+	var torque := 0.0
+	if absf(excess) > 0.08:
+		torque -= (excess - signf(excess) * 0.08) * s * mass * 4.5
+	# body slip: nose pointing away from the direction of travel
+	var v := linear_velocity - up * linear_velocity.dot(up)
+	if v.length() > 5.0:
+		var beta := atan2(v.dot(global_transform.basis.x), v.dot(global_transform.basis.z))
+		if absf(beta) > 0.14:
+			torque += (beta - signf(beta) * 0.14) * s * mass * 3.0
+	apply_torque(up * torque)
 
 
 ## v2: with the CoM at its real height a car trips easily over a kerb or a
