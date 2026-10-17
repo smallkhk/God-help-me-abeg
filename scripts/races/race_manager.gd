@@ -58,10 +58,18 @@ var _player_wraps := 0
 var _lanes: Array[float] = []
 var _elapsed_banner := 0.0
 var _fall_check := 0.0
+var player_position := 0          # 1 = leading (0 = no rivals)
+var _flair: Node   # RaceFlair
+const _FLAIR := preload("res://scripts/races/race_flair.gd")
+var _results_layer: CanvasLayer
+var _results_title: Label
 
 
 func _ready() -> void:
 	_player = get_node_or_null(player_path) as VehicleController
+	if _player:
+		_player.contact_monitor = true      # NEAR MISS: touching traffic doesn't count
+		_player.max_contacts_reported = 4
 	_hud = get_node_or_null(hud_path) as CanvasLayer
 	_builder = get_node_or_null(map_builder_path) as MapBuilder
 	if event:
@@ -139,22 +147,25 @@ func _build_ui() -> void:
 	_layer.layer = 10
 	add_child(_layer)
 
+	# big centre text (countdown, GO!, lap banners): full width so it stays
+	# centred on wide phone screens; RaceFlair animates it
 	_center_label = Label.new()
-	_center_label.anchors_preset = Control.PRESET_CENTER
+	_center_label.anchor_left = 0.0; _center_label.anchor_right = 1.0
+	_center_label.anchor_top = 0.5; _center_label.anchor_bottom = 0.5
+	_center_label.offset_top = -150; _center_label.offset_bottom = -50
 	_center_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_center_label.add_theme_font_size_override("font_size", 64)
-	_center_label.position = Vector2(540, 300)
-	_center_label.size = Vector2(200, 100)
+	_center_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_center_label.add_theme_font_size_override("font_size", 84)
+	_center_label.add_theme_color_override("font_outline_color", Color.BLACK)
+	_center_label.add_theme_constant_override("outline_size", 14)
+	_center_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_layer.add_child(_center_label)
+	_center_label.resized.connect(func() -> void: _center_label.pivot_offset = _center_label.size * 0.5)
 
-	_results = Label.new()
-	_results.anchors_preset = Control.PRESET_CENTER
-	_results.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_results.add_theme_font_size_override("font_size", 28)
-	_results.position = Vector2(440, 240)
-	_results.size = Vector2(400, 220)
-	_results.visible = false
-	_layer.add_child(_results)
+	_build_results()
+	_flair = _FLAIR.new()
+	_flair.rm = self
+	add_child(_flair)
 
 	_pos_label = Label.new()
 	_pos_label.add_theme_font_size_override("font_size", 40)
@@ -199,7 +210,7 @@ func _reset_to_idle() -> void:
 	_player_wraps = 0
 	if _lap_label:
 		_lap_label.text = ("LAP 1/%d" % _laps) if _loop else ""
-	_results.visible = false
+	_results_layer.visible = false
 	for g in _gates:
 		g.set_target(g.index == 0)
 	_center_label.text = ""
@@ -328,7 +339,7 @@ func _finish() -> void:
 	var is_best := SaveManager.record_time(event_id, final_time)
 	var best := SaveManager.get_best_time(event_id)
 	_center_label.text = ""
-	_results.visible = true
+	_results_layer.visible = true
 	_finish_order.append("YOU")
 	var place := _finish_order.size()
 	var place_txt := ""
@@ -345,10 +356,16 @@ func _finish() -> void:
 	place_txt += "Prize: %s\n" % Game.naira(reward)
 	if _loop and _best_lap > 0.0:
 		place_txt += "Best lap: %s\n" % _fmt(_best_lap)
-	_results.text = "FINISH\n\n%sTime: %s\nBest: %s%s\n\nR = retry    Esc = menu" % [
+	var st: Dictionary = _flair.get("stats") if _flair else {}
+	if not st.is_empty():
+		place_txt += "Drifts %d   ·   Near misses %d   ·   Overtakes %d\n" % [st["drift"], st["near"], st["overtake"]]
+	_results.text = "%sTime: %s\nBest: %s%s" % [
 		place_txt, _fmt(final_time), _fmt(best),
 		"   (NEW BEST!)" if is_best else "",
 	]
+	var won := place == 1 or _rivals.is_empty()
+	_results_title.text = ("YOU WIN!" if won else "%s PLACE" % _FLAIR._ord(place).to_upper()) if not _rivals.is_empty() else "FINISH"
+	_results_title.add_theme_color_override("font_color", [Color(1.0, 0.82, 0.2), Color(0.85, 0.87, 0.9), Color(0.85, 0.55, 0.3)][mini(place - 1, 2)] if place <= 3 else Color.WHITE)
 
 
 static func _fmt(t: float) -> String:
@@ -484,6 +501,7 @@ func _update_positions() -> void:
 			elif d.wraps * m + d.progress > mine:
 				ahead += 1
 		_pos_label.text = "POS %d/%d" % [ahead + 1, _rivals.size() + 1]
+		player_position = ahead + 1
 		return
 	_player_prog = _nearest_sample(_player.global_position, maxi(_player_prog - 20, 0), mini(_player_prog + 60, _route.size()))
 	for r in _rivals:
@@ -495,6 +513,7 @@ func _update_positions() -> void:
 		elif d.progress > _player_prog:
 			ahead += 1
 	_pos_label.text = "POS %d/%d" % [ahead + 1, _rivals.size() + 1]
+	player_position = ahead + 1
 
 
 func _recover_player() -> void:
@@ -537,3 +556,66 @@ static func _ordinal(n: int) -> String:
 		2: return "2nd"
 		3: return "3rd"
 	return "%dth" % n
+
+
+## Results card with tap buttons (the old "R = retry / Esc = menu" text had no
+## keys on a phone).
+func _build_results() -> void:
+	_results_layer = CanvasLayer.new()
+	_results_layer.layer = 30   # above the touch controls
+	_results_layer.visible = false
+	add_child(_results_layer)
+	var dim := ColorRect.new()
+	dim.color = Color(0, 0, 0, 0.45)
+	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_results_layer.add_child(dim)
+	var panel := PanelContainer.new()
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.06, 0.08, 0.12, 0.94)
+	sb.border_color = Color(1.0, 0.8, 0.2, 0.9)
+	sb.set_border_width_all(3)
+	sb.set_corner_radius_all(18)
+	sb.set_content_margin_all(26)
+	panel.add_theme_stylebox_override("panel", sb)
+	panel.anchor_left = 0.5; panel.anchor_right = 0.5; panel.anchor_top = 0.5; panel.anchor_bottom = 0.5
+	panel.offset_left = -300; panel.offset_right = 300; panel.offset_top = -210; panel.offset_bottom = 210
+	_results_layer.add_child(panel)
+	var vb := VBoxContainer.new()
+	vb.add_theme_constant_override("separation", 14)
+	panel.add_child(vb)
+	_results_title = Label.new()
+	_results_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_results_title.add_theme_font_size_override("font_size", 54)
+	_results_title.add_theme_color_override("font_outline_color", Color.BLACK)
+	_results_title.add_theme_constant_override("outline_size", 8)
+	vb.add_child(_results_title)
+	_results = Label.new()
+	_results.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_results.add_theme_font_size_override("font_size", 24)
+	vb.add_child(_results)
+	var hb := HBoxContainer.new()
+	hb.alignment = BoxContainer.ALIGNMENT_CENTER
+	hb.add_theme_constant_override("separation", 24)
+	vb.add_child(hb)
+	for spec in [["RETRY", Color(0.2, 0.7, 0.3)], ["MENU", Color(0.25, 0.35, 0.6)]]:
+		var b := Button.new()
+		b.text = spec[0]
+		b.custom_minimum_size = Vector2(200, 70)
+		b.add_theme_font_size_override("font_size", 28)
+		var bs := StyleBoxFlat.new()
+		bs.bg_color = spec[1]
+		bs.set_corner_radius_all(12)
+		b.add_theme_stylebox_override("normal", bs)
+		b.add_theme_stylebox_override("hover", bs)
+		b.add_theme_stylebox_override("pressed", bs)
+		hb.add_child(b)
+		if spec[0] == "RETRY":
+			b.pressed.connect(func() -> void:
+				if _flair:
+					_flair.set("stats", {"drift": 0, "near": 0, "overtake": 0, "air": 0, "best_drift": 0.0})
+				_reset_to_idle())
+		else:
+			b.pressed.connect(func() -> void:
+				var g := get_node_or_null("/root/Game")
+				if g:
+					g.goto_main_menu())

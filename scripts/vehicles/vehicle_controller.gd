@@ -322,7 +322,7 @@ func _physics_process(delta: float) -> void:
 	if nitro_active:
 		nitro_amount = maxf(nitro_amount - delta / nitro_capacity_s, 0.0)
 	else:
-		nitro_amount = minf(nitro_amount + delta * 0.04, 1.0)
+		nitro_amount = minf(nitro_amount + delta * 0.02, 1.0)   # slow trickle: style (drift, near miss, overtake) earns the rest
 
 	# Driven-wheel count for splitting drive force.
 	var driven_count := 0

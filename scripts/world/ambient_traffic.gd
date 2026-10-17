@@ -99,6 +99,7 @@ func _spawn(initial: bool) -> void:
 	var m: Array = MODELS[kind]
 	var body := AnimatableBody3D.new()
 	body.sync_to_physics = false
+	body.add_to_group(&"traffic")   # race NEAR MISS detection
 	var vis: Node3D = _scenes[kind].instantiate()
 	vis.position = Vector3(0, m[1], 0)
 	vis.rotation.y = m[2]
