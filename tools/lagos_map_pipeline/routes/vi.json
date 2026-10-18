@@ -1,0 +1,5 @@
+{"chunk_id": "victoria_island", "file": "victoria_island.json", "track_png": "vi_circuit.png",
+ "map_key": "vi", "map_name": "Victoria Island Circuit",
+ "description": "Victoria Island street circuit on real OSM streets (Ahmadu Bello Way, Akin Adesola, Adeola Odeku)",
+ "waypoints": [["Ahmadu Bello Way", 6.43002, 3.40880], ["Akin Adesola Street", 6.42261, 3.42391], ["Adeola Odeku Street", 6.42924, 3.42388]],
+ "legs": [["Ahmadu Bello Way", ""], ["Akin Adesola Street"], ["Adeola Odeku Street", ""]]}

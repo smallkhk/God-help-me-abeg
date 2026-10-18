@@ -55,6 +55,33 @@ LEG_STREETS = [
     {"Broad Street", "Balogun Street", "Old Marina Street", "Issa Williams Street", ""},
 ]
 
+# Other circuits reuse this generator with a route file (env ROUTE=path.json):
+#   {"chunk_id", "description", "file", "track_png", "map_key", "map_name",
+#    "waypoints": [[street, lat, lon], ...], "legs": [[street, ...], ...]}
+CHUNK_ID, CHUNK_FILE, DESCRIPTION = "lagos_island", "lagos_island.json", \
+    "Lagos Island street circuit on real OSM streets (Marina, Campbell, Broad, Nnamdi Azikiwe, Balogun)"
+TRACK_PNG, MAP_KEY, MAP_NAME = "island_circuit.png", "island", "Lagos Island Circuit"
+if os.environ.get("ROUTE"):
+    _rt = json.load(open(os.environ["ROUTE"]))
+    WAYPOINTS = [(w[0], (w[1], w[2])) for w in _rt["waypoints"]]
+    LEG_STREETS = [set(l) for l in _rt["legs"]]
+    CHUNK_ID, CHUNK_FILE, DESCRIPTION = _rt["chunk_id"], _rt["file"], _rt["description"]
+    TRACK_PNG, MAP_KEY, MAP_NAME = _rt["track_png"], _rt.get("map_key", ""), _rt.get("map_name", "")
+    STEP_START = float(_rt.get("start_m", 120.0))
+    # dual carriageways (Kingsway...): follow one side, not down one and back up the other
+    RESPECT_ONEWAY = bool(_rt.get("respect_oneway", False))
+    ONEWAY_STREETS = set(_rt.get("oneway_streets", []))
+else:
+    STEP_START = 120.0
+    RESPECT_ONEWAY = False
+    ONEWAY_STREETS = set()
+
+if os.environ.get("ROUTE"):
+    HW = float(_rt.get("hw", HW))
+    SMOOTH_PASSES = int(_rt.get("smooth", 2))
+else:
+    SMOOTH_PASSES = 2
+
 d = json.load(open(SRC))
 nodes = {int(k): tuple(v) for k, v in d["nodes"].items()}
 lat_c = np.mean([w[1][0] for w in WAYPOINTS]); lon_c = np.mean([w[1][1] for w in WAYPOINTS])
@@ -72,7 +99,7 @@ for r in d["roads"]:
     for a, b in zip(nds, nds[1:]):
         w = float(np.linalg.norm(loc(nodes[a]) - loc(nodes[b])))
         adj.setdefault(a, []).append((b, w, r["name"]))
-        if r.get("oneway") not in ("yes", "1") or True:     # racing ignores one-way
+        if r.get("oneway") not in ("yes", "1") or not (RESPECT_ONEWAY or r["name"] in ONEWAY_STREETS):   # racing ignores one-way, except dual carriageways
             adj.setdefault(b, []).append((a, w, r["name"]))
 
 
@@ -164,7 +191,7 @@ def simplify(P, tol):
 P_s = simplify(P, 1.5)
 R, LOOP = resample_closed(fillet(fillet(P_s, FILLET), FILLET * 0.5), STEP)
 # light smoothing of sample noise (OSM node jitter), keeps shape within ~1 m
-for _ in range(2):
+for _ in range(SMOOTH_PASSES):
     R = (np.roll(R, 1, 0) + 2 * R + np.roll(R, -1, 0)) / 4.0
 N = len(R)
 fwd = np.roll(R, -1, 0) - np.roll(R, 1, 0)
@@ -282,7 +309,7 @@ samples = [{"x": round(float(R[i, 0]), 3), "z": round(float(R[i, 1]), 3), "elev_
             "dist_m": round(float(dist[i]), 2), "heading_rad": round(float(heading[i]), 6)} for i in range(N)]
 samples.append(dict(samples[0], dist_m=round(float(LOOP), 2)))
 # start/finish on the straight part of Old Marina Street, ~120 m east of Balogun St
-s0 = int(120 / STEP)
+s0 = int(STEP_START / STEP)
 R = np.roll(R, -s0, 0); heading = np.roll(heading, -s0); perp = np.roll(perp, -s0, 0)
 for k, s in enumerate(samples[:-1]):
     i = (k + s0) % N
@@ -350,7 +377,7 @@ for u in route_set:
             continue
         dv, ev = on_route(v)
         gap = dv - du
-        if ev > 10.0 or gap <= 0 or L < 60.0 or not (60.0 <= gap - L <= 350.0) or du < 150.0 or dv > LOOP - 100.0:
+        if ev > 10.0 or gap <= 0 or L < 60.0 or not (60.0 <= gap - L <= min(350.0, LOOP * 0.12)) or du < 150.0 or dv > LOOP - 100.0:
             continue
         chain = [v]; snames = []
         while chain[-1] != u:
@@ -464,7 +491,7 @@ if shortcuts:
         print("shortcut %s: %.0f m -> %.0f m, %.0f m long, saves %.0f m" % (sc["name"], sc["from_m"], sc["to_m"], sc["length_m"], sc["saves_m"]))
 
 chunk = {
-    "chunk_id": "lagos_island", "description": "Lagos Island street circuit on real OSM streets (Marina, Campbell, Broad, Nnamdi Azikiwe, Balogun)",
+    "chunk_id": CHUNK_ID, "description": DESCRIPTION,
     "approximate": False, "no_landmarks": True, "district": True, "loop": True, "pavement_m": PAVE,
     "geo_origin": {"lat": GEO[0], "lon": GEO[1]},
     "bounds_local_m": {"min_x": round(float(X0 - 200), 1), "max_x": round(float(X1 + 200), 1), "min_z": round(float(Z0 - 200), 1), "max_z": round(float(Z1 + 200), 1)},
@@ -482,7 +509,7 @@ chunk = {
     "source": {"type": "osm", "license": "ODbL — © OpenStreetMap contributors", "fetched": "2026-10-14"},
 }
 os.makedirs(OUT, exist_ok=True)
-json.dump(chunk, open(os.path.join(OUT, "lagos_island.json"), "w"), separators=(",", ":"))
+json.dump(chunk, open(os.path.join(OUT, CHUNK_FILE), "w"), separators=(",", ":"))
 rad = []
 for i in range(N):
     a, b, c = R[i - 5], R[i], R[(i + 5) % N]
@@ -517,17 +544,20 @@ def write_ui_assets():
     for k in range(4):
         for j in range(4):
             dr.rectangle([sx - 8 + k * 4, sy - 8 + j * 4, sx - 4 + k * 4, sy - 4 + j * 4], fill=(255, 255, 255) if (k + j) % 2 == 0 else (10, 10, 10))
-    img.save("assets/ui/tracks/island_circuit.png")
+    img.save("assets/ui/tracks/" + TRACK_PNG)
     mp = "assets/ui/lagos_map.json"
     if os.path.exists(mp):
         m = json.load(open(mp))
         geo = [[round(GEO[0] + p[1] / 110574.0, 5), round(GEO[1] + p[0] / (111320.0 * math.cos(math.radians(GEO[0]))), 5)] for p in R[::10]]
         geo.append(geo[0])
+        found = False
         for r in m["routes"]:
-            if r["key"] == "island":
-                r["pts"] = geo; r["name"] = "Lagos Island Circuit"
+            if r["key"] == MAP_KEY:
+                r["pts"] = geo; r["name"] = MAP_NAME; found = True
+        if not found and MAP_KEY:
+            m["routes"].append({"key": MAP_KEY, "name": MAP_NAME, "pts": geo})
         json.dump(m, open(mp, "w"))
 
 
-if OUT.rstrip("/").endswith("data/map/island"):
+if OUT.rstrip("/").startswith("data/map/"):
     write_ui_assets()

@@ -1,0 +1,56 @@
+{
+ "chunk_id": "ikoyi",
+ "file": "ikoyi.json",
+ "track_png": "ikoyi_circuit.png",
+ "map_key": "ikoyi",
+ "map_name": "Ikoyi Circuit",
+ "start_m": 60,
+ "description": "Ikoyi street circuit on real OSM streets (Thompson Avenue, Osborne Road, Alfred Rewane / Kingsway, Glover Road)",
+ "waypoints": [
+  [
+   "Glover Road",
+   6.45352,
+   3.4343
+  ],
+  [
+   "Alfred Rewane Road",
+   6.4546926,
+   3.4311395
+  ],
+  [
+   "Gerrard Road",
+   6.45994,
+   3.43298
+  ],
+  [
+   "Thompson Avenue",
+   6.45762,
+   3.43631
+  ]
+ ],
+ "legs": [
+  [
+   "Glover Road",
+   ""
+  ],
+  [
+   "Alfred Rewane Road",
+   ""
+  ],
+  [
+   "Gerrard Road",
+   "Osborne Road",
+   ""
+  ],
+  [
+   "Thompson Avenue",
+   ""
+  ]
+ ],
+ "respect_oneway": false,
+ "oneway_streets": [
+  "Alfred Rewane Road"
+ ],
+ "hw": 6.0,
+ "smooth": 10
+}

@@ -41,8 +41,10 @@ func _run() -> void:
 			var hit := space.intersect_ray(q)
 			if hit.is_empty():
 				holes += 1
-			elif not (hit["collider"] is VehicleController) and absf(hit["position"].y - float(s[i]["elev_m"])) > 0.3:
+				if holes <= 6: print("[island_test]   hole %d o=%.1f none" % [i, o])
+			elif not (hit["collider"] is VehicleController or hit["collider"] is AnimatableBody3D) and absf(hit["position"].y - float(s[i]["elev_m"])) > 0.3:
 				holes += 1
+				if holes <= 6: print("[island_test]   hole %d o=%.1f y=%.2f %s" % [i, o, hit["position"].y, hit["collider"].name])
 	print("[island_test] road holes: %d" % holes)
 	if holes > 0:
 		_failures.append("%d road holes" % holes)

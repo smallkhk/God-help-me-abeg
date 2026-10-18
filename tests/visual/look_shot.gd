@@ -6,7 +6,8 @@ func _init() -> void:
 	await process_frame
 	root.get_node("Game").high_graphics = OS.get_environment("LOWGFX") != "1"
 	var tag := OS.get_environment("TAG")
-	var sc: Node = load("res://scenes/world/maps/island/island.tscn").instantiate()
+	var mp := OS.get_environment("MAP") if OS.get_environment("MAP") != "" else "island"
+	var sc: Node = load("res://scenes/world/maps/%s/%s.tscn" % [mp, mp]).instantiate()
 	root.add_child(sc)
 	current_scene = sc
 	for i in 10: await process_frame
