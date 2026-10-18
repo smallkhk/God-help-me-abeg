@@ -23,6 +23,13 @@ var _scan_t := 0.0
 var _last_pos := 0
 var _pend_pos := 0
 var _pend_t := 0.0
+const TAUNT_PASS := ["Comot for road!", "Oga shift!", "Na so you dey drive?", "Danfo driver pass you!", "Learner!", "See you for front o!", "Ehen! Who be oga now?"]
+const TAUNT_LOST := ["Ehn! You try o", "I go catch you!", "Na fluke!", "Wetin be this?", "No vex, I dey come", "Chai! My engine!", "Abeg slow down!"]
+var _sfx: AudioStreamPlayer
+var _start_armed := true        # perfect-start window not used yet
+var _early := false
+var _slip_t := 0.0
+var _slip_shown := false
 const NITRO := {"drift_per_s": 0.07, "near": 0.12, "overtake": 0.10, "air": 0.10}
 
 
@@ -40,6 +47,10 @@ func _ready() -> void:
 	_beep.stream = load("res://assets/audio/ui/click.ogg")
 	_beep.volume_db = 2.0
 	add_child(_beep)
+	_sfx = AudioStreamPlayer.new()
+	_sfx.stream = load("res://assets/audio/ui/slide.ogg")
+	_sfx.volume_db = -2.0
+	add_child(_sfx)
 
 
 func _label(size: int, col: Color) -> Label:
@@ -60,6 +71,9 @@ func popup(text: String, col: Color, nitro := 0.0) -> void:
 		p.nitro_amount = minf(p.nitro_amount + nitro, 1.0)
 	if OS.get_environment("FLAIR_LOG") == "1":
 		print("[flair] ", text, " nitro+", nitro)
+	if nitro > 0.0 and _sfx:
+		_sfx.pitch_scale = randf_range(1.0, 1.3)
+		_sfx.play()
 	var l := _label(34, col)
 	l.text = text + ("   +NITRO" if nitro > 0.0 else "")
 	l.anchor_left = 0.0; l.anchor_right = 1.0
@@ -92,6 +106,7 @@ func _process(delta: float) -> void:
 	_wrong_way(p)
 	_drift(p, delta)
 	_airtime(p, delta)
+	_slipstream(p, delta)
 	_scan_t -= delta
 	if _scan_t <= 0.0:
 		_scan_t = 0.08
@@ -106,6 +121,11 @@ func _countdown_fx(st: int) -> void:
 		return
 	if st == 1:   # COUNTDOWN
 		var c: float = rm.get("_countdown")
+		var pl := rm.get("_player") as VehicleController
+		if pl and pl.throttle_input > 0.5 and c > 0.45:
+			_early = true          # gas held too early: no perfect start
+		if pl and pl.throttle_input < 0.1 and c > 0.45:
+			_early = false
 		var n := ceili(c)
 		var frac: float = c - floorf(c)
 		cl.scale = Vector2.ONE * (1.0 + frac * 0.8)
@@ -119,6 +139,10 @@ func _countdown_fx(st: int) -> void:
 		if st == 2:
 			_beep.pitch_scale = 1.6
 			_beep.play()
+			var pl2 := rm.get("_player") as VehicleController
+			if pl2 and pl2.throttle_input > 0.5 and not _early:
+				popup("PERFECT START!", Color(0.3, 1.0, 0.9), 0.35)
+			_early = false
 			cl.modulate = Color(0.3, 1.0, 0.4)
 			cl.scale = Vector2(1.6, 1.6)
 			var tw := cl.create_tween()
@@ -157,6 +181,69 @@ func _drift(p: VehicleController, delta: float) -> void:
 				stats["best_drift"] = maxf(stats["best_drift"], _drift_t)
 				popup("DRIFT  %.1f s" % _drift_t, Color(1.0, 0.55, 0.15), 0.04)
 			_drift_t = 0.0
+
+
+# --- SLIPSTREAM: tucked in 4-22 m behind a rival at > 80 km/h ---
+func _slipstream(p: VehicleController, delta: float) -> void:
+	var b := p.global_transform.basis
+	var sp := p.linear_velocity.length()
+	var tucked := false
+	if sp > 22.0:
+		for r in rm.get("_rivals"):
+			if not is_instance_valid(r):
+				continue
+			var rel: Vector3 = r.global_position - p.global_position
+			var z := rel.dot(b.z)
+			if z > 4.0 and z < 22.0 and absf(rel.dot(b.x)) < 1.6:
+				tucked = true
+				break
+	if tucked:
+		_slip_t += delta
+		# the car ahead takes the air: ~40 % less drag
+		p.apply_central_force(p.linear_velocity.normalized() * p.data.drag_coefficient * 1.35 * sp * sp * 0.4)
+		p.nitro_amount = minf(p.nitro_amount + 0.04 * delta, 1.0)
+		if _slip_t > 0.8 and not _slip_shown:
+			_slip_shown = true
+			popup("SLIPSTREAM", Color(0.7, 0.8, 1.0))
+	else:
+		_slip_t = 0.0
+		_slip_shown = false
+
+
+## A rival shouts something Lagos-style from its car (speech bubble above it).
+func taunt(rival: Node3D, lost: bool) -> void:
+	if rival == null or not is_instance_valid(rival):
+		return
+	var lines: Array = TAUNT_LOST if lost else TAUNT_PASS
+	var lb := Label3D.new()
+	lb.text = "%s: %s" % [String(rival.name).trim_prefix("Rival_"), lines[randi() % lines.size()]]
+	lb.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	lb.no_depth_test = true
+	lb.font_size = 64
+	lb.pixel_size = 0.012
+	lb.outline_size = 14
+	lb.modulate = Color(1.0, 0.92, 0.3)
+	lb.position = Vector3(0, 2.9, 0)
+	rival.add_child(lb)
+	var tw := lb.create_tween()
+	tw.tween_interval(2.2)
+	tw.tween_property(lb, "modulate:a", 0.0, 0.5)
+	tw.tween_callback(lb.queue_free)
+
+
+func _nearest_rival(p: VehicleController, ahead: bool) -> Node3D:
+	var best: Node3D = null
+	var bd := INF
+	for r in rm.get("_rivals"):
+		if not is_instance_valid(r):
+			continue
+		var rel: Vector3 = r.global_position - p.global_position
+		var z := rel.dot(p.global_transform.basis.z)
+		if (z > 0.0) != ahead:
+			continue
+		if rel.length() < bd:
+			bd = rel.length(); best = r
+	return best
 
 
 # --- AIRTIME ---
@@ -213,11 +300,16 @@ func _position_toast() -> void:
 	if _pend_t < 1.0:
 		return
 	if _last_pos > 0 and pos != _last_pos:
+		var pl := rm.get("_player") as VehicleController
 		if pos < _last_pos:
 			stats["overtake"] += 1
 			popup("OVERTAKE!  %s" % _ord(pos), Color(0.4, 1.0, 0.45), NITRO["overtake"])
+			if pl and randf() < 0.7:
+				taunt(_nearest_rival(pl, false), true)   # the one you just passed
 		else:
 			popup("▼  %s" % _ord(pos), Color(1.0, 0.35, 0.3))
+			if pl and randf() < 0.8:
+				taunt(_nearest_rival(pl, true), false)   # the one who passed you
 	_last_pos = pos
 
 

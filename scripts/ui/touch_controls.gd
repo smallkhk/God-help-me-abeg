@@ -12,11 +12,16 @@ const BTN := [
 	["brake", "BRAKE", 1, 340, 120, 70],
 	["handbrake", "DRIFT", 1, 340, 300, 60],
 	["nitro", "N2O", 1, 140, 380, 65],
+	["horn", "HORN", 1, 520, 110, 50],
 ]
 
 
 func _ready() -> void:
 	layer = 20
+	if not InputMap.has_action("horn"):
+		InputMap.add_action("horn")
+		var ev := InputEventKey.new(); ev.physical_keycode = KEY_H
+		InputMap.action_add_event("horn", ev)
 	# whole layer (incl. labels) only on touch devices
 	visible = DisplayServer.is_touchscreen_available() or OS.has_feature("mobile")
 	var vp := get_viewport().get_visible_rect().size
@@ -44,7 +49,7 @@ func _ready() -> void:
 		tsb.add_child(lbl)
 		add_child(tsb)
 	# camera / day-sunset-night / rain buttons along the top
-	for a in [["time_next", KEY_N], ["weather_toggle", KEY_Y]]:
+	for a in [["time_next", KEY_N], ["weather_toggle", KEY_Y], ["horn", KEY_H]]:
 		if not InputMap.has_action(a[0]):
 			InputMap.add_action(a[0])
 	var top := [["camera_next", "CAM"], ["time_next", "DAY/NIGHT"], ["weather_toggle", "RAIN"]]

@@ -8,6 +8,7 @@ extends Node
 @export var manual_shifting: bool = false
 
 var _vehicle: VehicleController
+var _horn: AudioStreamPlayer3D
 
 
 func _ready() -> void:
@@ -25,6 +26,10 @@ func _ready() -> void:
 	var fx := CarFX.new()
 	fx.vehicle = _vehicle
 	_vehicle.add_child.call_deferred(fx)
+	_horn = AudioStreamPlayer3D.new()
+	_horn.stream = load("res://assets/audio/horn.ogg")
+	_horn.unit_size = 12.0
+	_vehicle.add_child.call_deferred(_horn)
 
 
 func _physics_process(_delta: float) -> void:
@@ -39,6 +44,8 @@ func _physics_process(_delta: float) -> void:
 	var handbrake := Input.is_action_pressed("handbrake")
 	_vehicle.set_driver_input(throttle, brake, steer, handbrake)
 	_vehicle.nitro_input = Input.is_action_pressed("nitro")
+	if InputMap.has_action("horn") and Input.is_action_just_pressed("horn") and _horn and _horn.is_inside_tree():
+		_horn.play()
 
 	if manual_shifting:
 		_vehicle.transmission.automatic = false
