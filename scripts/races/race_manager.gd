@@ -358,7 +358,7 @@ func _finish() -> void:
 		place_txt += "Best lap: %s\n" % _fmt(_best_lap)
 	var st: Dictionary = _flair.get("stats") if _flair else {}
 	if not st.is_empty():
-		place_txt += "Drifts %d   ·   Near misses %d   ·   Overtakes %d\n" % [st["drift"], st["near"], st["overtake"]]
+		place_txt += "Drifts %d   ·   Near misses %d   ·   Overtakes %d   ·   Spin outs %d\n" % [st["drift"], st["near"], st["overtake"], int(st.get("takedown", 0))]
 	_results.text = "%sTime: %s\nBest: %s%s" % [
 		place_txt, _fmt(final_time), _fmt(best),
 		"   (NEW BEST!)" if is_best else "",

@@ -78,6 +78,14 @@ var nitro_active := false
 var nitro_capacity_s := 2.5      # seconds of boost on a full tank
 var nitro_power := 0.55          # extra drive force fraction while boosting
 
+# --- knocks (PIT / side slam): the player's hits unsettle rivals ---
+var knocked_t := 0.0             # > 0: off balance, no anti-spin, loose rear
+var spun_out := false            # set when a knock leaves the car sideways (RaceFlair reads + clears)
+var _knock_beta := false
+var _knock_k := 0.0              # 0..1 how hard the last knock was
+var _prev_vel := Vector3.ZERO
+var _knock_cd := {}              # rival instance id -> time of last knock
+
 
 ## Player upgrades (garage): engine = more drive force, tyres = more grip,
 ## nitro = bigger tank + stronger boost. Works on a copy of the shared data.
@@ -384,7 +392,13 @@ func _physics_process(delta: float) -> void:
 		_apply_tyre_force(w, offset, up, driven_count, grip_scale, delta)
 
 	_apply_body_aero(delta, speed, fwd, up)
-	_apply_stability_assist(delta, up)
+	if knocked_t > 0.0:
+		_knocked_step(delta)
+	else:
+		_apply_stability_assist(delta, up)
+	if is_player and contact_monitor:
+		_check_hits()
+	_prev_vel = linear_velocity
 	if handling_v2:
 		_roll_stabiliser()
 	_update_wheel_visuals(delta, hit_info)
@@ -446,6 +460,8 @@ func _apply_tyre_force(w: Wheel, offset: Vector3, up: Vector3, driven_count: int
 	var lat_grip := (data.lateral_grip_front * GRIP_BONUS if w.is_front else data.lateral_grip_rear * GRIP_BONUS * 1.08) * grip_scale
 	if handling_v2:
 		lat_grip = (data.lateral_grip_front if w.is_front else data.lateral_grip_rear * 1.04) * V2_LAT_MU * grip_scale
+	if w.is_rear and knocked_t > 0.0:
+		lat_grip *= lerpf(0.85, 0.5, _knock_k)   # knocked: the rear lets go
 	if w.is_rear and handbrake_input:
 		lat_grip *= data.handbrake_grip_fraction * (0.6 if handling_v2 else 1.0)
 	# Load sensitivity (real tyres): grip coefficient drops as load rises, so
@@ -658,6 +674,57 @@ func _v2_stability(up: Vector3) -> void:
 		if absf(beta) > 0.14:
 			torque += (beta - signf(beta) * 0.14) * s * mass * 3.0
 	apply_torque(up * torque)
+
+
+## The player rammed another car: judge the hit from the speeds just before
+## contact. A sideways shove or a hit on a rear quarter (PIT) knocks the AI car
+## off balance; the push is applied at the contact point so it yaws for real.
+func _check_hits() -> void:
+	var now := Time.get_ticks_msec() / 1000.0
+	for b in get_colliding_bodies():
+		var r := b as VehicleController
+		if r == null or r.is_player or now - float(_knock_cd.get(r.get_instance_id(), -9.0)) < 1.2:
+			continue
+		var rb := r.global_transform.basis
+		var rel := _prev_vel - r._prev_vel
+		var lat := rel.dot(rb.x)                        # how hard we shove it sideways
+		var off := (global_position - r.global_position).dot(rb.z)   # + front, - rear of it
+		var closing := rel.dot((r.global_position - global_position).normalized())
+		if closing < 0.6 or (absf(lat) < 0.9 and not (off < -1.0 and closing > 3.0)):
+			continue
+		_knock_cd[r.get_instance_id()] = now
+		r.knock(clampf(maxf(absf(lat) * 3.5, closing * 1.5), 0.0, 12.0), signf(lat) if absf(lat) > 0.5 else signf((global_position - r.global_position).dot(rb.x)) * -1.0, off)
+
+
+## Hit by the player: stability control "trips" for a moment and the car
+## gets a yaw kick that grows with the hit and with how far back it landed.
+func knock(strength: float, side: float, off: float) -> void:
+	if is_player or strength < 1.5:
+		return
+	var up := global_transform.basis.y
+	var rb := global_transform.basis
+	_knock_k = clampf((strength - 2.5) / 4.5, 0.0, 1.0)
+	knocked_t = lerpf(0.6, 2.0, _knock_k)
+	_knock_beta = false
+	# sideways shove at the contact point (rear hit -> it rotates round its nose)
+	var lever := clampf(-off, -2.0, 2.0)
+	if lever < -0.3:
+		_knock_k *= 0.45       # a hit on the nose turns it, the rear keeps its grip
+		knocked_t = lerpf(0.6, 2.0, _knock_k)
+	apply_impulse(rb.x * side * mass * minf(strength, 8.0) * 0.18, rb.z * -lever)
+	# yaw: a push on the rear right swings the tail left (nose right), and so on
+	var yaw := side * (1.2 + maxf(lever, 0.0) * 0.3) * lerpf(0.25, 1.4, _knock_k)
+	angular_velocity += up * yaw * (-1.0 if lever >= -0.3 else 0.3)
+
+
+func _knocked_step(delta: float) -> void:
+	knocked_t -= delta
+	var v := linear_velocity - global_transform.basis.y * linear_velocity.dot(global_transform.basis.y)
+	if not _knock_beta and v.length() > 4.0:
+		var beta := atan2(v.dot(global_transform.basis.x), v.dot(global_transform.basis.z))
+		if absf(beta) > 0.9:
+			_knock_beta = true
+			spun_out = true
 
 
 ## v2: with the CoM at its real height a car trips easily over a kerb or a

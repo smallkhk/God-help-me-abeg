@@ -133,6 +133,9 @@ func _physics_process(delta: float) -> void:
 
 	var throttle := 1.0 if speed < safe else 0.0
 	var brake := clampf((speed - safe) / 3.0, 0.35, 1.0) if speed > safe + 1.0 else 0.0
+	if _vehicle.knocked_t > 0.0:
+		throttle *= 0.25        # knocked off balance: lifts and fights the wheel
+		brake *= 0.3
 	_vehicle.set_driver_input(throttle, brake, steer, false)
 
 

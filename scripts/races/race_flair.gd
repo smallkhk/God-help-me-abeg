@@ -30,7 +30,8 @@ var _start_armed := true        # perfect-start window not used yet
 var _early := false
 var _slip_t := 0.0
 var _slip_shown := false
-const NITRO := {"drift_per_s": 0.07, "near": 0.12, "overtake": 0.10, "air": 0.10}
+const NITRO := {"drift_per_s": 0.07, "near": 0.12, "overtake": 0.10, "air": 0.10, "takedown": 0.2}
+const TAUNT_HIT := ["Chai! My motor!", "You wan kill me?!", "Na wa o, rough play!", "I go report you to LASTMA!", "Oga, my side mirror!"]
 
 
 func _ready() -> void:
@@ -107,6 +108,7 @@ func _process(delta: float) -> void:
 	_drift(p, delta)
 	_airtime(p, delta)
 	_slipstream(p, delta)
+	_takedowns()
 	_scan_t -= delta
 	if _scan_t <= 0.0:
 		_scan_t = 0.08
@@ -212,9 +214,12 @@ func _slipstream(p: VehicleController, delta: float) -> void:
 
 ## A rival shouts something Lagos-style from its car (speech bubble above it).
 func taunt(rival: Node3D, lost: bool) -> void:
+	_say(rival, TAUNT_LOST if lost else TAUNT_PASS)
+
+
+func _say(rival: Node3D, lines: Array) -> void:
 	if rival == null or not is_instance_valid(rival):
 		return
-	var lines: Array = TAUNT_LOST if lost else TAUNT_PASS
 	var lb := Label3D.new()
 	lb.text = "%s: %s" % [String(rival.name).trim_prefix("Rival_"), lines[randi() % lines.size()]]
 	lb.billboard = BaseMaterial3D.BILLBOARD_ENABLED
@@ -244,6 +249,18 @@ func _nearest_rival(p: VehicleController, ahead: bool) -> Node3D:
 		if rel.length() < bd:
 			bd = rel.length(); best = r
 	return best
+
+
+# --- SPIN OUT: a rival you knocked ended up sideways ---
+func _takedowns() -> void:
+	for r in rm.get("_rivals"):
+		var v := r as VehicleController
+		if v == null or not is_instance_valid(v) or not v.spun_out:
+			continue
+		v.spun_out = false
+		stats["takedown"] = int(stats.get("takedown", 0)) + 1
+		popup("SPIN OUT!", Color(1.0, 0.45, 0.2), NITRO["takedown"])
+		_say(v, TAUNT_HIT)
 
 
 # --- AIRTIME ---
