@@ -1892,6 +1892,18 @@ func _build_district(root: Node3D) -> void:
 			models[key] = []
 		rng.seed = int(t[0] * 31.0 + t[1] * 17.0)
 		models[key].append(Transform3D(Basis(Vector3.UP, rng.randf() * TAU).scaled(Vector3.ONE * rng.randf_range(0.85, 1.1)), Vector3(t[0], GROUND_Y, t[1])))
+	# frontage fill (fill_frontage.py): [model, x, lift, z, yaw, scale, (depth, width)]
+	for pr in chunk.get("props", []):
+		var key: String = pr[0]
+		if not models.has(key):
+			models[key] = []
+		var yaw: float = pr[4]
+		models[key].append(Transform3D(Basis(Vector3.UP, yaw).scaled(Vector3.ONE * float(pr[5])), Vector3(pr[1], GROUND_Y + float(pr[2]), pr[3])))
+		if pr.size() >= 8:
+			var fx := Vector2(cos(yaw), -sin(yaw)) * float(pr[6]) * 0.5
+			var fz := Vector2(sin(yaw), cos(yaw)) * float(pr[7]) * 0.5
+			var c2 := Vector2(pr[1], pr[3])
+			_wall_faces(faces, PackedVector2Array([c2 + fx + fz, c2 - fx + fz, c2 - fx - fz, c2 + fx - fz]), GROUND_Y - 0.3, GROUND_Y + 4.0)
 	if not models.is_empty():
 		_spawn_model_instances(root, models)
 	if not faces.is_empty():
