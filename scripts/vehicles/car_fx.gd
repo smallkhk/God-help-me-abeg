@@ -42,6 +42,7 @@ func _ready() -> void:
 		_heads.append(l)
 	add_contact_shadow(vehicle)
 	_setup_reflections()
+	_setup_sparks()
 	# brake / tail lights: light up the model's own tail-light surfaces (the old
 	# add-on red boxes floated above the boot)
 	_find_tail_lights()
@@ -151,6 +152,49 @@ func _ready() -> void:
 	mmi.top_level = true
 	mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(mmi)
+
+
+## Metal-on-metal sparks: one burst at the contact point per hit.
+var _sparks: CPUParticles3D
+func _setup_sparks() -> void:
+	_sparks = CPUParticles3D.new()
+	_sparks.top_level = true
+	_sparks.emitting = false
+	_sparks.one_shot = true
+	_sparks.explosiveness = 0.95
+	_sparks.amount = 40
+	_sparks.lifetime = 0.45
+	_sparks.direction = Vector3.UP
+	_sparks.spread = 75.0
+	_sparks.initial_velocity_min = 4.0
+	_sparks.initial_velocity_max = 11.0
+	_sparks.gravity = Vector3(0, -14.0, 0)
+	_sparks.scale_amount_min = 0.5
+	_sparks.scale_amount_max = 1.0
+	var q := QuadMesh.new()
+	q.size = Vector2(0.05, 0.22)
+	var m := StandardMaterial3D.new()
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
+	m.albedo_color = Color(1.0, 0.75, 0.3)
+	m.emission_enabled = true
+	m.emission = Color(1.0, 0.6, 0.15)
+	m.emission_energy_multiplier = 4.0
+	m.vertex_color_use_as_albedo = true
+	q.material = m
+	_sparks.mesh = q
+	var g := Gradient.new()
+	g.set_color(0, Color(1.0, 0.95, 0.7, 1.0))
+	g.set_color(1, Color(1.0, 0.35, 0.05, 0.0))
+	_sparks.color_ramp = g
+	add_child(_sparks)
+	vehicle.impact.connect(_on_impact)
+
+
+func _on_impact(point: Vector3, strength: float) -> void:
+	_sparks.global_position = point
+	_sparks.amount = clampi(int(strength * 6.0), 12, 60)
+	_sparks.restart()
 
 
 func _process(_delta: float) -> void:

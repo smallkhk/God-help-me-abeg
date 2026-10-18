@@ -261,6 +261,20 @@ func _takedowns() -> void:
 		stats["takedown"] = int(stats.get("takedown", 0)) + 1
 		popup("SPIN OUT!", Color(1.0, 0.45, 0.2), NITRO["takedown"])
 		_say(v, TAUNT_HIT)
+		_slowmo()
+
+
+## Brief slow motion so you see the rival spin (half a second, real time).
+func _slowmo() -> void:
+	if Engine.time_scale < 1.0:
+		return
+	Engine.time_scale = 0.4
+	await get_tree().create_timer(0.55, true, false, true).timeout
+	Engine.time_scale = 1.0
+
+
+func _exit_tree() -> void:
+	Engine.time_scale = 1.0
 
 
 # --- AIRTIME ---

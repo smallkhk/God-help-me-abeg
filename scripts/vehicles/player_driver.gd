@@ -23,6 +23,8 @@ func _ready() -> void:
 	var audio := CarAudio.new()
 	audio.vehicle = _vehicle
 	_vehicle.add_child.call_deferred(audio)
+	_vehicle.contact_monitor = true      # impacts: sparks, camera jolt, knocking rivals
+	_vehicle.max_contacts_reported = maxi(_vehicle.max_contacts_reported, 4)
 	var fx := CarFX.new()
 	fx.vehicle = _vehicle
 	_vehicle.add_child.call_deferred(fx)

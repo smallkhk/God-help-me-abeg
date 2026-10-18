@@ -78,6 +78,10 @@ var nitro_active := false
 var nitro_capacity_s := 2.5      # seconds of boost on a full tank
 var nitro_power := 0.55          # extra drive force fraction while boosting
 
+## Player car hit something hard: world point + speed change (m/s). CarFX
+## throws sparks, the chase camera jolts.
+signal impact(point: Vector3, strength: float)
+
 # --- knocks (PIT / side slam): the player's hits unsettle rivals ---
 var knocked_t := 0.0             # > 0: off balance, no anti-spin, loose rear
 var spun_out := false            # set when a knock leaves the car sideways (RaceFlair reads + clears)
@@ -85,6 +89,7 @@ var _knock_beta := false
 var _knock_k := 0.0              # 0..1 how hard the last knock was
 var _prev_vel := Vector3.ZERO
 var _knock_cd := {}              # rival instance id -> time of last knock
+var _impact_t := -9.0
 
 
 ## Player upgrades (garage): engine = more drive force, tyres = more grip,
@@ -681,6 +686,15 @@ func _v2_stability(up: Vector3) -> void:
 ## off balance; the push is applied at the contact point so it yaws for real.
 func _check_hits() -> void:
 	var now := Time.get_ticks_msec() / 1000.0
+	if get_contact_count() > 0:
+		# sudden change of velocity (not gravity / tyres) = a hit
+		var dv := linear_velocity - _prev_vel
+		dv.y = 0.0
+		var hit := dv.length()
+		if hit > 1.2 and now - _impact_t > 0.25:
+			_impact_t = now
+			var dir := -dv.normalized()          # the push came from that side
+			impact.emit(global_position + dir * 1.1 + global_transform.basis.y * 0.45, hit)
 	for b in get_colliding_bodies():
 		var r := b as VehicleController
 		if r == null or r.is_player or now - float(_knock_cd.get(r.get_instance_id(), -9.0)) < 1.2:
@@ -693,6 +707,9 @@ func _check_hits() -> void:
 		if closing < 0.6 or (absf(lat) < 0.9 and not (off < -1.0 and closing > 3.0)):
 			continue
 		_knock_cd[r.get_instance_id()] = now
+		if now - _impact_t > 0.25:
+			_impact_t = now
+			impact.emit((global_position + r.global_position) * 0.5 + rb.y * 0.5, maxf(absf(lat) * 3.0, 3.0))
 		r.knock(clampf(maxf(absf(lat) * 3.5, closing * 1.5), 0.0, 12.0), signf(lat) if absf(lat) > 0.5 else signf((global_position - r.global_position).dot(rb.x)) * -1.0, off)
 
 

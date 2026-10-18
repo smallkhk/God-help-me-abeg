@@ -26,6 +26,10 @@ func _mk(id: StringName, pos: Vector3, player: bool) -> VehicleController:
 	if player:
 		c.contact_monitor = true
 		c.max_contacts_reported = 4
+		var fx := CarFX.new()       # exercises the impact sparks
+		fx.vehicle = c
+		c.add_child(fx)
+		c.impact.connect(func(_pt: Vector3, s: float) -> void: print("[pit] impact %.1f m/s" % s))
 	return c
 
 

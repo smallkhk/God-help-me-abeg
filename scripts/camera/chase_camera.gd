@@ -30,6 +30,7 @@ var _prev_speed := 0.0
 var _t := 0.0
 var _streaks: ColorRect
 var _streak_k := 0.0
+var _jolt := 0.0          # impact shake (m), decays fast
 
 # Local mount offsets for the non-chase views (tuned to the sample car).
 const HOOD_OFFSET := Vector3(0.0, 1.1, 0.6)
@@ -46,6 +47,7 @@ func _ready() -> void:
 	far = 1100.0 if (g == null or g.get("high_graphics")) else 750.0
 	if _target:
 		_cam_pos = _target.global_position
+		_target.impact.connect(func(_p: Vector3, s: float) -> void: _jolt = maxf(_jolt, minf(s * 0.025, 0.22)))
 	top_level = true  # we set global transform ourselves
 
 
@@ -118,6 +120,9 @@ func _physics_process(delta: float) -> void:
 		if spd > 30.0:
 			var amt := minf((spd - 30.0) * 0.0009, 0.025) * (1.6 if _target.nitro_active else 1.0)
 			global_position += Vector3(sin(_t * 23.0) + 0.5 * sin(_t * 41.0), sin(_t * 29.0 + 1.3) + 0.5 * sin(_t * 53.0), 0.0) * amt
+		if _jolt > 0.002:
+			global_position += Vector3(sin(_t * 61.0), sin(_t * 47.0 + 0.7), sin(_t * 53.0 + 2.1)) * _jolt
+			_jolt *= exp(-9.0 * delta)
 
 		var vel := _target.linear_velocity
 		var ahead := xf.origin + fwd * look_ahead
