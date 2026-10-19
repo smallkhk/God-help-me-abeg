@@ -3,7 +3,8 @@ extends Resource
 ## Data-driven race event definition (spec §11). An event references a track and
 ## the rules; the race manager reads it so new events = new .tres files, no code.
 
-enum Kind { SPRINT, CIRCUIT, DRAG }
+enum Kind { SPRINT, CIRCUIT, DRAG, KNOCKOUT }
+## KNOCKOUT: circuit where the last car is eliminated every lap; last one standing wins.
 
 @export var event_id: StringName = &"bridge_test_sprint"
 @export var display_name: String = "Bridge Test Sprint"

@@ -15,6 +15,9 @@ var _hist: Array = []
 func _ready() -> void:
 	if OS.get_environment("V2") != "":
 		VehicleController.handling_v2 = OS.get_environment("V2") == "1"
+	# EVENT=res://data/events/ikoyi_knockout.tres: race another event on this map
+	if OS.get_environment("EVENT") != "":
+		$LagosIsland.get_node("RaceManager").event = load(OS.get_environment("EVENT"))
 	_run.call_deferred()
 
 
@@ -83,7 +86,8 @@ func _run() -> void:
 	var lowest := 99.0
 	var last := car.global_position
 	var still := 0.0
-	while t < MAX_SECONDS and rm._state != 3:
+	var max_s := float(OS.get_environment("MAX_S")) if OS.get_environment("MAX_S") != "" else MAX_SECONDS
+	while t < max_s and rm._state != 3:
 		await get_tree().physics_frame
 		t += 1.0 / 60.0
 		lowest = minf(lowest, car.global_position.y)
@@ -109,9 +113,11 @@ func _run() -> void:
 			if still > 20.0:
 				_failures.append("car stuck at %s" % car.global_position)
 				break
+	if rm._knockout:
+		print("[island_test] knockout: %s, eliminated %d, %d rivals left" % [rm._results_title.text, rm._ko_out, rm._rivals.size()])
 	print("[island_test] race state=%d laps=%d/%d time=%.1f best_lap=%.1f lowest_y=%.2f" % [rm._state, rm._lap, rm._laps, rm._elapsed, rm._best_lap, lowest])
 	if rm._state != 3:
-		_failures.append("race not finished in %.0f s" % MAX_SECONDS)
+		_failures.append("race not finished in %.0f s" % max_s)
 	if lowest < 1.5:
 		_failures.append("car fell below the road (y %.2f)" % lowest)
 	if _failures.is_empty():

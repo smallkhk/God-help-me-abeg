@@ -59,6 +59,10 @@ var _lanes: Array[float] = []
 var _elapsed_banner := 0.0
 var _fall_check := 0.0
 var player_position := 0          # 1 = leading (0 = no rivals)
+# --- knockout: last car out every lap ---
+var _knockout := false
+var _ko_out := 0                  # eliminations so far
+var _ko_gone: Array[VehicleController] = []
 var _flair: Node   # RaceFlair
 const _FLAIR := preload("res://scripts/races/race_flair.gd")
 var _results_layer: CanvasLayer
@@ -119,6 +123,9 @@ func _initialize() -> void:
 			if _loop:
 				# street circuit: every gate, the last one is the start/finish line
 				_laps = maxi(1, event.laps if event else 1)
+				_knockout = event != null and event.kind == RaceEvent.Kind.KNOCKOUT
+				if _knockout:
+					_laps = 99          # the race ends by elimination, not at a lap count
 				for cp in chunk.get("checkpoints", []):
 					var c2: Dictionary = cp.duplicate()
 					c2["index"] = cps.size()
@@ -222,6 +229,12 @@ func _reset_to_idle() -> void:
 		_player.set_driver_input(0, 0, 0, false)
 	_finish_order.clear()
 	_player_prog = _start_idx
+	_ko_out = 0
+	for car in _ko_gone:         # retry: eliminated cars come back
+		car.visible = true
+		car.process_mode = Node.PROCESS_MODE_INHERIT
+		_rivals.append(car)
+	_ko_gone.clear()
 	_place_rivals()
 	# no "press to start" wait: the short countdown starts right away
 	if not _free:
@@ -282,7 +295,12 @@ func _process(delta: float) -> void:
 			if _center_label.text != "" and _elapsed - _elapsed_banner > 1.5:
 				_center_label.text = ""
 			_update_positions()
-			if _loop:
+			if _knockout:
+				_knockout_step()
+				if _state != State.RUNNING:
+					return
+				_lap_label.text = "KNOCKOUT · LAP %d   %d LEFT   %s" % [_lap + 1, _rivals.size() + 1, _fmt(_elapsed - _lap_start)]
+			elif _loop:
 				_lap_label.text = "LAP %d/%d   %s" % [mini(_lap + 1, _laps), _laps, _fmt(_elapsed - _lap_start)]
 				if _best_lap > 0.0:
 					_lap_label.text += "\nBEST LAP %s" % _fmt(_best_lap)
@@ -472,6 +490,7 @@ func _place_rivals() -> void:
 		car.angular_velocity = Vector3.ZERO
 		car.global_transform = Transform3D(Basis(Vector3.UP, h), pos)
 		car.reset_state()
+		car.damage = 0.0
 		var d := car.get_node("RivalDriver") as RivalDriver
 		d.active = false
 		d.finished = false
@@ -480,6 +499,49 @@ func _place_rivals() -> void:
 		d.lane_offset = lane
 		if _finish_idx > 0:
 			d.finish_idx = _finish_idx
+
+
+## Every time the leader completes a lap, the car in last place is out.
+## The player out = race over (place = cars still running + 1); the last
+## rival out = the player wins.
+func _knockout_step() -> void:
+	var m := _route.size() - 1
+	var mine := _player_wraps * m + _player_prog
+	var lead := mine
+	var last: VehicleController = null
+	var last_p := 1 << 30
+	for r in _rivals:
+		var d := r.get_node("RivalDriver") as RivalDriver
+		var p := d.wraps * m + d.progress
+		lead = maxi(lead, p)
+		if p < last_p:
+			last_p = p
+			last = r
+	if floori(float(lead - _start_idx) / m) <= _ko_out:
+		return
+	_ko_out += 1
+	if mine < last_p or last == null:
+		# you were last
+		_finish_order.clear()
+		for k in _rivals.size():
+			_finish_order.append("ahead")
+		_finish()
+		_results_title.text = "ELIMINATED!"
+		_results_title.add_theme_color_override("font_color", Color(1.0, 0.3, 0.2))
+		return
+	if _rivals.size() == 1:
+		_finish_order.clear()
+		_finish()
+		_results_title.text = "LAST ONE STANDING!"
+		return
+	_rivals.erase(last)
+	_ko_gone.append(last)
+	last.visible = false
+	last.process_mode = Node.PROCESS_MODE_DISABLED
+	_center_label.text = "%s ELIMINATED!" % String(last.name).trim_prefix("Rival_").to_upper()
+	_elapsed_text_hold()
+	if _flair:
+		_flair.call("popup", "%d LEFT" % (_rivals.size() + 1), Color(1.0, 0.45, 0.2))
 
 
 func _update_positions() -> void:

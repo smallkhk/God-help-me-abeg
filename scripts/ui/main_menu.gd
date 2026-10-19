@@ -17,6 +17,8 @@ const RACES := [
 		"scene": "res://scenes/world/maps/vi/vi.tscn", "id": "vi_circuit", "event": "res://data/events/vi_circuit.tres", "map": "vi"},
 	{"name": "Ikoyi", "type": "Circuit Race", "loc": "Real streets: Glover · Kingsway (Alfred Rewane) · Gerrard · Osborne · Thompson · 3 laps", "km": 2.0, "tile": "circuit", "track": "ikoyi_circuit",
 		"scene": "res://scenes/world/maps/ikoyi/ikoyi.tscn", "id": "ikoyi_circuit", "event": "res://data/events/ikoyi_circuit.tres", "map": "ikoyi"},
+	{"name": "Ikoyi Knockout", "type": "Knockout", "loc": "Last car out every lap · last one standing wins · Glover · Kingsway · Gerrard · Thompson", "km": 2.0, "tile": "circuit", "track": "ikoyi_circuit",
+		"scene": "res://scenes/world/maps/ikoyi/ikoyi.tscn", "id": "ikoyi_knockout", "event": "res://data/events/ikoyi_knockout.tres", "map": "ikoyi"},
 	{"name": "Hills Loop", "type": "Circuit Race", "loc": "Hills outside Lagos", "km": 1.8, "tile": "hills", "track": "hills_sprint",
 		"scene": "res://scenes/world/maps/hills/hills.tscn", "id": "hills_sprint", "event": "res://data/events/hills_sprint.tres"},
 	{"name": "Bush Trail", "type": "Off-road", "loc": "Laterite trail through the bush", "km": 2.0, "tile": "offroad", "track": "offroad_trail",
@@ -489,7 +491,7 @@ func _build_map() -> Control:
 		for i in RACES.size():
 			if RACES[i].get("map", "") == key:
 				if RACES[i].get("free", false): sel["roam"] = i
-				else: sel["race"] = i
+				elif sel["race"] < 0: sel["race"] = i   # the map's main race (not its knockout)
 		var ri: int = sel["race"] if sel["race"] >= 0 else sel["roam"]
 		var r: Dictionary = RACES[ri]
 		nm.text = title_.to_upper()

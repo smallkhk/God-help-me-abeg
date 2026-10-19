@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="RaceEvent" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/races/race_event.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+event_id = &"ikoyi_knockout"
+display_name = "Ikoyi Knockout"
+kind = 3
+laps = 5
+countdown = 1.5
+reward_naira = 1800000
+allowed_classes = "any"
+time_of_day = "sunset"
+weather = "clear"
