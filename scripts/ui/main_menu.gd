@@ -19,6 +19,8 @@ const RACES := [
 		"scene": "res://scenes/world/maps/ikoyi/ikoyi.tscn", "id": "ikoyi_circuit", "event": "res://data/events/ikoyi_circuit.tres", "map": "ikoyi"},
 	{"name": "Ikoyi Knockout", "type": "Knockout", "loc": "Last car out every lap · last one standing wins · Glover · Kingsway · Gerrard · Thompson", "km": 2.0, "tile": "circuit", "track": "ikoyi_circuit",
 		"scene": "res://scenes/world/maps/ikoyi/ikoyi.tscn", "id": "ikoyi_knockout", "event": "res://data/events/ikoyi_knockout.tres", "map": "ikoyi"},
+	{"name": "New York I-95", "type": "Circuit Race", "loc": "USA · Washington Heights, Manhattan: avenue sprint, the flyover loop over I-95, back through the blocks · 3 laps", "km": 2.3, "tile": "circuit", "track": "nyc_circuit",
+		"scene": "res://scenes/world/maps/nyc/nyc.tscn", "id": "nyc_circuit", "event": "res://data/events/nyc_circuit.tres"},
 	{"name": "Hills Loop", "type": "Circuit Race", "loc": "Hills outside Lagos", "km": 1.8, "tile": "hills", "track": "hills_sprint",
 		"scene": "res://scenes/world/maps/hills/hills.tscn", "id": "hills_sprint", "event": "res://data/events/hills_sprint.tres"},
 	{"name": "Bush Trail", "type": "Off-road", "loc": "Laterite trail through the bush", "km": 2.0, "tile": "offroad", "track": "offroad_trail",

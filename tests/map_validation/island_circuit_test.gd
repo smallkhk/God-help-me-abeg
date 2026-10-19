@@ -118,7 +118,10 @@ func _run() -> void:
 	print("[island_test] race state=%d laps=%d/%d time=%.1f best_lap=%.1f lowest_y=%.2f" % [rm._state, rm._lap, rm._laps, rm._elapsed, rm._best_lap, lowest])
 	if rm._state != 3:
 		_failures.append("race not finished in %.0f s" % max_s)
-	if lowest < 1.5:
+	var floor_y := 99.0          # lowest point of the route (ramps dip below street level)
+	for smp in s:
+		floor_y = minf(floor_y, float(smp["elev_m"]))
+	if lowest < minf(floor_y, 2.0) - 0.5:
 		_failures.append("car fell below the road (y %.2f)" % lowest)
 	if _failures.is_empty():
 		print("[island_test] PASS")

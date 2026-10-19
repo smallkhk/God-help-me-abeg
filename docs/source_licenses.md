@@ -131,3 +131,6 @@ heights applied to footprints by tools/lagos_map_pipeline/apply_google_25d_heigh
   - assets/ui/menu_home.jpg — key-art image supplied by the project owner (painted buttons removed, edges extended, 2x upscale).
   - assets/ui/lagos_map.json — route lines traced from this project's map data (OpenStreetMap-derived, ODbL).
 - data/map/island/lagos_island.json — Lagos Island streets and building footprints from OpenStreetMap, © OpenStreetMap contributors, ODbL 1.0 (fetched 2026-10-14).
+- New York I-95 track:
+  - assets/maps/nyc/i95.glb — "[FIXED] New York, Highway Interstate 95" by 99.Miles (Sketchfab, https://sketchfab.com/3d-models/f668f36f01d44a6cae4b6bfa2f9b3021), Sketchfab Free Standard license. Textures re-encoded (JPEG where opaque) for phones; geometry unchanged. Placed at 0.4 scale.
+  - data/map/nyc/nyc_i95.json — race line traced over the model's own road surfaces (tools/lagos_map_pipeline/model_route.py, model_chunk.py).

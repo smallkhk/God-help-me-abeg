@@ -54,6 +54,9 @@ func _build() -> void:
 	if Engine.is_editor_hint() and get_tree():
 		root.owner = get_tree().edited_scene_root
 
+	if chunk.has("model"):
+		_build_model(root)     # an imported, ready-made map: its own roads, buildings, trees
+		return
 	_build_road(root)
 	if chunk["road"].get("surface", "asphalt") != "dirt":
 		_build_markings(root)
@@ -1920,6 +1923,29 @@ func _build_district(root: Node3D) -> void:
 		body.add_child(cs)
 		root.add_child(body)
 	_build_back_ground(root)
+
+
+## Imported map model (chunk "model"): placed at its scale/offset, with
+## trimesh collision on every solid mesh (not tree cards, water, see-through fences).
+func _build_model(root: Node3D) -> void:
+	var md: Dictionary = chunk["model"]
+	var scene := (load(md["path"]) as PackedScene).instantiate() as Node3D
+	var off: Array = md.get("offset", [0.0, 0.0, 0.0])
+	scene.transform = Transform3D(Basis.from_scale(Vector3.ONE * float(md.get("scale", 1.0))), Vector3(off[0], off[1], off[2]))
+	root.add_child(scene)
+	var skip: Array = md.get("no_collision", [])
+	for mi in scene.find_children("*", "MeshInstance3D", true, false):
+		var m := mi as MeshInstance3D
+		var mat := m.mesh.surface_get_material(0)
+		var nm := mat.resource_name if mat else ""
+		if nm == "Trees_Sheet":
+			m.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF   # thousands of cards: no shadow pass
+		elif mat is BaseMaterial3D:
+			# roads and facades are seen at grazing angles: anisotropic keeps them sharp
+			(mat as BaseMaterial3D).texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
+		if nm in skip:
+			continue
+		m.create_trimesh_collision()
 
 
 ## Phones draw less far (their GPU is the bottleneck, not the CPU).
