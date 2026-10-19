@@ -1389,11 +1389,12 @@ func _road_material() -> Material:
 	sm.set_shader_parameter("lane_width", float(r.get("lane_width_m", 3.5)))
 	sm.set_shader_parameter("median_half", float(r.get("median_width_m", 1.0)) * 0.5)
 	sm.shader = load("res://shaders/road.gdshader")
-	sm.set_shader_parameter("tex_asphalt", load("res://assets/textures/asphalt.jpg"))
+	sm.set_shader_parameter("tex_asphalt", load("res://assets/textures/kit/asphalt_worn.jpg" if chunk["road"].get("surface", "asphalt") != "dirt" else "res://assets/textures/asphalt.jpg"))
 	sm.set_shader_parameter("tex_concrete", load("res://assets/textures/concrete.jpg"))
 	sm.set_shader_parameter("tex_asphalt_n", load("res://assets/textures/asphalt_n.jpg"))
 	sm.set_shader_parameter("tex_asphalt_r", load("res://assets/textures/asphalt_r.jpg"))
 	sm.set_shader_parameter("tex_concrete_n", load("res://assets/textures/concrete_n.jpg"))
+	sm.set_shader_parameter("kit", 1.0 if chunk["road"].get("surface", "asphalt") != "dirt" else 0.0)
 	return sm
 
 

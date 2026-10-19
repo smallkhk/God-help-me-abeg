@@ -8,6 +8,10 @@ uniform sampler2D tex_asphalt_n : hint_normal, filter_linear_mipmap, repeat_enab
 uniform sampler2D tex_asphalt_r : hint_default_white, filter_linear_mipmap, repeat_enable;
 uniform sampler2D tex_concrete_n : hint_normal, filter_linear_mipmap, repeat_enable;
 uniform float bump_strength = 1.0;
+// kit = 1: tex_asphalt holds the 99.Miles NYC asphalt (laid along the lanes, with
+// its own tyre wear) instead of the dark photo. Same sampler: the Compatibility
+// renderer has no texture units to spare (extra samplers came out black).
+uniform float kit = 0.0;
 uniform float half_width = 12.0;
 uniform float lane_width = 3.5;
 uniform float median_half = 0.6;
@@ -31,11 +35,17 @@ void fragment() {
 		float patches = noise(wpos.xz * 0.08) * 0.12;
 		float v = 0.10 + speck * 0.7 + patches * 0.6;
 		// real asphalt photo (CC0) at 4 m tiling + large-scale wear patches
-		vec3 a = texture(tex_asphalt, wpos.xz * 0.25).rgb;
+		// u along the road (one tile = 9 m, a second scale breaks the repeat), v across two lanes
+		vec2 kuv = vec2(ruv.y / 9.0, (ruv.x - median_half) / (lane_width * 2.0));
+		vec3 a = kit > 0.5 ? mix(texture(tex_asphalt, kuv).rgb, texture(tex_asphalt, kuv * vec2(0.37, 1.0) + vec2(0.0, 0.5)).rgb, smoothstep(0.35, 0.65, noise(wpos.xz * 0.006 + 7.0)))
+			: texture(tex_asphalt, wpos.xz * 0.25).rgb;
 		// the photo is very dark (~3 % albedo); sun-bleached Lagos asphalt is ~8-12 %.
 		// A very large-scale tone variation breaks up the 4 m texture repeat.
 		float macro = 0.86 + 0.28 * noise(wpos.xz * 0.012 + 40.0);
 		vec3 alb = a * (2.6 + patches * 3.0) * macro * vec3(0.97, 0.99, 1.02) + vec3(speck * 0.2);
+		if (kit > 0.5) {
+			alb = a * (1.35 + patches * 1.6) * macro * vec3(1.02, 1.0, 0.97);
+		}
 		// tar patches (darker repair rectangles)
 		vec2 pc = floor(wpos.xz / vec2(6.0, 9.0));
 		vec2 pf = fract(wpos.xz / vec2(6.0, 9.0));
@@ -51,7 +61,7 @@ void fragment() {
 		float lat = abs(ruv.x);
 		float lp = mod(max(lat - median_half, 0.0), lane_width) - lane_width * 0.5;
 		float trk = exp(-pow((abs(lp) - 0.85) / 0.32, 2.0)) * step(median_half, lat) * step(lat, half_width - 0.3);
-		alb *= 1.0 - trk * 0.22;
+		alb *= 1.0 - trk * (kit > 0.5 ? 0.08 : 0.22);
 		float oil = exp(-pow(lp / 0.4, 2.0)) * smoothstep(0.55, 0.8, noise(wpos.xz * vec2(0.6, 0.6) + 5.0));
 		alb *= 1.0 - oil * 0.35;
 		float edge = smoothstep(half_width - 1.8, half_width, lat) * (0.6 + noise(wpos.xz * 1.3) * 0.6);
