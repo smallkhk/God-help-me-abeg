@@ -139,6 +139,50 @@ static func juice(b: BaseButton) -> void:
 	b.focus_mode = Control.FOCUS_ALL
 
 
+## Phones: drag anywhere on a scroll list (even on its buttons) to scroll it,
+## with a fling. Buttons can ask was_drag() so the lift after a drag isn't a tap.
+static func touch_scroll(sc: ScrollContainer) -> void:
+	var d := DragScroll.new()
+	d.sc = sc
+	sc.add_child(d)
+
+
+static func was_drag() -> bool:
+	return Time.get_ticks_msec() / 1000.0 - DragScroll.ended_at < 0.35
+
+
+class DragScroll extends Node:
+	var sc: ScrollContainer
+	var _vel := 0.0
+	var _active := false
+	var _moved := 0.0
+	static var ended_at := -9.0
+
+	func _input(e: InputEvent) -> void:
+		if not sc.is_visible_in_tree():
+			return
+		if e is InputEventScreenTouch and e.index == 0:
+			if e.pressed:
+				_active = sc.get_global_rect().has_point(e.position)
+				_moved = 0.0
+				_vel = 0.0
+			else:
+				if _active and _moved > 14.0:
+					DragScroll.ended_at = Time.get_ticks_msec() / 1000.0
+				_active = false
+		elif e is InputEventScreenDrag and e.index == 0 and _active:
+			_moved += e.relative.length()
+			if _moved > 14.0:
+				sc.scroll_vertical -= int(e.relative.y)
+				sc.scroll_horizontal -= int(e.relative.x) if sc.horizontal_scroll_mode != ScrollContainer.SCROLL_MODE_DISABLED else 0
+				_vel = -e.velocity.y
+
+	func _process(dt: float) -> void:
+		if not _active and absf(_vel) > 30.0:
+			sc.scroll_vertical += int(_vel * dt)
+			_vel *= exp(-4.0 * dt)
+
+
 ## Slide + fade a control in.
 static func enter(c: Control, from_x := -40.0, delay := 0.0) -> void:
 	c.modulate.a = 0.0

@@ -316,6 +316,7 @@ func _build_race() -> Control:
 	scroll.add_child(grid)
 	for i in RACES.size():
 		grid.add_child(_race_tile(i))
+	UIStyle.touch_scroll(scroll)
 	# selected-event preview
 	var pv := PanelContainer.new()
 	pv.add_theme_stylebox_override("panel", UIStyle.box(UIStyle.PANEL, UIStyle.LINE, 0.0, 1, 6))
@@ -364,6 +365,7 @@ func _build_race() -> Control:
 	return root
 
 
+var _tapped := -1
 func _race_tile(i: int) -> Button:
 	var r: Dictionary = RACES[i]
 	var b := Button.new()
@@ -398,7 +400,15 @@ func _race_tile(i: int) -> Button:
 	b.add_child(s)
 	b.focus_entered.connect(func(): _select_race(i))
 	b.mouse_entered.connect(func(): b.grab_focus())
-	b.pressed.connect(_start_selected)
+	# tap = look at it, tap again (or START RACE) = go; a drag-scroll is neither
+	b.pressed.connect(func():
+		if UIStyle.was_drag():
+			return
+		if _sel_race == i and _tapped == i:
+			_start_selected()
+		else:
+			b.grab_focus(); _select_race(i)
+		_tapped = i)
 	UIStyle.juice(b)
 	return b
 
@@ -692,6 +702,8 @@ class MapCanvas extends Control:
 		return c + Vector2((lon - C_LON), -(lat - C_LAT)) * PX_PER_DEG * _zoom
 
 	var _pad_i := -1
+	var _touch := {}
+	var _pinch := 0.0
 	func _gui_input(ev: InputEvent) -> void:
 		if ev.is_action_pressed("ui_accept") and focus_hint and focus_hint.visible:
 			focus_hint.grab_focus(); accept_event(); return
@@ -712,14 +724,27 @@ class MapCanvas extends Control:
 					_drag = false
 				elif not _drag:
 					_click(ev.position)
-		elif ev is InputEventMouseMotion and ev.button_mask & MOUSE_BUTTON_MASK_LEFT:
+		elif ev is InputEventMouseMotion and ev.button_mask & MOUSE_BUTTON_MASK_LEFT and _touch.size() < 2:
 			if ev.relative.length() > 1.5:
 				_drag = true
 			_pan += ev.relative; _fitted = true; queue_redraw()
 		elif ev is InputEventMagnifyGesture:
 			_zoom = clampf(_zoom * ev.factor, 0.2, 4.0); _fitted = true; queue_redraw()
+		elif ev is InputEventScreenTouch:
+			if ev.pressed: _touch[ev.index] = ev.position
+			else: _touch.erase(ev.index)
+			_pinch = 0.0
 		elif ev is InputEventScreenDrag:
-			_pan += ev.relative; _drag = true; _fitted = true; queue_redraw()
+			_touch[ev.index] = ev.position
+			_drag = true
+			if _touch.size() >= 2:
+				# two fingers: pinch to zoom
+				var ks := _touch.keys()
+				var dd: float = (_touch[ks[0]] as Vector2).distance_to(_touch[ks[1]])
+				if _pinch > 0.0:
+					_zoom = clampf(_zoom * dd / _pinch, 0.2, 4.0); _fitted = true; queue_redraw()
+				_pinch = dd
+			# one finger pans through the emulated mouse motion above
 
 	func _markers() -> Array:
 		var out := []

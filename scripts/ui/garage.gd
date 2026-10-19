@@ -273,6 +273,7 @@ func _build_ui() -> void:
 	_content = VBoxContainer.new(); _content.add_theme_constant_override("separation", 10)
 	_content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	sc.add_child(_content)
+	UIStyle.touch_scroll(sc)
 	# tab bar (bottom)
 	var bar := HBoxContainer.new()
 	bar.anchor_left = 0.5; bar.anchor_right = 0.5; bar.anchor_top = 1.0; bar.anchor_bottom = 1.0
