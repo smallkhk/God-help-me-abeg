@@ -54,9 +54,13 @@ func _ready() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("camera_next"):
 		_view = (_view + 1) % View.size()
-	if event is InputEventMouseButton:
+	# phones/tablets: every touch also arrives as a fake mouse click. Holding GAS
+	# or steering then "dragged" the camera round and a lost release left it stuck
+	# side-on - so on touch screens only real touches on empty screen look around
+	var touch_dev := DisplayServer.is_touchscreen_available()
+	if event is InputEventMouseButton and not touch_dev:
 		_dragging = event.pressed and event.button_index in [MOUSE_BUTTON_RIGHT, MOUSE_BUTTON_LEFT, MOUSE_BUTTON_MIDDLE]
-	elif event is InputEventMouseMotion and _dragging:
+	elif event is InputEventMouseMotion and _dragging and not touch_dev:
 		_orbit(event.relative)
 	elif event is InputEventScreenTouch:
 		# only touches that the on-screen buttons didn't take reach here
@@ -92,9 +96,12 @@ func _physics_process(delta: float) -> void:
 		if absf(stick) > 0.2:
 			_orbit_yaw = wrapf(_orbit_yaw - stick * 2.5 * delta, -PI, PI); _orbit_idle = 0.0
 		_orbit_idle += delta
-		if _orbit_idle > 1.5 and not _dragging and _touch_id == -1:
-			_orbit_yaw = lerp_angle(_orbit_yaw, 0.0, 1.0 - exp(-3.0 * delta))
-			_orbit_pitch = lerpf(_orbit_pitch, 0.0, 1.0 - exp(-3.0 * delta))
+		if _orbit_idle > 1.2:
+			_touch_id = -1          # a lost touch release never keeps the view off-centre
+		# back to the standard chase view a second after you stop looking around
+		if _orbit_idle > 1.0 and not _dragging and _touch_id == -1:
+			_orbit_yaw = lerp_angle(_orbit_yaw, 0.0, 1.0 - exp(-4.0 * delta))
+			_orbit_pitch = lerpf(_orbit_pitch, 0.0, 1.0 - exp(-4.0 * delta))
 		behind = Basis(up, _orbit_yaw) * behind
 		# drop back a little when accelerating, close in under braking, sit a
 		# touch lower and further back at speed

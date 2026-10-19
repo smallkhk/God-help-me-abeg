@@ -1934,8 +1934,12 @@ func _build_model(root: Node3D) -> void:
 	scene.transform = Transform3D(Basis.from_scale(Vector3.ONE * float(md.get("scale", 1.0))), Vector3(off[0], off[1], off[2]))
 	root.add_child(scene)
 	var skip: Array = md.get("no_collision", [])
+	var hide: Array = md.get("hide", [])     # node-name parts: e.g. texture swatch planes
 	for mi in scene.find_children("*", "MeshInstance3D", true, false):
 		var m := mi as MeshInstance3D
+		if hide.any(func(h): return String(m.name).contains(h)):
+			m.queue_free()
+			continue
 		var mat := m.mesh.surface_get_material(0)
 		var nm := mat.resource_name if mat else ""
 		if nm == "Trees_Sheet":
@@ -1946,6 +1950,65 @@ func _build_model(root: Node3D) -> void:
 		if nm in skip:
 			continue
 		m.create_trimesh_collision()
+	if md.has("surround"):
+		_model_surround(root, md["surround"])
+
+
+## A model that is one district: ground out to the horizon and plain city blocks
+## on the empty land round it (lots come from model_chunk.py --surround).
+func _model_surround(root: Node3D, sr: Dictionary) -> void:
+	var gy: float = sr.get("ground_y", GROUND_Y - 0.1)
+	var ground := MeshInstance3D.new()
+	var pm := PlaneMesh.new()
+	pm.size = Vector2(2400, 2400)
+	ground.mesh = pm
+	var gm := _ground_material()
+	gm.set_shader_parameter("urban", 1.0)
+	gm.set_shader_parameter("tex_conc", load("res://assets/textures/concrete.jpg"))
+	ground.material_override = gm
+	ground.position = Vector3(0, gy, 0)
+	ground.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	root.add_child(ground)
+	var floor_body := StaticBody3D.new()
+	var fcs := CollisionShape3D.new()
+	var fbox := BoxShape3D.new(); fbox.size = Vector3(2400, 1.0, 2400)
+	fcs.shape = fbox
+	floor_body.position = Vector3(0, gy - 0.5, 0)
+	floor_body.add_child(fcs)
+	root.add_child(floor_body)
+	var tools := {}
+	var faces := PackedVector3Array()
+	var rng := RandomNumberGenerator.new()
+	var k := 0
+	_palette = _MUTED          # match the model's grey / brick city, not Lagos pastels
+	for b in sr.get("buildings", []):
+		rng.seed = k * 7919 + 5
+		k += 1
+		var poly := PackedVector2Array()
+		for q in b["pts"]:
+			poly.append(Vector2(q[0], q[1]))
+		var cen := (poly[0] + poly[2]) * 0.5
+		_procedural_building(_cell_tool(tools, cen), poly, float(b["h"]), gy - 0.3, rng, -1)
+		_wall_faces(faces, poly, gy - 0.3, gy + 5.0)
+	_palette = []
+	var mat := _building_material()
+	for key in tools:
+		var st: SurfaceTool = tools[key]
+		st.generate_normals()
+		var mi := MeshInstance3D.new()
+		mi.mesh = st.commit()
+		mi.material_override = mat
+		mi.visibility_range_end = 700.0
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		root.add_child(mi)
+	if not faces.is_empty():
+		var shape := ConcavePolygonShape3D.new()
+		shape.set_faces(faces)
+		var body := StaticBody3D.new()
+		var cs := CollisionShape3D.new()
+		cs.shape = shape
+		body.add_child(cs)
+		root.add_child(body)
 
 
 ## Phones draw less far (their GPU is the bottleneck, not the CPU).
@@ -2000,10 +2063,17 @@ func _put_model_hint(out: Dictionary, b: Dictionary, cen: Vector2) -> bool:
 	return true
 
 
+## Wall colours for _procedural_building (empty = the bright Lagos palette).
+var _palette: Array = []
+const _MUTED := [Color(0.62, 0.62, 0.64), Color(0.5, 0.52, 0.56), Color(0.56, 0.38, 0.32), Color(0.66, 0.6, 0.52),
+	Color(0.42, 0.45, 0.5), Color(0.72, 0.7, 0.66), Color(0.48, 0.34, 0.3), Color(0.58, 0.6, 0.62)]
+
+
 ## Procedural Lagos building: painted walls with windows / shop shutters, gable
 ## (zinc or clay) or flat roof with water tanks, awning over the road-side front.
 func _procedural_building(st: SurfaceTool, poly: PackedVector2Array, h: float, base: float, rng: RandomNumberGenerator, front_edge: int) -> void:
-	var wc: Color = _WALLS[rng.randi() % _WALLS.size()]
+	var pal: Array = _palette if not _palette.is_empty() else _WALLS
+	var wc: Color = pal[rng.randi() % pal.size()]
 	var top := base + h
 	var ob := _obb(poly)
 	var w := float(ob["v1"]) - float(ob["v0"])

@@ -2,13 +2,13 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bxk8uip5ks76u"
+uid="uid://cd5qbw3nuh5xu"
 path="res://.godot/imported/i95_21.jpg-6798e930b46ce1f93b1e5428995a0bf8.ctex"
 metadata={
 "vram_texture": false
 }
 generator_parameters={
-"md5": "cbfafb791324c5446c0002dda60fe41c"
+"md5": "4300cf63b3a9615d0cb4804d6291362d"
 }
 
 [deps]
@@ -40,4 +40,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=0
+detect_3d/compress_to=1

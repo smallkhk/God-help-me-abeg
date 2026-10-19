@@ -9,3 +9,4 @@ content 46: New York I-95 circuit (imported 99.Miles model)
 content 47: touch scrolling race list + garage, tap to select, pinch zoom on map
 content 48: sharper rendering (full-res on High, iPad M-series auto High), crisper NYC textures, iPad touch layout
 content 49: NYC model exactly as downloaded (original textures, uncompressed)
+content 50: Downtown Towers track, camera lock/auto-return fix, NYC back to compressed
