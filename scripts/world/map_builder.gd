@@ -1953,8 +1953,31 @@ func _build_model(root: Node3D) -> void:
 		elif mat is BaseMaterial3D:
 			# roads and facades are seen at grazing angles: anisotropic keeps them sharp
 			(mat as BaseMaterial3D).texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
-		if nm in skip:
+		if md.has("retex") and md["retex"].has(nm):
+			# untextured model surfaces: a world-space (triplanar) texture and tint instead of flat white
+			var rt: Dictionary = md["retex"][nm]
+			var sm := StandardMaterial3D.new()
+			sm.albedo_texture = load(rt["tex"])
+			var tc: Array = rt.get("tint", [1.0, 1.0, 1.0])
+			sm.albedo_color = Color(tc[0], tc[1], tc[2])
+			sm.uv1_triplanar = true
+			sm.uv1_world_triplanar = true
+			sm.uv1_scale = Vector3.ONE * float(rt.get("scale", 0.1))
+			sm.roughness = 0.9
+			for si in m.mesh.get_surface_count():
+				if m.mesh.surface_get_material(si) == mat:
+					m.set_surface_override_material(si, sm)
+		if md.get("matte", false):
+			# game-ripped models often come with mirror-like PBR values: dull every surface down
+			for si in m.mesh.get_surface_count():
+				var sm := m.mesh.surface_get_material(si)
+				if sm is BaseMaterial3D:
+					(sm as BaseMaterial3D).metallic = 0.0
+					(sm as BaseMaterial3D).roughness = maxf((sm as BaseMaterial3D).roughness, 0.8)
+		if nm in skip or skip.any(func(h): return String(h).length() > 3 and (nm.contains(h) or String(m.name).contains(h))):
 			continue
+		if m.mesh.get_faces().is_empty():
+			continue  # lines / points only
 		m.create_trimesh_collision()
 	if md.has("surround"):
 		_model_surround(root, md["surround"])

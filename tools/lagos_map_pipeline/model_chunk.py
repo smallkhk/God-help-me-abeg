@@ -11,7 +11,7 @@ import argparse, json, os, numpy as np
 ap = argparse.ArgumentParser()
 for a, d in [("--path", None), ("--out", None), ("--raster", ""), ("--model", None), ("--model-scale", "1"),
              ("--path-scale", "1"), ("--street-y", "0"), ("--id", "model"), ("--desc", ""), ("--license", ""),
-             ("--no-collision", ""), ("--hide", ""), ("--hw", "3.2"), ("--surround", "0"), ("--recentre", "1")]:
+             ("--no-collision", ""), ("--hide", ""), ("--hw", "3.2"), ("--surround", "0"), ("--recentre", "1"), ("--matte", "0")]:
     ap.add_argument(a, default=d, required=d is None)
 A = ap.parse_args()
 P = np.load(A.path)
@@ -77,7 +77,7 @@ chunk = {
     "model": {"path": A.model, "scale": ms,
               # glb space -> game: scale, then shift so the loop is centred and streets sit at y = 2
               "offset": [-OX * SCALE, 2.0 - STREET_Y * SCALE, -OZ * SCALE],
-              "no_collision": [s for s in A.no_collision.split(",") if s], "hide": [s for s in A.hide.split(",") if s]},
+              "no_collision": [s for s in A.no_collision.split(",") if s], "hide": [s for s in A.hide.split(",") if s], "matte": A.matte == "1"},
     "road": {"half_width_m": hw, "barrier_height_m": 0.0, "lanes_per_direction": 2, "lane_width_m": hw - 0.4,
              "median_width_m": -2 * (hw - 0.4), "length_m": round(float(L), 2), "samples": samples},
     "sections": [], "bridge": {"water_level_y": -50.0}, "buildings": [], "crossings": [],
