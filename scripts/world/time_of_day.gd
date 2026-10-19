@@ -79,14 +79,16 @@ func apply(preset: int) -> void:
 	# Mobile renderer (Metal on iOS): tile GPUs resolve MSAA almost for free, and
 	# MetalFX / FSR upscale the 80 % render far sharper than bilinear
 	var mob_r := RenderingServer.get_current_rendering_method() == "mobile"
-	vp.msaa_3d = Viewport.MSAA_2X if (high and not mobile) or mob_r else Viewport.MSAA_DISABLED
-	vp.screen_space_aa = Viewport.SCREEN_SPACE_AA_DISABLED if mob_r else Viewport.SCREEN_SPACE_AA_FXAA
+	# High: full resolution + 2x MSAA (cheap on Apple tile GPUs), no FXAA (it smears
+	# brick and window detail). Low: 85 % resolution + FXAA.
+	vp.msaa_3d = Viewport.MSAA_2X if high or mob_r else Viewport.MSAA_DISABLED
+	vp.screen_space_aa = Viewport.SCREEN_SPACE_AA_DISABLED if mob_r or high else Viewport.SCREEN_SPACE_AA_FXAA
 	if mobile and mob_r:
 		vp.scaling_3d_mode = Viewport.SCALING_3D_MODE_METALFX_SPATIAL if OS.get_name() == "iOS" else Viewport.SCALING_3D_MODE_FSR
 		vp.scaling_3d_scale = 0.8
 	elif mobile:
 		vp.scaling_3d_mode = Viewport.SCALING_3D_MODE_BILINEAR
-		vp.scaling_3d_scale = 0.75
+		vp.scaling_3d_scale = 1.0 if high else 0.85   # 0.75 looked watery
 	if _env and _env.sky:
 		var hdri := "res://assets/sky/%s.hdr" % c["hdri"]
 		# the photo sky (blue sky + clouds) on every device: one 8 MB texture

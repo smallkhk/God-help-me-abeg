@@ -50,6 +50,13 @@ func _ready() -> void:
 		high_graphics = false
 		settings["high_graphics"] = false
 		settings["gfx_profile"] = 3
+	# Apple M-series iPads (iPad13,x = M1, iPad14,x = M2 and later): High once
+	if OS.get_name() == "iOS" and int(settings.get("gfx_profile", 0)) < 4:
+		var mdl := OS.get_model_name()
+		if mdl.begins_with("iPad") and mdl.trim_prefix("iPad").get_slice(",", 0).to_int() >= 13:
+			high_graphics = true
+			settings["high_graphics"] = true
+		settings["gfx_profile"] = 4
 	AudioServer.set_bus_volume_db(0, linear_to_db(float(settings.get("volume", 0.8))))
 	money = int(data.get("money", START_MONEY))
 	# owner's request: plenty money to buy every car and upgrade

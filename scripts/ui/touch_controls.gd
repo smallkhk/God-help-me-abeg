@@ -57,6 +57,14 @@ func _ready() -> void:
 		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		lbl.size = Vector2(r * 2, r * 2)
+		if b[0] in ["steer_left", "steer_right"]:
+			# drawn arrow: the iOS font has no ◀ ▶ glyphs (the buttons showed empty)
+			lbl.text = ""
+			var dir := -1.0 if b[0] == "steer_left" else 1.0
+			var tri := Polygon2D.new()
+			tri.polygon = PackedVector2Array([Vector2(r + dir * 26, r), Vector2(r - dir * 16, r - 28), Vector2(r - dir * 16, r + 28)])
+			tri.color = Color(1, 1, 1, 0.85)
+			tsb.add_child(tri)
 		tsb.add_child(lbl)
 		add_child(tsb)
 		if b[0] in ["steer_left", "steer_right"]:
@@ -71,19 +79,20 @@ func _ready() -> void:
 	for t in top.size():
 		var tb := TouchScreenButton.new()
 		tb.action = top[t][0]
-		var sz := Vector2(150, 64)
+		var sz := Vector2(122, 56)
 		tb.texture_normal = _rect(sz, Color(0, 0, 0, 0.35))
 		tb.texture_pressed = _rect(sz, Color(0.98, 0.76, 0.12, 0.6))
 		var rs := RectangleShape2D.new(); rs.size = sz
 		tb.shape = rs
 		tb.shape_centered = true
 		tb.visibility_mode = TouchScreenButton.VISIBILITY_TOUCHSCREEN_ONLY
-		tb.position = Vector2(vp.x * 0.5 - 420 + t * 170, 24)
+		# centred row that fits 4:3 iPads too (was cut off past RESET)
+		tb.position = Vector2(vp.x * 0.5 - top.size() * 65.0 + t * 130.0, 20)
 		var tl := Label.new(); tl.text = top[t][1]; tl.size = sz
 		if top[t][0] == "tilt_toggle":
 			_tilt_lbl = tl
 		tl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER; tl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		tl.add_theme_font_size_override("font_size", 22)
+		tl.add_theme_font_size_override("font_size", 19)
 		tb.add_child(tl)
 		add_child(tb)
 	# pause button top-right
