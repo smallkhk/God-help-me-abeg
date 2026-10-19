@@ -441,6 +441,10 @@ func _spawn_rivals() -> void:
 		car.add_child(tag)
 		CarFX.add_contact_shadow(car)
 		get_parent().add_child.call_deferred(car)
+		var fx := CarFX.new()          # brake lights, nitro flames, damage smoke
+		fx.vehicle = car
+		fx.lite = true
+		car.add_child.call_deferred(fx)    # after the car's _ready has found its wheels
 		_rivals.append(car)
 	_place_rivals.call_deferred()
 

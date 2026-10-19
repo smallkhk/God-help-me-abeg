@@ -136,6 +136,12 @@ func _physics_process(delta: float) -> void:
 	if _vehicle.knocked_t > 0.0:
 		throttle *= 0.25        # knocked off balance: lifts and fights the wheel
 		brake *= 0.3
+	# nitro on a clear straight: well below the planned speed, nothing ahead
+	if _vehicle.nitro_active:
+		_vehicle.nitro_input = throttle > 0.9 and safe - speed > 4.0 and _vehicle.nitro_amount > 0.05
+	else:
+		_vehicle.nitro_input = throttle > 0.9 and safe - speed > 12.0 and gap < 0.0 and speed > 12.0 \
+			and _vehicle.nitro_amount > 0.45 and _vehicle.knocked_t <= 0.0 and randf() < 0.004 + 0.01 * skill
 	_vehicle.set_driver_input(throttle, brake, steer, false)
 
 

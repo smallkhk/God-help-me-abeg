@@ -260,7 +260,7 @@ func _takedowns() -> void:
 		v.spun_out = false
 		stats["takedown"] = int(stats.get("takedown", 0)) + 1
 		popup("SPIN OUT!", Color(1.0, 0.45, 0.2), NITRO["takedown"])
-		_say(v, TAUNT_HIT)
+		_say(v, ["Ah! Engine don knock!", "My motor don spoil o!", "Who go pay for this?!"] if v.damage >= 0.6 else TAUNT_HIT)
 		_slowmo()
 
 

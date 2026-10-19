@@ -7,6 +7,10 @@ extends Node3D
 const MAX_SKIDS := 1500
 
 var vehicle: VehicleController
+## Rivals: tail/brake lights, nitro flames, tyre smoke and damage smoke only
+## (no headlight spots, reflections, sparks or skid marks: phone budget).
+var lite := false
+var _bonnet: CPUParticles3D
 var _heads: Array[SpotLight3D] = []
 var _tail_mats: Array[BaseMaterial3D] = []
 var _tail_glow: OmniLight3D
@@ -29,7 +33,7 @@ func _ready() -> void:
 		var p: Vector3 = w.marker.position
 		rear_z = minf(rear_z, p.z); front_z = maxf(front_z, p.z); half_w = maxf(half_w, absf(p.x))
 	# headlights
-	for sx in [-1.0, 1.0]:
+	for sx in ([] if lite else [-1.0, 1.0]):
 		var l := SpotLight3D.new()
 		l.position = Vector3(sx * (half_w - 0.25), 0.75, front_z + 0.9)
 		l.rotation_degrees = Vector3(-4, 180, 0)  # car forward is +Z; spot shines along -Z
@@ -40,9 +44,10 @@ func _ready() -> void:
 		l.shadow_enabled = false
 		vehicle.add_child(l)
 		_heads.append(l)
-	add_contact_shadow(vehicle)
-	_setup_reflections()
-	_setup_sparks()
+	if not lite:
+		add_contact_shadow(vehicle)
+		_setup_reflections()
+		_setup_sparks()
 	# brake / tail lights: light up the model's own tail-light surfaces (the old
 	# add-on red boxes floated above the boot)
 	_find_tail_lights()
@@ -98,7 +103,8 @@ func _ready() -> void:
 	boost_light.omni_range = 5.0
 	boost_light.light_energy = 0.0
 	boost_light.position = Vector3(0, 0.5, rear_z - 1.4)
-	vehicle.add_child(boost_light)
+	if not lite:
+		vehicle.add_child(boost_light)
 
 	# tyre smoke at the rear wheels
 	for w in vehicle.wheels:
@@ -135,6 +141,9 @@ func _ready() -> void:
 		s.position = w.marker.position + Vector3(0, -0.2, 0)
 		vehicle.add_child(s)
 		_smoke.append(s)
+	if lite:
+		_setup_bonnet_smoke(front_z)
+		return
 	# skid marks: ring buffer of dark quads on the road
 	_skid_mm = MultiMesh.new()
 	_skid_mm.transform_format = MultiMesh.TRANSFORM_3D
@@ -152,6 +161,37 @@ func _ready() -> void:
 	mmi.top_level = true
 	mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(mmi)
+
+
+## Damaged engine: grey smoke out of the bonnet (thicker past 60 % damage).
+func _setup_bonnet_smoke(front_z: float) -> void:
+	_bonnet = CPUParticles3D.new()
+	_bonnet.amount = 10
+	_bonnet.lifetime = 1.4
+	_bonnet.emitting = false
+	_bonnet.local_coords = false
+	_bonnet.direction = Vector3.UP
+	_bonnet.spread = 20.0
+	_bonnet.initial_velocity_min = 1.0; _bonnet.initial_velocity_max = 2.2
+	_bonnet.gravity = Vector3(0, 0.8, 0)
+	_bonnet.scale_amount_min = 0.6; _bonnet.scale_amount_max = 1.4
+	var curve := Curve.new(); curve.add_point(Vector2(0, 0.5)); curve.add_point(Vector2(1, 2.0))
+	_bonnet.scale_amount_curve = curve
+	var q := QuadMesh.new(); q.size = Vector2(1.0, 1.0)
+	var sm := StandardMaterial3D.new()
+	sm.albedo_texture = _SMOKE_TEX
+	sm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	sm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	sm.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
+	sm.vertex_color_use_as_albedo = true
+	q.material = sm
+	_bonnet.mesh = q
+	var g := Gradient.new()
+	g.set_color(0, Color(0.35, 0.35, 0.36, 0.0)); g.set_color(1, Color(0.6, 0.6, 0.62, 0.0))
+	g.add_point(0.15, Color(0.38, 0.38, 0.4, 0.6))
+	_bonnet.color_ramp = g
+	_bonnet.position = Vector3(0, 1.0, front_z + 0.3)
+	vehicle.add_child(_bonnet)
 
 
 ## Metal-on-metal sparks: one burst at the contact point per hit.
@@ -220,13 +260,16 @@ func _process(_delta: float) -> void:
 		s.emitting = slide and grounded
 	for f in _flames:
 		f.emitting = vehicle.nitro_active
+	if _bonnet:
+		_bonnet.emitting = vehicle.damage > 0.25
+		_bonnet.amount = 10 if vehicle.damage < 0.6 else 24
 	var nl := vehicle.get_node_or_null("NitroLight") as OmniLight3D
 	if nl:
 		nl.light_energy = 2.5 if vehicle.nitro_active else 0.0
 
 
 func _physics_process(_delta: float) -> void:
-	if vehicle == null:
+	if vehicle == null or lite:
 		return
 	var slide := absf(vehicle.lateral_speed) > 3.5 or (vehicle.handbrake_input and absf(vehicle.forward_speed) > 4.0)
 	for w in vehicle.wheels:

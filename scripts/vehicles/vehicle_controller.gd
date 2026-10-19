@@ -87,6 +87,7 @@ var knocked_t := 0.0             # > 0: off balance, no anti-spin, loose rear
 var spun_out := false            # set when a knock leaves the car sideways (RaceFlair reads + clears)
 var _knock_beta := false
 var _knock_k := 0.0              # 0..1 how hard the last knock was
+var damage := 0.0                # 0..1 engine damage from big knocks (rivals): power drops, bonnet smokes
 var _prev_vel := Vector3.ZERO
 var _knock_cd := {}              # rival instance id -> time of last knock
 var _impact_t := -9.0
@@ -335,7 +336,7 @@ func _physics_process(delta: float) -> void:
 	if nitro_active:
 		nitro_amount = maxf(nitro_amount - delta / nitro_capacity_s, 0.0)
 	else:
-		nitro_amount = minf(nitro_amount + delta * 0.02, 1.0)   # slow trickle: style (drift, near miss, overtake) earns the rest
+		nitro_amount = minf(nitro_amount + delta * (0.02 if is_player else 0.03), 1.0)   # slow trickle: style (drift, near miss, overtake) earns the rest
 
 	# Driven-wheel count for splitting drive force.
 	var driven_count := 0
@@ -497,6 +498,7 @@ func _apply_tyre_force(w: Wheel, offset: Vector3, up: Vector3, driven_count: int
 		var drive := data.max_drive_force * (V2_SPEED_SCALE if handling_v2 else SPEED_SCALE) * transmission.torque_factor() * pedal * gear_mult / driven_count
 		if nitro_active and transmission.gear > 0:
 			drive *= 1.0 + nitro_power
+		drive *= 1.0 - damage * 0.3
 		if transmission.gear == -1:
 			drive = -drive
 		# Traction control: trim torque while the wheel is already spinning up
@@ -722,6 +724,7 @@ func knock(strength: float, side: float, off: float) -> void:
 	var rb := global_transform.basis
 	_knock_k = clampf((strength - 2.5) / 4.5, 0.0, 1.0)
 	knocked_t = lerpf(0.6, 2.0, _knock_k)
+	damage = minf(damage + _knock_k * 0.3, 1.0)
 	_knock_beta = false
 	# sideways shove at the contact point (rear hit -> it rotates round its nose)
 	var lever := clampf(-off, -2.0, 2.0)
