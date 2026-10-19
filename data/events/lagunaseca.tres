@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="RaceEvent" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/races/race_event.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+event_id = &"lagunaseca"
+display_name = "Laguna Seca"
+kind = 1
+laps = 3
+countdown = 1.5
+reward_naira = 4500000
+allowed_classes = "any"
+time_of_day = "day"
+weather = "clear"

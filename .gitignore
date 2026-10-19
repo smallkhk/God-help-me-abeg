@@ -26,3 +26,7 @@ __pycache__/
 
 # in-game update key: written by the build workflows from a secret, never committed
 update_token.txt
+
+# GTA III model source is >100 MB: the game loads the compressed libertycity_scene.scn
+assets/maps/libertycity/libertycity.glb
+assets/maps/libertycity/libertycity.glb.import

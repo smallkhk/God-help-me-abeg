@@ -144,3 +144,14 @@ heights applied to footprints by tools/lagos_map_pipeline/apply_google_25d_heigh
   - assets/maps/eurostreet/eurostreet.glb — "street city (7) for games FREE" by dasy444 (Sketchfab, https://sketchfab.com/3d-models/493a69b451284ff88346c7b3e4e1b5a7), Sketchfab Free Standard license. Two end houses and the texture planes are hidden in game.
   - assets/maps/modernstreet/modernstreet.glb — "city-street (2) FREE for game" by dasy444 (Sketchfab, https://sketchfab.com/3d-models/46d63f1720a7453bae416a3f5dea9895), Sketchfab Free Standard license.
   - assets/maps/snowroad/snowroad.glb — "Snowy Mountain Road Scene" by 99.Miles (Sketchfab, https://sketchfab.com/3d-models/504729dd1afc4ff0a7dd17687ccd71a1), CC Attribution 4.0.
+
+## Track models from Sketchfab (game rips and fan-made circuits, private build)
+All CC Attribution 4.0 on Sketchfab; used for private play only. Race lines traced over each model's
+own road surfaces (tools/lagos_map_pipeline/road_raster.py, model_route3.py, model_chunk.py).
+- assets/maps/spa — "Circuit de Spa-Francorchamps 1992 layout" by Tyler_Dave, https://sketchfab.com/3d-models/a1223a21df954b9ebf8eb3b7c682eb99
+- assets/maps/suzuka — "Suzuka Circuit 2001 layout" by Tyler_Dave, https://sketchfab.com/3d-models/0b1085d93dfa4e81aab2c83c26bf185b
+- assets/maps/nurburgring — "Nürburgring GP 2016 layout" by Tyler_Dave, https://sketchfab.com/3d-models/5993aa0140764b4ea23bb285d23aa57e
+- assets/maps/marinabay — "Marina Bay Street Circuit" by Tyler_Dave, https://sketchfab.com/3d-models/e665d831c57546609d4c15287a6107b7
+- assets/maps/lagunaseca — "laguna seca" by amogusstrikesback2, https://sketchfab.com/3d-models/bd75ab37a2a747ce8cc37e5207ff9a85
+- assets/maps/ecds — "extreme car driving simulator - 1.0 map" by amogusstrikesback2, https://sketchfab.com/3d-models/9c31e236779c4a52b83f9acb1b23fd0e
+- assets/maps/libertycity — "GtaLC_2001_FULL-MAP" by FatherOfThepPoor, https://sketchfab.com/3d-models/6695e98d6d534d90a23993289ee4ecbf (stored as a compressed Godot scene; the plain buildings get a concrete texture in game)
