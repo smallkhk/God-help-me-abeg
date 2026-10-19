@@ -37,15 +37,18 @@ func _run() -> void:
 	for i in s.size():
 		var h: float = s[i]["heading_rad"]
 		var pr := Vector3(cos(h), 0, -sin(h))
+		# a hand-made street (World Streets) may be cambered: allow more across it
+		var tol := 0.6 if int(s[i].get("street", 0)) == 1 else 0.3
 		for o in [-hw + 0.6, 0.0, hw - 0.6]:
-			var p: Vector3 = Vector3(s[i]["x"], 10.0, s[i]["z"]) + pr * o
+			# just off the sample: rays exactly on a mesh seam can slip between triangles
+			var p: Vector3 = Vector3(s[i]["x"], float(s[i]["elev_m"]) + 3.5, s[i]["z"]) + pr * o + Vector3(sin(h), 0, cos(h)) * 0.4  # below signs and overpasses
 			var q := PhysicsRayQueryParameters3D.create(p, p + Vector3.DOWN * 20.0)
 			q.exclude = [car.get_rid()]
 			var hit := space.intersect_ray(q)
 			if hit.is_empty():
 				holes += 1
 				if holes <= 6: print("[island_test]   hole %d o=%.1f none" % [i, o])
-			elif not (hit["collider"] is VehicleController or hit["collider"] is AnimatableBody3D) and absf(hit["position"].y - float(s[i]["elev_m"])) > 0.3:
+			elif not (hit["collider"] is VehicleController or hit["collider"] is AnimatableBody3D) and absf(hit["position"].y - float(s[i]["elev_m"])) > tol:
 				holes += 1
 				if holes <= 6: print("[island_test]   hole %d o=%.1f y=%.2f %s" % [i, o, hit["position"].y, hit["collider"].name])
 	print("[island_test] road holes: %d" % holes)

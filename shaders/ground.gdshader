@@ -10,6 +10,7 @@ uniform sampler2D tex_grass : source_color, filter_linear_mipmap_anisotropic, re
 // city districts: most plots are paved with interlocking stones (grey / terracotta /
 // sand-yellow, a different scheme per plot) with blown sand over them
 uniform float urban = 0.0;
+uniform float park = 0.0;   // mown grass parkland with a few worn patches
 uniform sampler2D tex_conc : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
 global uniform float wetness;
 varying vec3 wpos;
@@ -58,6 +59,7 @@ void fragment() {
 	col *= 1.0 - cr * mud * 0.55;
 	// grass patches with ragged edges
 	float gm = smoothstep(0.58, 0.72, n2 + (noise(wpos.xz * 0.7) - 0.5) * 0.12);
+	gm = max(gm, park * (1.0 - smoothstep(0.66, 0.8, n1)));
 	col = mix(col, grass, gm * 0.9);
 	// macro tone: sun-bleached vs damp/shaded zones
 	col *= 0.86 + fbm(wpos.xz * 0.006 + 3.0) * 0.3;

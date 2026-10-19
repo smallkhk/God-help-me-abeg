@@ -23,6 +23,8 @@ const RACES := [
 		"scene": "res://scenes/world/maps/nyc/nyc.tscn", "id": "nyc_circuit", "event": "res://data/events/nyc_circuit.tres"},
 	{"name": "Downtown Towers", "type": "Circuit Race", "loc": "Modern city: ring road round the towers, the central boulevard, back up the west side · 5 laps", "km": 1.2, "tile": "circuit", "track": "cityblock_circuit",
 		"scene": "res://scenes/world/maps/cityblock/cityblock.tscn", "id": "cityblock_circuit", "event": "res://data/events/cityblock_circuit.tres"},
+	{"name": "World Streets", "type": "Circuit Race", "loc": "World tour: Hong Kong night street, an Asian market lane, a snowy Euro lane, a modern corner and a snow mountain hairpin · 3 laps", "km": 1.3, "tile": "circuit", "track": "world_streets",
+		"scene": "res://scenes/world/maps/world_streets/world_streets.tscn", "id": "world_streets", "event": "res://data/events/world_streets.tres"},
 	{"name": "Hills Loop", "type": "Circuit Race", "loc": "Hills outside Lagos", "km": 1.8, "tile": "hills", "track": "hills_sprint",
 		"scene": "res://scenes/world/maps/hills/hills.tscn", "id": "hills_sprint", "event": "res://data/events/hills_sprint.tres"},
 	{"name": "Bush Trail", "type": "Off-road", "loc": "Laterite trail through the bush", "km": 2.0, "tile": "offroad", "track": "offroad_trail",

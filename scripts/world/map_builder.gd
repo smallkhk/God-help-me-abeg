@@ -57,6 +57,9 @@ func _build() -> void:
 	if chunk.has("model"):
 		_build_model(root)     # an imported, ready-made map: its own roads, buildings, trees
 		return
+	if chunk.has("models"):
+		_build_models(root)    # several street scenes joined by generated connector roads
+		return
 	_build_road(root)
 	if chunk["road"].get("surface", "asphalt") != "dirt":
 		_build_markings(root)
@@ -463,6 +466,8 @@ func _ground_material() -> ShaderMaterial:
 	m.set_shader_parameter("tex_sand", load("res://assets/textures/ground_sand.jpg"))
 	m.set_shader_parameter("tex_dirt", load("res://assets/textures/ground_dirt.jpg"))
 	m.set_shader_parameter("tex_grass", load("res://assets/textures/ground_grass.jpg"))
+	if chunk.get("park_ground", false):
+		m.set_shader_parameter("park", 1.0)
 	if chunk.get("district", false):
 		m.set_shader_parameter("urban", 1.0)
 		m.set_shader_parameter("tex_conc", load("res://assets/textures/concrete.jpg"))
@@ -1953,6 +1958,135 @@ func _build_model(root: Node3D) -> void:
 		m.create_trimesh_collision()
 	if md.has("surround"):
 		_model_surround(root, md["surround"])
+
+
+## Several imported street scenes (chunk "models": path, scale, yaw, offset, hide,
+## no_collision) joined into one lap: the route samples with "street": 0 are
+## generated connector road (asphalt, kerbs, collision), the rest is the scenes' own.
+func _build_models(root: Node3D) -> void:
+	for md in chunk["models"]:
+		var scene := (load(md["path"]) as PackedScene).instantiate() as Node3D
+		var off: Array = md.get("offset", [0.0, 0.0, 0.0])
+		scene.transform = Transform3D(Basis(Vector3.UP, float(md.get("yaw", 0.0))).scaled(Vector3.ONE * float(md.get("scale", 1.0))),
+			Vector3(off[0], off[1], off[2]))
+		root.add_child(scene)
+		var hide: Array = md.get("hide", [])
+		var skip: Array = md.get("no_collision", [])
+		for mi in scene.find_children("*", "MeshInstance3D", true, false):
+			var m := mi as MeshInstance3D
+			var mat := m.mesh.surface_get_material(0)
+			var nm := mat.resource_name if mat else ""
+			if hide.any(func(h): return String(m.name).contains(h) or nm.contains(h)):
+				m.queue_free()
+				continue
+			if mat is BaseMaterial3D:
+				(mat as BaseMaterial3D).texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
+			if skip.any(func(h): return nm.contains(h) or String(m.name).contains(h)):
+				m.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+				continue
+			if m.mesh.get_faces().is_empty():
+				continue  # lines / points only
+			m.create_trimesh_collision()
+	_build_connectors(root)
+
+
+func _build_connectors(root: Node3D) -> void:
+	var con: Dictionary = chunk.get("connector", {})
+	var hw: float = con.get("half_width_m", 5.0)
+	var gy: float = con.get("ground_y", GROUND_Y - 0.4)
+	var samples: Array = chunk["road"]["samples"]
+	var n := samples.size() - 1
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PrimitiveType.PRIMITIVE_TRIANGLES)
+	var faces := PackedVector3Array()
+	var run := 0.0
+	var kerb_h := 0.45
+	for i in n:
+		var a: Dictionary = samples[i]; var b: Dictionary = samples[(i + 1) % n]
+		var on_street: bool = int(a.get("street", 0)) == 1 and int(b.get("street", 0)) == 1
+		var pa := Vector3(a["x"], float(a["elev_m"]), a["z"]); var pb := Vector3(b["x"], float(b["elev_m"]), b["z"])
+		var seg := pa.distance_to(pb)
+		if on_street:
+			run += seg
+			continue
+		var ha: float = a["heading_rad"]; var hb: float = b["heading_rad"]
+		var ra := Vector3(cos(ha), 0, -sin(ha)); var rb := Vector3(cos(hb), 0, -sin(hb))
+		var q := [pa - ra * hw, pa + ra * hw, pb + rb * hw, pb - rb * hw]
+		var uv := [Vector2(-hw, run), Vector2(hw, run), Vector2(hw, run + seg), Vector2(-hw, run + seg)]
+		for k in [0, 2, 1, 0, 3, 2]:
+			st.set_uv(uv[k]); st.set_normal(Vector3.UP); st.add_vertex(q[k]); faces.push_back(q[k])
+		# kerbs (low concrete walls, yellow/black paint from the road shader's wall branch)
+		for sd in [-1.0, 1.0]:
+			var k0: Vector3 = pa + ra * sd * hw; var k1: Vector3 = pb + rb * sd * hw
+			var w := [k0, k1, k1 + Vector3.UP * kerb_h, k0 + Vector3.UP * kerb_h]
+			for k in ([0, 1, 2, 0, 2, 3] if sd > 0 else [0, 2, 1, 0, 3, 2]):
+				st.set_uv(Vector2(0, 0)); st.set_normal(-ra * sd); st.add_vertex(w[k]); faces.push_back(w[k])
+			# ground skirt down from the road edge to the ground plane
+			var g := [k0, k1, Vector3(k1.x, gy, k1.z), Vector3(k0.x, gy, k0.z)]
+			for k in [0, 1, 2, 0, 2, 3]:
+				st.set_uv(Vector2(0, 0)); st.set_normal(ra * sd); st.add_vertex(g[k])
+		run += seg
+	var mi := MeshInstance3D.new()
+	mi.name = "Connectors"
+	mi.mesh = st.commit()
+	mi.material_override = _road_material()
+	root.add_child(mi)
+	var shape := ConcavePolygonShape3D.new()
+	shape.set_faces(faces)
+	shape.backface_collision = true
+	var body := StaticBody3D.new()
+	var cs := CollisionShape3D.new()
+	cs.shape = shape
+	body.add_child(cs)
+	root.add_child(body)
+	# ground out to the horizon (below every scene's own base)
+	var ground := MeshInstance3D.new()
+	var pm := PlaneMesh.new()
+	pm.size = Vector2(3000, 3000)
+	ground.mesh = pm
+	ground.material_override = _ground_material()
+	ground.position = Vector3(0, gy, 0)
+	ground.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	root.add_child(ground)
+	_connector_trees(root, samples, hw, gy)
+	var fb := StaticBody3D.new()
+	var fcs := CollisionShape3D.new()
+	var box := BoxShape3D.new(); box.size = Vector3(3000, 1.0, 3000)
+	fcs.shape = box
+	fb.position = Vector3(0, gy - 0.5, 0)
+	fb.add_child(fcs)
+	root.add_child(fb)
+
+
+## Park trees along the connecting roads (kept clear of the street scenes).
+func _connector_trees(root: Node3D, samples: Array, hw: float, gy: float) -> void:
+	var streets: Array[Vector2] = []
+	for s in samples:
+		if int(s.get("street", 0)) == 1:
+			streets.append(Vector2(s["x"], s["z"]))
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 4242
+	var inst := {"trees/almond": [], "trees/coconut": [], "trees/bush": []}
+	for i in range(0, samples.size() - 1, 3):
+		var s: Dictionary = samples[i]
+		if int(s.get("street", 0)) == 1:
+			continue
+		var h: float = s["heading_rad"]
+		var r := Vector3(cos(h), 0, -sin(h))
+		for sd in [-1.0, 1.0]:
+			for row in 2:
+				var p: Vector3 = Vector3(s["x"], gy, s["z"]) + r * sd * (hw + 5.0 + row * 9.0 + rng.randf_range(0.0, 6.0))
+				var near := false
+				for q in streets:
+					if q.distance_squared_to(Vector2(p.x, p.z)) < 45.0 * 45.0:
+						near = true
+						break
+				if near or rng.randf() < 0.25:
+					continue
+				var kind: String = ["trees/almond", "trees/almond", "trees/coconut", "trees/bush"][rng.randi() % 4]
+				var b := Basis(Vector3.UP, rng.randf() * TAU).scaled(Vector3.ONE * rng.randf_range(0.85, 1.35))
+				inst[kind].append(Transform3D(b, p))
+	_spawn_model_instances(root, inst)
 
 
 ## A model that is one district: ground out to the horizon and plain city blocks
