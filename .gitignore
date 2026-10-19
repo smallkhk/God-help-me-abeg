@@ -23,3 +23,6 @@ tools/lagos_map_pipeline/work/
 __pycache__/
 *.pyc
 .venv/
+
+# in-game update key: written by the build workflows from a secret, never committed
+update_token.txt

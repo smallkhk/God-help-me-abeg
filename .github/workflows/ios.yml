@@ -41,6 +41,14 @@ jobs:
       - name: Stamp build version (in-game updater compares against this)
         run: date +%s > build_version.txt
 
+      - name: Update key (private repo only, read-only token from the UPDATE_TOKEN secret)
+        env:
+          UPDATE_TOKEN: ${{ secrets.UPDATE_TOKEN }}
+          REPO_PRIVATE: ${{ github.event.repository.private }}
+        run: |
+          # only ever inside a private repo's builds: a public release would leak the key
+          if [ -n "$UPDATE_TOKEN" ] && [ "$REPO_PRIVATE" = "true" ]; then printf '%s' "$UPDATE_TOKEN" > update_token.txt; echo 'token added'; else echo 'no UPDATE_TOKEN secret: public update links'; fi
+
       - name: Import project
         run: |
           ./Godot.app/Contents/MacOS/Godot --headless --path . --import || true

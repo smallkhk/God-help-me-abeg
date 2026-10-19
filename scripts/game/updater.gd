@@ -12,12 +12,18 @@ extends Node
 ## few MB. Older IPAs keep using the full update.pck from the same manifest.
 ## Limits: engine/plugin (native) changes and project.godot settings still need
 ## a new IPA.
+## Private repo: release files then need a login. The build workflows write a
+## read-only token (repo secret UPDATE_TOKEN) to res://update_token.txt; with it
+## the files are fetched through the GitHub API (asset -> signed download link).
+## No token file (public repo builds): the plain public release links.
 
 const MANIFEST_URL := "https://github.com/smallkhk/God-help-me-abeg/releases/download/content-latest/manifest.json"
 const PACK := "user://update.pck"      # full pack (older builds / fallback)
 const BASE := "user://base.pck"
 const PATCH := "user://patch.pck"
 const STATE := "user://update_state.json"
+const RELEASE_API := "https://api.github.com/repos/smallkhk/God-help-me-abeg/releases/tags/content-latest"
+const TOKEN_FILE := "res://update_token.txt"
 
 var version := 0
 var _http: HTTPRequest
@@ -29,6 +35,8 @@ var _queue: Array = []      # [[url, dest, size], ...] still to download
 var _state := {}
 var _new_state := {}
 var _builtin := 0
+var _token := ""
+var _assets := {}           # private repo: file name -> API asset url
 
 
 func _init() -> void:
@@ -81,14 +89,66 @@ func _ready() -> void:
 	_http = HTTPRequest.new()
 	_http.timeout = 20.0
 	add_child(_http)
-	_http.request_completed.connect(_on_manifest)
-	_http.request(MANIFEST_URL)
+	var tf := FileAccess.open(TOKEN_FILE, FileAccess.READ)
+	if tf:
+		_token = tf.get_as_text().strip_edges()
+	_check.call_deferred()
 
 
-func _on_manifest(result: int, code: int, _h: PackedStringArray, body: PackedByteArray) -> void:
-	_http.request_completed.disconnect(_on_manifest)
-	if result != HTTPRequest.RESULT_SUCCESS or code != 200:
-		return   # offline or no update published yet: just play
+func _api_headers(accept: String) -> PackedStringArray:
+	return PackedStringArray(["Authorization: Bearer " + _token, "Accept: " + accept,
+		"User-Agent: LagosStreetRacing", "X-GitHub-Api-Version: 2022-11-28"])
+
+
+## [result, code, headers, body]
+func _fetch(url: String, headers := PackedStringArray()) -> Array:
+	var err := _http.request(url, headers)
+	if err != OK:
+		return [HTTPRequest.RESULT_CANT_CONNECT, 0, PackedStringArray(), PackedByteArray()]
+	return await _http.request_completed
+
+
+## Private repo: the asset's short-lived signed download link (GitHub answers the
+## API call with a redirect; the link itself must be fetched WITHOUT the token).
+func _signed_url(name: String) -> String:
+	if not _assets.has(name):
+		return ""
+	_http.max_redirects = 0
+	var r: Array = await _fetch(_assets[name], _api_headers("application/octet-stream"))
+	_http.max_redirects = 8
+	for h in (r[2] as PackedStringArray):
+		if h.to_lower().begins_with("location:"):
+			return h.substr(9).strip_edges()
+	return ""
+
+
+func _check() -> void:
+	var body := PackedByteArray()
+	if _token != "":
+		var rel: Array = await _fetch(RELEASE_API, _api_headers("application/vnd.github+json"))
+		if rel[0] != HTTPRequest.RESULT_SUCCESS or rel[1] != 200:
+			return
+		var info = JSON.parse_string((rel[3] as PackedByteArray).get_string_from_utf8())
+		if typeof(info) != TYPE_DICTIONARY:
+			return
+		for a in info.get("assets", []):
+			_assets[String(a["name"])] = String(a["url"])
+		var murl: String = await _signed_url("manifest.json")
+		if murl == "":
+			return
+		var mr: Array = await _fetch(murl)
+		if mr[0] != HTTPRequest.RESULT_SUCCESS or mr[1] != 200:
+			return
+		body = mr[3]
+	else:
+		var r: Array = await _fetch(MANIFEST_URL)
+		if r[0] != HTTPRequest.RESULT_SUCCESS or r[1] != 200:
+			return   # offline or no update published yet: just play
+		body = r[3]
+	_on_manifest(body)
+
+
+func _on_manifest(body: PackedByteArray) -> void:
 	var m = JSON.parse_string(body.get_string_from_utf8())
 	if typeof(m) != TYPE_DICTIONARY or int(m.get("version", 0)) <= version:
 		return
@@ -108,16 +168,22 @@ func _on_manifest(result: int, code: int, _h: PackedStringArray, body: PackedByt
 		_queue.append([str(m["url"]), PACK, int(m.get("size", 0))])
 	_show_ui("Downloading update…")
 	_http.timeout = 0.0
-	_http.request_completed.connect(_on_pack)
 	_next_download()
 
 
 func _next_download() -> void:
 	var job: Array = _queue[0]
 	_total = int(job[2])
+	var url := String(job[0])
+	if _token != "":
+		url = await _signed_url(url.get_file())     # private repo: same file, via the API
+		if url == "":
+			_on_pack(HTTPRequest.RESULT_CANT_CONNECT, 0, PackedStringArray(), PackedByteArray())
+			return
 	_http.download_file = String(job[1]) + ".part"
-	_http.request(String(job[0]))
 	set_process(true)
+	var r: Array = await _fetch(url)
+	_on_pack(r[0], r[1], r[2], r[3])
 
 
 func _process(_dt: float) -> void:
@@ -131,6 +197,7 @@ func _process(_dt: float) -> void:
 
 func _on_pack(result: int, code: int, _h: PackedStringArray, _b: PackedByteArray) -> void:
 	set_process(false)
+	_http.download_file = ""
 	var dest: String = _queue[0][1]
 	var part := ProjectSettings.globalize_path(dest + ".part")
 	if result != HTTPRequest.RESULT_SUCCESS or code != 200:
