@@ -7,6 +7,10 @@ render_mode cull_disabled;
 uniform sampler2D tex_sand : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
 uniform sampler2D tex_dirt : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
 uniform sampler2D tex_grass : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
+// city districts: most plots are paved with interlocking stones (grey / terracotta /
+// sand-yellow, a different scheme per plot) with blown sand over them
+uniform float urban = 0.0;
+uniform sampler2D tex_conc : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
 global uniform float wetness;
 varying vec3 wpos;
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
@@ -34,6 +38,8 @@ vec3 tex2(sampler2D t, vec2 uv) {
 	vec2 r = mat2(vec2(0.8, -0.6), vec2(0.6, 0.8)) * uv * 0.37;
 	return mix(texture(t, uv).rgb, texture(t, r).rgb, 0.35 + noise(uv * 0.21) * 0.3);
 }
+// sine-free hash (stable on low-precision mobile GPUs)
+float hh(vec2 p) { vec3 p3 = fract(vec3(p.xyx) * 0.1031); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }
 float lum(vec3 c) { return dot(c, vec3(0.3, 0.59, 0.11)); }
 void vertex() { wpos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz; }
 void fragment() {
@@ -66,7 +72,31 @@ void fragment() {
 	float peb = step(0.93, hash(floor(wpos.xz * 6.0))) * (1.0 - gm);
 	col = mix(col, vec3(0.55, 0.5, 0.45) * (0.7 + hash(floor(wpos.xz * 6.0) + 1.0) * 0.6), peb * 0.5);
 
-	float rough = mix(0.96, 0.85, gm);
+	float paved = 0.0;
+	if (urban > 0.0 && COLOR.a >= 0.75) {
+		vec2 pp = wpos.xz + (vec2(noise(wpos.xz * 0.3), noise(wpos.xz * 0.3 + 9.0)) - 0.5) * 1.6;
+		vec2 plot = floor(pp / 7.0);
+		paved = step(0.18, hh(plot + 5.0)) * urban;
+		// pavers 22 x 11 cm in running bond; joints fade out with distance (no shimmer)
+		vec2 q = wpos.xz / vec2(0.22, 0.11);
+		q.x += step(1.0, mod(floor(q.y), 2.0)) * 0.5;
+		vec2 pf = fract(q), pi = floor(q);
+		float fw = max(fwidth(q).x, fwidth(q).y);
+		float jt = (1.0 - smoothstep(0.0, 0.1, min(min(pf.x, 1.0 - pf.x) * 0.5, min(pf.y, 1.0 - pf.y)))) * (1.0 - smoothstep(0.25, 0.7, fw));
+		float sch = hh(plot + 11.0);
+		vec3 pa = sch < 0.45 ? vec3(0.50, 0.49, 0.48) : (sch < 0.8 ? vec3(0.54, 0.37, 0.31) : vec3(0.60, 0.59, 0.56));
+		vec3 pb = sch < 0.45 ? vec3(0.55, 0.37, 0.31) : vec3(0.47, 0.46, 0.45);
+		vec3 pc = mix(pa, pb, step(0.8, hh(pi)) * (1.0 - smoothstep(0.25, 0.7, fw)) + 0.2 * smoothstep(0.25, 0.7, fw));
+		pc *= 0.88 + 0.2 * hh(pi + 3.0) * (1.0 - smoothstep(0.25, 0.7, fw));
+		pc *= 0.7 + 0.55 * lum(texture(tex_conc, wpos.xz * 0.35).rgb);
+		pc *= 1.0 - jt * 0.4;
+		float dust = smoothstep(0.45, 0.78, fbm(wpos.xz * 0.22 + 23.0));
+		pc = mix(pc, sand * 0.95, dust * 0.45);
+		pc *= 0.86 + fbm(wpos.xz * 0.006 + 3.0) * 0.3;
+		col = mix(col, mix(pc, litc, lit * 0.9), paved);
+		gm *= 1.0 - paved;
+	}
+	float rough = mix(mix(0.96, 0.85, gm), 0.8, paved);
 	// rain: darker soaked ground and puddles in the low spots
 	float pud = smoothstep(0.62, 0.7, fbm(wpos.xz * 0.05 + 9.0) + (1.0 - wetness) * 0.4) * wetness * (1.0 - gm);
 	col *= 1.0 - wetness * 0.35;
@@ -89,7 +119,7 @@ void fragment() {
 	float h0 = lum(texture(tex_dirt, uv * 0.8).rgb) + lum(texture(tex_sand, uv).rgb) - cr * mud * 0.6;
 	float hx = lum(texture(tex_dirt, (uv + vec2(e, 0.0)) * 0.8).rgb) + lum(texture(tex_sand, uv + vec2(e, 0.0)).rgb);
 	float hz = lum(texture(tex_dirt, (uv + vec2(0.0, e)) * 0.8).rgb) + lum(texture(tex_sand, uv + vec2(0.0, e)).rgb);
-	float bs = 1.6 * (1.0 - pud);
+	float bs = 1.6 * (1.0 - pud) * (1.0 - paved * 0.75);
 	vec3 wn = normalize(vec3(-(hx - h0) * bs, 1.0, -(hz - h0) * bs));
 	NORMAL = normalize((VIEW_MATRIX * vec4(wn, 0.0)).xyz);
 }

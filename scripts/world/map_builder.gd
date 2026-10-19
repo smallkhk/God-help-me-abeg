@@ -460,6 +460,9 @@ func _ground_material() -> ShaderMaterial:
 	m.set_shader_parameter("tex_sand", load("res://assets/textures/ground_sand.jpg"))
 	m.set_shader_parameter("tex_dirt", load("res://assets/textures/ground_dirt.jpg"))
 	m.set_shader_parameter("tex_grass", load("res://assets/textures/ground_grass.jpg"))
+	if chunk.get("district", false):
+		m.set_shader_parameter("urban", 1.0)
+		m.set_shader_parameter("tex_conc", load("res://assets/textures/concrete.jpg"))
 	return m
 
 

@@ -106,7 +106,6 @@ func _initialize() -> void:
 			if c is CanvasLayer:
 				c.visible = false
 		_free = true
-		set_process_unhandled_input(false)
 		return
 	if _builder:
 		var chunk := _builder.get_chunk()
@@ -244,6 +243,11 @@ func _reset_to_idle() -> void:
 func _unhandled_input(ev: InputEvent) -> void:
 	if not _initialized:
 		return
+	if ev.is_action_pressed("reset_car") and _player:
+		_recover_player()
+		return
+	if _free:
+		return
 	if ev.is_action_pressed("restart"):
 		_reset_to_idle()
 		return
@@ -292,6 +296,7 @@ func _process(delta: float) -> void:
 				_center_label.text = str(int(ceil(_countdown)))
 		State.RUNNING:
 			_elapsed += delta
+			_auto_recover(delta)
 			if _center_label.text != "" and _elapsed - _elapsed_banner > 1.5:
 				_center_label.text = ""
 			_update_positions()
@@ -582,7 +587,28 @@ func _update_positions() -> void:
 	player_position = ahead + 1
 
 
+## Flipped for 2 s, or pinned (gas held, not moving) for 5 s: back on the road.
+var _flip_t := 0.0
+var _pin_t := 0.0
+func _auto_recover(delta: float) -> void:
+	if _player == null:
+		return
+	_flip_t = _flip_t + delta if _player.global_transform.basis.y.y < 0.35 else 0.0
+	var pinned := _player.throttle_input > 0.5 and _player.linear_velocity.length() < 0.8
+	_pin_t = _pin_t + delta if pinned else 0.0
+	if _flip_t > 2.0 or _pin_t > 5.0:
+		_flip_t = 0.0; _pin_t = 0.0
+		_recover_player()
+
+
 func _recover_player() -> void:
+	if _route.size() < 2:
+		if _builder and not _builder.get_chunk().is_empty():
+			_route = _builder.get_chunk()["road"]["samples"]   # free roam
+		else:
+			_player.global_transform = _spawn
+			_player.reset_state()
+			return
 	var i := _nearest_sample(_player.global_position, 0, _route.size())
 	var smp = _route[i]
 	var h: float = smp["heading_rad"]
